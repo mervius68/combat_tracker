@@ -1,0 +1,38 @@
+<script>
+
+async function dbQuery(httpReqType, httpReqString) {
+    
+    // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
+    let dbReturn = makePromise(httpReqType, httpReqString);
+    let dbReturnJSON = await dbReturn;
+    let unpackdbReturn = JSON.parse(dbReturnJSON);
+    return unpackdbReturn;
+
+    function makePromise(httpReqType, httpReqString) {
+        httpReqString = httpReqString;
+        let request = new Promise((resolve, reject) => {
+            let xhr = new XMLHttpRequest();
+            xhr.open(httpReqType, "../" + httpReqString, true);
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const text = xhr.responseText;
+                    resolve(text);
+                } else {
+                    reject(xhr.statusText);
+                }
+            };
+            
+            xhr.onerror = () => reject("Request Failed");
+            xhr.send();
+        });
+        return request;
+    }
+}
+
+async function start_encounter() {
+    let x = await dbQuery("GET", "current_encounter")
+    let f = document.querySelector(".section")
+    f.textContent = x[2].action_type;
+    }
+
+</script>
