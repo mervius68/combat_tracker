@@ -31,8 +31,9 @@ async function dbQuery(httpReqType, httpReqString) {
 
 async function start_encounter() {
     let x = await dbQuery("GET", "current_encounter")
-    let f = document.querySelector(".section")
-    f.textContent = x[2].action_type;
+    let f = document.querySelector(".main_header")
+    f.textContent = `${x[0].campaign} - ${x[0].location}`;
+    console.log(x);
     }
 
 </script>
