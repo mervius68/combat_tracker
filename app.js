@@ -41,18 +41,27 @@ app.get("/current_encounter/", (req, res) => {
     });
 });
 
-// app.get("/getEntry/:dateday", (req, res) => {
-//     let sql = `SELECT * FROM main where dateID ='${req.params.dateday}'`;
-//     let query = db.query(sql, (err, results) => {
-//         if (err) {
-//             throw err;
-//         }
-//         if (results.length == 0) {
-//             // There is no entry in DB for this date.
-//             results = [{ entry: "" }];
-//         }
-//         res.send(JSON.stringify(results));
-//     });
-// });
+app.get("/turns/", (req, res) => {
+    let sql = `SELECT *
+                FROM ct_tbl_turns
+                JOIN ct_tbl_actions ON ct_tbl_turns.actionID = ct_tbl_actions.actionID
+                JOIN ct_tbl_participants ON ct_tbl_turns.character = ct_tbl_participants.pID
+                JOIN ct_tbl_tools ON ct_tbl_actions.toolID = ct_tbl_tools.toolID
+                LEFT JOIN ct_tbl_targets ON ct_tbl_actions.targetID = ct_tbl_targets.targetID
+                WHERE ct_tbl_turns.actionID = 1;
+    `;
+            // above explicit join is basically the same as the following IMPLICIT join
+            // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
+            // where ct_tbl_campaigns.cID = ct_tbl_encounters.cID
+            // AND ct_tbl_campaigns.cID = 1
+
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            throw err;
+        }
+        console.log(results);
+        res.send(results);
+    });
+});
 
 app.listen(3000, console.log("App Listening to port 3000"));

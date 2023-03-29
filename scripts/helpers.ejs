@@ -21,7 +21,6 @@ async function dbQuery(httpReqType, httpReqString) {
                     reject(xhr.statusText);
                 }
             };
-            
             xhr.onerror = () => reject("Request Failed");
             xhr.send();
         });
@@ -30,10 +29,13 @@ async function dbQuery(httpReqType, httpReqString) {
 }
 
 async function start_encounter() {
-    let x = await dbQuery("GET", "current_encounter")
-    let f = document.querySelector(".main_header")
-    f.textContent = `${x[0].campaign} - ${x[0].location}`;
-    console.log(x);
+    let campaign = await dbQuery("GET", "current_encounter")
+    let header = document.querySelector(".main_header")
+    header.textContent = `${campaign[0].campaign} - ${campaign[0].location}`;
+
+    let turn = await dbQuery("GET","turns");
+
+    let x = document.querySelectorAll('div[data-turn="1"]');
     }
 
 </script>
