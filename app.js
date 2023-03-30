@@ -3,6 +3,7 @@ const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
+let ctApp;
 
 const db = new sqlite3.Database(
     "./combat.db",
@@ -27,33 +28,49 @@ app.get("/current_encounter/", (req, res) => {
                 ON ct_tbl_campaigns.cID = ct_tbl_encounters.cID
                 WHERE ct_tbl_campaigns.cID = 1;
     `;
-            // above explicity join is basically the same as the following IMPLICIT join
-            // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
-            // where ct_tbl_campaigns.cID = ct_tbl_encounters.cID
-            // AND ct_tbl_campaigns.cID = 1
+    // above explicity join is basically the same as the following IMPLICIT join
+    // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
+    // where ct_tbl_campaigns.cID = ct_tbl_encounters.cID
+    // AND ct_tbl_campaigns.cID = 1
 
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             throw err;
         }
-        console.log(results);
+        // console.log(results);
+        res.send(results);
+    });
+});
+
+app.get("/participants/", (req, res) => {
+    let sql = `SELECT *
+                FROM ct_tbl_participants
+                JOIN ct_tbl_characters ON ct_tbl_characters.chID = ct_tbl_participants.chID
+                WHERE ct_tbl_participants.eID = 1 ORDER BY ct_tbl_participants.init DESC;
+    `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            throw err;
+        }
+        // console.log(results);
         res.send(results);
     });
 });
 
 app.get("/turns/", (req, res) => {
     let sql = `SELECT *
-                FROM ct_tbl_turns
-                JOIN ct_tbl_actions ON ct_tbl_turns.actionID = ct_tbl_actions.actionID
-                JOIN ct_tbl_participants ON ct_tbl_turns.character = ct_tbl_participants.pID
+                FROM ct_tbl_encounters
+                LEFT JOIN ct_tbl_turns ON ct_tbl_encounters.eID = ct_tbl_turns.eID 
+                LEFT JOIN ct_tbl_actions ON ct_tbl_turns.actionID = ct_tbl_actions.actionID
+                JOIN ct_tbl_participants ON ct_tbl_turns.pID = ct_tbl_participants.pID
                 JOIN ct_tbl_tools ON ct_tbl_actions.toolID = ct_tbl_tools.toolID
                 LEFT JOIN ct_tbl_targets ON ct_tbl_actions.targetID = ct_tbl_targets.targetID
-                WHERE ct_tbl_turns.actionID = 1;
+                WHERE ct_tbl_encounters.eID = 1;
     `;
-            // above explicit join is basically the same as the following IMPLICIT join
-            // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
-            // where ct_tbl_campaigns.cID = ct_tbl_encounters.cID
-            // AND ct_tbl_campaigns.cID = 1
+    // above explicit join is basically the same as the following IMPLICIT join
+    // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
+    // where ct_tbl_campaigns.cID = ct_tbl_encounters.cID
+    // AND ct_tbl_campaigns.cID = 1
 
     let query = db.all(sql, [], (err, results) => {
         if (err) {

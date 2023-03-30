@@ -1,41 +1,61 @@
 <script>
 
-async function dbQuery(httpReqType, httpReqString) {
-    
-    // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
-    let dbReturn = makePromise(httpReqType, httpReqString);
-    let dbReturnJSON = await dbReturn;
-    let unpackdbReturn = JSON.parse(dbReturnJSON);
-    return unpackdbReturn;
+    async function dbQuery(httpReqType, httpReqString) {
 
-    function makePromise(httpReqType, httpReqString) {
-        httpReqString = httpReqString;
-        let request = new Promise((resolve, reject) => {
-            let xhr = new XMLHttpRequest();
-            xhr.open(httpReqType, "../" + httpReqString, true);
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    const text = xhr.responseText;
-                    resolve(text);
-                } else {
-                    reject(xhr.statusText);
-                }
-            };
-            xhr.onerror = () => reject("Request Failed");
-            xhr.send();
-        });
-        return request;
+        // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
+        let dbReturn = makePromise(httpReqType, httpReqString);
+        let dbReturnJSON = await dbReturn;
+        let unpackdbReturn = JSON.parse(dbReturnJSON);
+        return unpackdbReturn;
+
+        function makePromise(httpReqType, httpReqString) {
+            httpReqString = httpReqString;
+            let request = new Promise((resolve, reject) => {
+                let xhr = new XMLHttpRequest();
+                xhr.open(httpReqType, "../" + httpReqString, true);
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        const text = xhr.responseText;
+                        resolve(text);
+                    } else {
+                        reject(xhr.statusText);
+                    }
+                };
+                xhr.onerror = () => reject("Request Failed");
+                xhr.send();
+            });
+            return request;
+        }
     }
-}
 
-async function start_encounter() {
-    let campaign = await dbQuery("GET", "current_encounter")
-    let header = document.querySelector(".main_header")
-    header.textContent = `${campaign[0].campaign} - ${campaign[0].location}`;
+    async function start_encounter() {
+        // get participants
+        ctApp = await dbQuery("GET", "participants");
 
-    let turn = await dbQuery("GET","turns");
+        // get basic encounter details
+        let campaign = await dbQuery("GET", "current_encounter")
+        let header = document.querySelector(".main_header")
+        header.textContent = `${campaign[0].campaign} - ${campaign[0].location}`;
 
-    let x = document.querySelectorAll('div[data-turn="1"]');
+        // get info about rounds and turns
+        let turn = await dbQuery("GET", "turns");
+
+        // select all the html cells we need
+        let x = document.querySelectorAll('div[data-round="1"] div[data-turn="1"]');
+
+        // participants section
+        x[0].innerText = ctApp[0].AC;
+        x[1].innerText = ctApp[0].hpID;
+        x[2].innerText = ctApp[0].character_name + (ctApp[0].numeric_ID != null ? " #" + ctApp[0].numeric_ID : "");
+        x[3].innerText = ctApp[0].init;
+
+        // first attack section
+        x[4].innerText = turn[0].toolName;
+        x[5].innerText = turn[0].hit == 1 ? "X" : "";
+        let xxx = ctApp.find((item) => { 
+            return item.pID == turn[0].targetID })
+        x[6].innerText = xxx.character_name + (xxx.numeric_ID != null ? " #" + xxx.numeric_ID : "");
+        x[7].innerText = turn[0].damage
     }
 
 </script>
