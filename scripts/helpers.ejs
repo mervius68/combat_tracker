@@ -1,7 +1,5 @@
 <script>
-
     async function dbQuery(httpReqType, httpReqString) {
-
         // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
         let dbReturn = makePromise(httpReqType, httpReqString);
         let dbReturnJSON = await dbReturn;
@@ -28,34 +26,100 @@
         }
     }
 
-    async function start_encounter() {
+    async function load_encounter() {
         // get participants
         ctApp = await dbQuery("GET", "participants");
-
+        console.log(ctApp);
         // get basic encounter details
-        let campaign = await dbQuery("GET", "current_encounter")
-        let header = document.querySelector(".main_header")
+        let campaign = await dbQuery("GET", "current_encounter");
+        let header = document.querySelector(".main_header");
         header.textContent = `${campaign[0].campaign} - ${campaign[0].location}`;
 
         // get info about rounds and turns
-        let turn = await dbQuery("GET", "turns");
+        let turns = await dbQuery("GET", "turns");
+
+        // determine how many rounds there are
+        let numberRounds = Math.max.apply(
+            Math,
+            turns.map(function (item) {
+                return item.round;
+            })
+        );
+
+        // determine how many participants
+        let numberParticipants = ctApp.length;
+
+        // determine types and number of attacks
+        let attacks, bonus, react, maxAttacks, maxBonus, maxReact;
+        turns.forEach((item) => {
+            attacks = turns.filter((turn) => {
+                return (
+                    turn.roundID == 1 &&
+                    turn.pID == 1 &&
+                    turn.action_type == "attack"
+                );
+            }).length;
+            bonus = turns.filter((turn) => {
+                return (
+                    turn.roundID == 1 &&
+                    turn.pID == 1 &&
+                    turn.action_type == "bonus"
+                );
+            }).length;
+            react = turns.filter((turn) => {
+                return (
+                    turn.roundID == 1 &&
+                    turn.pID == 1 &&
+                    turn.action_type == "react"
+                );
+            }).length;
+            maxAttacks = maxAttacks > attacks ? maxAttacks : attacks;
+            maxBonus = maxBonus > bonus ? maxBonus : bonus;
+            maxReact = maxReact > react ? maxReact : react;
+        });
+        console.log("we need reactions: " + maxReact)
+        console.log("we need bonus: " + maxBonus)
+        console.log("we need attacks: " + maxAttacks)
+
+        // build the HTML with blank slate
+
+        // populate the round
+
+        // move to next round and determine how many participants (may change based on join_round property)
+        // repeat
 
         // select all the html cells we need
-        let x = document.querySelectorAll('div[data-round="1"] div[data-turn="1"]');
-
+        let cells = document.querySelectorAll(
+            'div[data-round="1"] div[data-turn="1"]'
+        );
+        console.log(ctApp);
         // participants section
-        x[0].innerText = ctApp[0].AC;
-        x[1].innerText = ctApp[0].hpID;
-        x[2].innerText = ctApp[0].character_name + (ctApp[0].numeric_ID != null ? " #" + ctApp[0].numeric_ID : "");
-        x[3].innerText = ctApp[0].init;
+
+        cells[0].innerText = ctApp[0].AC;
+        cells[1].innerText = ctApp[0].hpID;
+        cells[2].innerText =
+            ctApp[0].character_name +
+            (ctApp[0].numeric_ID != null ? " #" + ctApp[0].numeric_ID : "");
+        cells[3].innerText = ctApp[0].init;
 
         // first attack section
-        x[4].innerText = turn[0].toolName;
-        x[5].innerText = turn[0].hit == 1 ? "X" : "";
-        let xxx = ctApp.find((item) => { 
-            return item.pID == turn[0].targetID })
-        x[6].innerText = xxx.character_name + (xxx.numeric_ID != null ? " #" + xxx.numeric_ID : "");
-        x[7].innerText = turn[0].damage
-    }
+        let thisAction = turns[0];
+        cells[4].innerText = thisAction.toolName;
+        cells[5].innerText = thisAction.hit == 1 ? "X" : "";
+        let thisTarget = ctApp.find((item) => item.pID == thisAction.targetID);
+        cells[6].innerText =
+            thisTarget.character_name +
+            (thisTarget.numeric_ID != null ? " #" + thisTarget.numeric_ID : "");
+        cells[7].innerText = thisAction.damage;
 
+        // bonus attack
+        thisAction = turns[1];
+        cells[8].innerText = thisAction.toolName;
+        cells[9].innerText = thisAction.hit == 1 ? "X" : "";
+        thisTarget = ctApp.find((item) => item.pID == thisAction.targetID);
+        cells[10].innerText =
+            thisTarget.character_name +
+            (thisTarget.numeric_ID != null ? " #" + thisTarget.numeric_ID : "");
+        cells[11].innerText = thisAction.damage;
+    }
 </script>

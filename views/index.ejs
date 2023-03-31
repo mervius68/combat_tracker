@@ -12,104 +12,119 @@
             http-equiv="Content-Type"
             content="text/html; charset=utf8_unicode_ci"
         />
-       <%- include ('../scripts/helpers'); %>
+        <%- include ('../scripts/helpers'); %>
     </head>
-    <body onload="start_encounter()">
-        
+    <body onload="load_encounter()">
         <h1 class="main_header"></h1>
 
         <h2>Round 1</h2>
-
-        <div class="ct_round" data-round="1">
-            <div class="ct_grid4columns" data-section="1">
-                <div class="section header ct_turn_bookends">AC</div>
-                <div class="section header ct_turn_bookends">HP</div>
-                <div class="section header ct_turn_bookends">Character</div>
-                <div class="section header ct_turn_bookends">Init</div>
-                <div class="section ct_turn_bookends" data-turn="1"></div>
-                <div class="section ct_turn_bookends" data-turn="1"></div>
-                <div class="section ct_turn_bookends" data-turn="1"></div>
-                <div class="section ct_turn_bookends" data-turn="1"></div>
-                <div class="section ct_turn_bookends" data-turn="2"></div>
-                <div class="section ct_turn_bookends" data-turn="2"></div>
-                <div class="section ct_turn_bookends" data-turn="2"></div>
-                <div class="section ct_turn_bookends" data-turn="2"></div>
-                <div class="section ct_turn_bookends" data-turn="3"></div>
-                <div class="section ct_turn_bookends" data-turn="3"></div>
-                <div class="section ct_turn_bookends" data-turn="3"></div>
-                <div class="section ct_turn_bookends" data-turn="3"></div>
-            </div>
-            <div class="ct_grid4columns" data-attack="1">
-                <div class="section header attack">Attack</div>
-                <div class="section header attack">Hit?</div>
-                <div class="section header attack">Target(s)</div>
-                <div class="section header attack">hp</div>
-                <div class="section attack" data-turn="1"></div>
-                <div class="section attack" data-turn="1"></div>
-                <div class="section attack" data-turn="1"></div>
-                <div class="section attack" data-turn="1"></div>
-                <div class="section attack"></div>
-                <div class="section attack"></div>
-                <div class="section attack"></div>
-                <div class="section attack"></div>
-                <div class="section attack"></div>
-                <div class="section attack"></div>
-                <div class="section attack"></div>
-                <div class="section attack"></div>
-            </div>
-            <div class="ct_grid4columns" data-attack="2">
-                <div class="section header bonus">Bonus</div>
-                <div class="section header bonus">Hit?</div>
-                <div class="section header bonus">Target(s)</div>
-                <div class="section header bonus">hp</div>
-                <div class="section bonus" data-turn="1"></div>
-                <div class="section bonus" data-turn="1"></div>
-                <div class="section bonus" data-turn="1"></div>
-                <div class="section bonus" data-turn="1"></div>
-                <div class="section bonus"></div>
-                <div class="section bonus"></div>
-                <div class="section bonus"></div>
-                <div class="section bonus"></div>
-                <div class="section bonus"></div>
-                <div class="section bonus"></div>
-                <div class="section bonus"></div>
-                <div class="section bonus"></div>
-            </div>
-            <div class="ct_grid4columns" data-attack="3">
-                <div class="section header reaction">React</div>
-                <div class="section header reaction">Hit?</div>
-                <div class="section header reaction">Target(s)</div>
-                <div class="section header reaction">hp</div>
-                <div class="section reaction" data-turn="1"><span class="available">available</span></div>
-                <div class="section reaction" data-turn="1"></div>
-                <div class="section reaction" data-turn="1"></div>
-                <div class="section reaction" data-turn="1"></div>
-                <div class="section reaction"><span class="available">available</span></div>
-                <div class="section reaction"></div>
-                <div class="section reaction"></div>
-                <div class="section reaction"></div>
-                <div class="section reaction"><span class="available">available</span></div>
-                <div class="section reaction"></div>
-                <div class="section reaction"></div>
-                <div class="section reaction"></div>
-            </div>
-            <div class="ct_grid4columns" data-section="2">
-                <div class="section header ct_turn_bookends">Drop</div>
-                <div class="section header ct_turn_bookends">Start</div>
-                <div class="section header ct_turn_bookends">End</div>
-                <div class="section header ct_turn_bookends">Notes</div>
-                <div class="section ct_turn_bookends" data-turn="1"></div>
-                <div class="section ct_turn_bookends" data-turn="1"></div>
-                <div class="section ct_turn_bookends" data-turn="1"></div>
-                <div class="section ct_turn_bookends" data-turn="1"></div>
-                <div class="section ct_turn_bookends"></div>
-                <div class="section ct_turn_bookends"></div>
-                <div class="section ct_turn_bookends"></div>
-                <div class="section ct_turn_bookends"></div>
-                <div class="section ct_turn_bookends"></div>
-                <div class="section ct_turn_bookends"></div>
-                <div class="section ct_turn_bookends"></div>
-                <div class="section ct_turn_bookends"></div>
+        <div class="ct_round_container">
+            <div class="ct_round" data-round="1">
+                <div class="ct_grid4columns" data-section="1">
+                    <div class="section header ct_turn_bookends">AC</div>
+                    <div class="section header ct_turn_bookends">HP</div>
+                    <div class="section header ct_turn_bookends">Character</div>
+                    <div class="section header ct_turn_bookends">Init</div>
+                    <div
+                        class="section ct_turn_bookends center"
+                        data-turn="1"
+                    ></div>
+                    <div
+                        class="section ct_turn_bookends center"
+                        data-turn="1"
+                    ></div>
+                    <div class="section ct_turn_bookends" data-turn="1"></div>
+                    <div
+                        class="section ct_turn_bookends center"
+                        data-turn="1"
+                    ></div>
+                    <div class="section ct_turn_bookends" data-turn="2"></div>
+                    <div class="section ct_turn_bookends" data-turn="2"></div>
+                    <div class="section ct_turn_bookends" data-turn="2"></div>
+                    <div class="section ct_turn_bookends" data-turn="2"></div>
+                    <div class="section ct_turn_bookends" data-turn="3"></div>
+                    <div class="section ct_turn_bookends" data-turn="3"></div>
+                    <div class="section ct_turn_bookends" data-turn="3"></div>
+                    <div class="section ct_turn_bookends" data-turn="3"></div>
+                </div>
+                <div class="ct_grid4columns" data-attack="1">
+                    <div class="section header attack">Attack</div>
+                    <div class="section header attack">Hit?</div>
+                    <div class="section header attack">Target(s)</div>
+                    <div class="section header attack">hp</div>
+                    <div class="section attack" data-turn="1"></div>
+                    <div class="section attack center" data-turn="1"></div>
+                    <div class="section attack" data-turn="1"></div>
+                    <div class="section attack center" data-turn="1"></div>
+                    <div class="section attack"></div>
+                    <div class="section attack"></div>
+                    <div class="section attack"></div>
+                    <div class="section attack"></div>
+                    <div class="section attack"></div>
+                    <div class="section attack"></div>
+                    <div class="section attack"></div>
+                    <div class="section attack"></div>
+                </div>
+                <div class="ct_grid4columns" data-attack="2">
+                    <div class="section header bonus">Bonus</div>
+                    <div class="section header bonus">Hit?</div>
+                    <div class="section header bonus">Target(s)</div>
+                    <div class="section header bonus">hp</div>
+                    <div class="section bonus" data-turn="1"></div>
+                    <div class="section bonus center" data-turn="1"></div>
+                    <div class="section bonus" data-turn="1"></div>
+                    <div class="section bonus center" data-turn="1"></div>
+                    <div class="section bonus"></div>
+                    <div class="section bonus"></div>
+                    <div class="section bonus"></div>
+                    <div class="section bonus"></div>
+                    <div class="section bonus"></div>
+                    <div class="section bonus"></div>
+                    <div class="section bonus"></div>
+                    <div class="section bonus"></div>
+                </div>
+                <div class="ct_grid4columns" data-attack="3">
+                    <div class="section header reaction">React</div>
+                    <div class="section header reaction">Hit?</div>
+                    <div class="section header reaction">Target(s)</div>
+                    <div class="section header reaction">hp</div>
+                    <div class="section reaction" data-turn="1">
+                        <span class="available">available</span>
+                    </div>
+                    <div class="section reaction" data-turn="1"></div>
+                    <div class="section reaction" data-turn="1"></div>
+                    <div class="section reaction" data-turn="1"></div>
+                    <div class="section reaction">
+                        <span class="available">available</span>
+                    </div>
+                    <div class="section reaction"></div>
+                    <div class="section reaction"></div>
+                    <div class="section reaction"></div>
+                    <div class="section reaction">
+                        <span class="available">available</span>
+                    </div>
+                    <div class="section reaction"></div>
+                    <div class="section reaction"></div>
+                    <div class="section reaction"></div>
+                </div>
+                <div class="ct_grid4columns" data-section="2">
+                    <div class="section header ct_turn_bookends">Drop</div>
+                    <div class="section header ct_turn_bookends">Start</div>
+                    <div class="section header ct_turn_bookends">End</div>
+                    <div class="section header ct_turn_bookends">Notes</div>
+                    <div class="section ct_turn_bookends" data-turn="1"></div>
+                    <div class="section ct_turn_bookends" data-turn="1"></div>
+                    <div class="section ct_turn_bookends" data-turn="1"></div>
+                    <div class="section ct_turn_bookends" data-turn="1"></div>
+                    <div class="section ct_turn_bookends"></div>
+                    <div class="section ct_turn_bookends"></div>
+                    <div class="section ct_turn_bookends"></div>
+                    <div class="section ct_turn_bookends"></div>
+                    <div class="section ct_turn_bookends"></div>
+                    <div class="section ct_turn_bookends"></div>
+                    <div class="section ct_turn_bookends"></div>
+                    <div class="section ct_turn_bookends"></div>
+                </div>
             </div>
         </div>
     </body>

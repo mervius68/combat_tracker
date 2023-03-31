@@ -23,10 +23,10 @@ app.get("/", function (req, res) {
 
 app.get("/current_encounter/", (req, res) => {
     let sql = `SELECT *
-                FROM ct_tbl_campaigns
-                JOIN ct_tbl_encounters
-                ON ct_tbl_campaigns.cID = ct_tbl_encounters.cID
-                WHERE ct_tbl_campaigns.cID = 1;
+                FROM ct_tbl_campaign
+                JOIN ct_tbl_encounter
+                ON ct_tbl_campaign.cID = ct_tbl_encounter.cID
+                WHERE ct_tbl_campaign.cID = 1;
     `;
     // above explicity join is basically the same as the following IMPLICIT join
     // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
@@ -44,28 +44,29 @@ app.get("/current_encounter/", (req, res) => {
 
 app.get("/participants/", (req, res) => {
     let sql = `SELECT *
-                FROM ct_tbl_participants
-                JOIN ct_tbl_characters ON ct_tbl_characters.chID = ct_tbl_participants.chID
-                WHERE ct_tbl_participants.eID = 1 ORDER BY ct_tbl_participants.init DESC;
-    `;
+                FROM ct_tbl_participant
+                JOIN ct_tbl_character ON ct_tbl_participant.chID = ct_tbl_character.chID
+                WHERE ct_tbl_participant.eID = "1";
+                `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
+            console.log(err);
             throw err;
         }
-        // console.log(results);
+        console.log("results: " + results);
         res.send(results);
     });
 });
 
 app.get("/turns/", (req, res) => {
     let sql = `SELECT *
-                FROM ct_tbl_encounters
-                LEFT JOIN ct_tbl_turns ON ct_tbl_encounters.eID = ct_tbl_turns.eID 
-                LEFT JOIN ct_tbl_actions ON ct_tbl_turns.actionID = ct_tbl_actions.actionID
-                JOIN ct_tbl_participants ON ct_tbl_turns.pID = ct_tbl_participants.pID
-                JOIN ct_tbl_tools ON ct_tbl_actions.toolID = ct_tbl_tools.toolID
-                LEFT JOIN ct_tbl_targets ON ct_tbl_actions.targetID = ct_tbl_targets.targetID
-                WHERE ct_tbl_encounters.eID = 1;
+                FROM ct_tbl_encounter
+                LEFT JOIN ct_tbl_turn        ON ct_tbl_encounter.eID   = ct_tbl_turn.eID 
+                LEFT JOIN ct_tbl_action      ON ct_tbl_turn.turnID     = ct_tbl_action.turnID
+                     JOIN ct_tbl_participant ON ct_tbl_turn.pID        = ct_tbl_participant.pID
+                     JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
+                LEFT JOIN ct_tbl_target      ON ct_tbl_action.targetID = ct_tbl_target.targetID
+                WHERE ct_tbl_encounter.eID = 1;
     `;
     // above explicit join is basically the same as the following IMPLICIT join
     // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
