@@ -45,13 +45,15 @@
                 return item.round;
             })
         );
+        console.log("number of rounds: " + numberRounds)
 
         // determine how many participants
         let numberParticipants = ctApp.length;
+        console.log("number of participants: " + numberParticipants)
 
         // determine types and number of attacks
-        let attacks, bonus, react, maxAttacks, maxBonus, maxReact;
-        turns.forEach((item) => {
+        let attacks, bonus, react, maxAttacks, maxBonus, maxReact, roundWireFrame;
+        turns.forEach(() => {
             attacks = turns.filter((turn) => {
                 return (
                     turn.roundID == 1 &&
@@ -73,13 +75,52 @@
                     turn.action_type == "react"
                 );
             }).length;
+            
             maxAttacks = maxAttacks > attacks ? maxAttacks : attacks;
             maxBonus = maxBonus > bonus ? maxBonus : bonus;
             maxReact = maxReact > react ? maxReact : react;
+
+            roundWireFrame = {
+                round: 1,
+                attacks: maxAttacks,
+                bonus: maxBonus,
+                react: maxReact
+            }
+            console.log(roundWireFrame)
         });
-        console.log("we need reactions: " + maxReact)
-        console.log("we need bonus: " + maxBonus)
-        console.log("we need attacks: " + maxAttacks)
+
+
+        function determineNumbersOfNeededActionTables(turns, round, pID, actionType) {
+            for (let i = 0; i < numberRounds; i++) {
+                turns.forEach((item) => {
+                    attacks = turns.filter((turn) => {
+                        return (
+                            turn.roundID == 1 &&
+                            turn.pID == 1 &&
+                            turn.action_type == "attack"
+                        );
+                    }).length;
+                    bonus = turns.filter((turn) => {
+                        return (
+                            turn.roundID == 1 &&
+                            turn.pID == 1 &&
+                            turn.action_type == "bonus"
+                        );
+                    }).length;
+                    react = turns.filter((turn) => {
+                        return (
+                            turn.roundID == 1 &&
+                            turn.pID == 1 &&
+                            turn.action_type == "react"
+                        );
+                    }).length;
+                    maxAttacks = maxAttacks > attacks ? maxAttacks : attacks;
+                    maxBonus = maxBonus > bonus ? maxBonus : bonus;
+                    maxReact = maxReact > react ? maxReact : react;
+                })
+            }
+
+        }
 
         // build the HTML with blank slate
 
