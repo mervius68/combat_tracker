@@ -87,14 +87,18 @@
         // populate the encounterWireFrame object with info
         turns.forEach((turn) => {
             if (turn.action_type == "attack" && turn.actionID != document.querySelector(
-                    '[data-round="1"] [data-attack="1"] [data-participant="1"]'
-                ).getAttribute('[data-action-ID]')) {
+                '[data-round="1"] [data-attack="1"] [data-participant="1"]'
+            ).getAttribute('[data-action-ID]')) {
+                if (!encounterWireFrame[turn.rID]["participant" + turn.pID].actionIDs.find((item) => {
+                    return item == turn.actionID
+                })) {
+                    encounterWireFrame[turn.rID][
+                        "participant" + turn.pID
+                    ].attacks += 1;
+                }
                 encounterWireFrame[turn.rID][
                     "participant" + turn.pID
-                ].attacks += 1;
-                // encounterWireFrame[turn.rID][
-                //     "participant" + turn.pID
-                // ].actionIDs.push(turn.actionID);
+                ].actionIDs.push(turn.actionID);
             } else if (turn.action_type == "bonus") {
                 encounterWireFrame[turn.rID][
                     "participant" + turn.pID
@@ -164,7 +168,7 @@
                 }
             });
             round.appendChild(section1);
-            
+
             // highest number of attacks by one character in this round?
             let attacksArray = [];
             for (let j = 0; j < numberParticipants; j++) {
@@ -172,7 +176,6 @@
                     encounterWireFrame[i]["participant" + ctApp[j].pID].attacks
                 );
             }
-            alert(attacksArray);
             let numberAttacks = Math.max(...attacksArray);
 
 
@@ -258,7 +261,6 @@
                 );
             }
             let numberBonus = Math.max(...bonusArray);
-            console.log("bonuses: " + numberBonus);
 
             // build a bonus section if we need it
             let div11, div12, div13, div14, div15;
@@ -324,7 +326,6 @@
                 reactArray.push(encounterWireFrame[1]["participant1"].react);
             }
             let numberReact = Math.max(...reactArray);
-            console.log("reactions: " + numberReact);
 
             // build a reaction section if we need it
             let div16, div17, div18, div19, div20;
@@ -444,18 +445,20 @@
 
         // populate the round
         turns.forEach((turn) => {
+            // alert(turn.actionID)
             if (turn.action_type == "attack") {
                 // determine if attack 1 cell is in use
                 let check = document.querySelectorAll(
                     '[data-round="' + turn.round + '"] [data-attack="1"] [data-participant="' + turn.pID + '"]'
                 );
                 // if it's in use, see if the actionIDs match
-                
+
                 // if they match, add the target to this attack section (e.g. "Giant Spider #1, #2")
 
                 // if it's in use, check the next one
 
                 // 
+                alert("turn.actionID = " + turn.actionID + "\ndata-action-ID = " + check[0].getAttribute("data-action-ID"))
                 if (check[0].textContent == "") {
 
                     check[0].setAttribute("data-action-ID", turn.actionID);
@@ -466,11 +469,20 @@
                     });
                     check[2].innerText = target.character_name + (" #" + target.numeric_ID || "");
                     check[3].innerText = turn.damage;
-                    
+
                 } else if (turn.actionID == check[0].getAttribute("data-action-ID")) {
-                    check[2].innerText = check[2].innerText + ", #2"
+                    check[2].innerText = check[2].innerText + ", " + turn.targetID;
+                    check[3].innerText = check[3].innerText + ", " + turn.hps
                 } else {
                     // move to the next Attack section
+                    check[4].setAttribute("data-action-ID", turn.actionID);
+                    check[4].innerText = turn.toolName;
+                    check[5].innerText = turn.hit == 1 ? "X" : "";
+                    let target = ctApp.find((participant) => {
+                        return participant.pID == turn.targetID;
+                    });
+                    check[6].innerText = target.character_name + (" #" + target.numeric_ID || "");
+                    check[7].innerText = turn.damage;
                 }
 
                 // when we find one not in use, populate it

@@ -61,12 +61,12 @@ app.get("/participants/", (req, res) => {
 app.get("/turns/", (req, res) => {
     let sql = `SELECT *
                 FROM ct_tbl_encounter
-                LEFT JOIN ct_tbl_round       ON ct_tbl_round.eID       = ct_tbl_encounter.eID
+                     JOIN ct_tbl_round       ON ct_tbl_round.eID       = ct_tbl_encounter.eID
                 LEFT JOIN ct_tbl_turn        ON ct_tbl_round.rID       = ct_tbl_turn.rID 
-                LEFT JOIN ct_tbl_action      ON ct_tbl_turn.tID        = ct_tbl_action.tID
+                LEFT JOIN ct_tbl_action      ON ct_tbl_action.tID      = ct_tbl_turn.tID
                      JOIN ct_tbl_participant ON ct_tbl_turn.pID        = ct_tbl_participant.pID
                      JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
-                     JOIN ct_tbl_target      ON ct_tbl_action.targetID = ct_tbl_target.targetID
+                
                 WHERE ct_tbl_encounter.eID = 1;
     `;
     // above explicit join is basically the same as the following IMPLICIT join
