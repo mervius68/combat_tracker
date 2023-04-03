@@ -44,19 +44,27 @@ body {
 }
 
 .bonus {
-    background-color: rgb(250, 181, 154);
+    background-color: rgb(176, 250, 154);
 }
 
 .reaction {
-    background-color: rgb(201, 248, 201);
+    background-color: rgb(247, 194, 96);
 }
 
 .available {
-  background-color: yellow;
-  border: .2em solid black;
-  padding: 0px .2em;
+    background-color: yellow;
+    border: 0.2em solid black;
+    padding: 0px 0.2em;
 }
 
 .center {
     text-align: center;
+}
+
+.pink {
+    background-color: pink;
+}
+
+.white {
+    background-color: white;
 }

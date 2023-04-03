@@ -25,11 +25,11 @@
             return request;
         }
     }
-
+    let encounterWireFrame = {};
     async function load_encounter() {
         // get participants
         ctApp = await dbQuery("GET", "participants");
-        console.log(ctApp);
+        // console.log(ctApp);
         // get basic encounter details
         let campaign = await dbQuery("GET", "current_encounter");
         let header = document.querySelector(".main_header");
@@ -45,122 +45,489 @@
                 return item.round;
             })
         );
-        console.log("number of rounds: " + numberRounds)
 
         // determine how many participants
         let numberParticipants = ctApp.length;
-        console.log("number of participants: " + numberParticipants)
 
-        // determine types and number of attacks
-        let attacks, bonus, react, maxAttacks, maxBonus, maxReact, roundWireFrame;
-        turns.forEach(() => {
-            attacks = turns.filter((turn) => {
-                return (
-                    turn.roundID == 1 &&
-                    turn.pID == 1 &&
-                    turn.action_type == "attack"
-                );
-            }).length;
-            bonus = turns.filter((turn) => {
-                return (
-                    turn.roundID == 1 &&
-                    turn.pID == 1 &&
-                    turn.action_type == "bonus"
-                );
-            }).length;
-            react = turns.filter((turn) => {
-                return (
-                    turn.roundID == 1 &&
-                    turn.pID == 1 &&
-                    turn.action_type == "react"
-                );
-            }).length;
-            
-            maxAttacks = maxAttacks > attacks ? maxAttacks : attacks;
-            maxBonus = maxBonus > bonus ? maxBonus : bonus;
-            maxReact = maxReact > react ? maxReact : react;
-
-            roundWireFrame = {
-                round: 1,
-                attacks: maxAttacks,
-                bonus: maxBonus,
-                react: maxReact
-            }
-            console.log(roundWireFrame)
-        });
-
-
-        function determineNumbersOfNeededActionTables(turns, round, pID, actionType) {
-            for (let i = 0; i < numberRounds; i++) {
-                turns.forEach((item) => {
-                    attacks = turns.filter((turn) => {
-                        return (
-                            turn.roundID == 1 &&
-                            turn.pID == 1 &&
-                            turn.action_type == "attack"
-                        );
-                    }).length;
-                    bonus = turns.filter((turn) => {
-                        return (
-                            turn.roundID == 1 &&
-                            turn.pID == 1 &&
-                            turn.action_type == "bonus"
-                        );
-                    }).length;
-                    react = turns.filter((turn) => {
-                        return (
-                            turn.roundID == 1 &&
-                            turn.pID == 1 &&
-                            turn.action_type == "react"
-                        );
-                    }).length;
-                    maxAttacks = maxAttacks > attacks ? maxAttacks : attacks;
-                    maxBonus = maxBonus > bonus ? maxBonus : bonus;
-                    maxReact = maxReact > react ? maxReact : react;
-                })
-            }
-
+        // build an object with as many properties as there are rounds
+        let participantsByRound = {};
+        for (let i = 1; i <= numberParticipants; i++) {
+            participantsByRound[i] = null;
         }
 
+        // determine how many participants per round
+        for (let i = 1; i <= numberRounds; i++) {
+            participantsByRound[i] = ctApp.filter((participant) => {
+                return (
+                    participant.join_round <= i && participant.dead_round >= i
+                );
+            }).length;
+        }
+
+        // build an object as encounterWireFrame
+        for (let i = 1; i <= numberRounds; i++) {
+            encounterWireFrame[i] = {};
+            ctApp.forEach((participant) => {
+                if (
+                    participant.join_round <= i &&
+                    participant.dead_round >= i
+                ) {
+                    encounterWireFrame[i]["participant" + participant.pID] = {
+                        attacks: 0,
+                        bonus: 0,
+                        react: 0,
+                        actionIDs: [
+
+                        ]
+                    };
+                }
+            });
+        }
+
+        // populate the encounterWireFrame object with info
+        turns.forEach((turn) => {
+            if (turn.action_type == "attack" && turn.actionID != document.querySelector(
+                    '[data-round="1"] [data-attack="1"] [data-participant="1"]'
+                ).getAttribute('[data-action-ID]')) {
+                encounterWireFrame[turn.rID][
+                    "participant" + turn.pID
+                ].attacks += 1;
+                // encounterWireFrame[turn.rID][
+                //     "participant" + turn.pID
+                // ].actionIDs.push(turn.actionID);
+            } else if (turn.action_type == "bonus") {
+                encounterWireFrame[turn.rID][
+                    "participant" + turn.pID
+                ].bonus += 1;
+            } else if (turn.action_type == "react") {
+                encounterWireFrame[turn.rID][
+                    "participant" + turn.pID
+                ].react += 1;
+            }
+        });
+
         // build the HTML with blank slate
+        let mainContainer;
+        for (let i = 1; i <= numberRounds; i++) {
+            mainContainer = document.createElement("div");
+            mainContainer.textContent = "";
+            let round = document.createElement("div");
+            round.classList.add("ct_round");
+            round.setAttribute("data-round", i);
+            let section1 = document.createElement("div");
+            section1.classList.add("ct_grid4columns");
+            section1.setAttribute("data-section", "1");
+
+            let div1 = document.createElement("div");
+            div1.classList.add("section");
+            div1.classList.add("header");
+            div1.classList.add("ct_turn_bookends");
+            div1.textContent = "AC";
+            let div2 = document.createElement("div");
+            div2.classList.add("section");
+            div2.classList.add("header");
+            div2.classList.add("ct_turn_bookends");
+            div2.textContent = "HP";
+            let div3 = document.createElement("div");
+            div3.classList.add("section");
+            div3.classList.add("header");
+            div3.classList.add("ct_turn_bookends");
+            div3.textContent = "Character";
+            let div4 = document.createElement("div");
+            div4.classList.add("section");
+            div4.classList.add("header");
+            div4.classList.add("ct_turn_bookends");
+            div4.textContent = "Init";
+
+            section1.appendChild(div1);
+            section1.appendChild(div2);
+            section1.appendChild(div3);
+            section1.appendChild(div4);
+
+            let div5;
+            ctApp.forEach((participant, index) => {
+                if (
+                    test(
+                        participant.join_round,
+                        participant.dead_round,
+                        index + 1
+                    )
+                ) {
+                    for (let i = 0; i <= 3; i++) {
+                        div5 = document.createElement("div");
+                        div5.classList.add("section");
+                        div5.classList.add("ct_turn_bookends");
+                        div5.classList.add("center");
+                        div5.setAttribute("data-participant", participant.pID);
+                        section1.appendChild(div5);
+                    }
+                }
+            });
+            round.appendChild(section1);
+            
+            // highest number of attacks by one character in this round?
+            let attacksArray = [];
+            for (let j = 0; j < numberParticipants; j++) {
+                attacksArray.push(
+                    encounterWireFrame[i]["participant" + ctApp[j].pID].attacks
+                );
+            }
+            alert(attacksArray);
+            let numberAttacks = Math.max(...attacksArray);
+
+
+            //////
+            //////
+            ////// Figure out how to make the algorithm above not count turns that have same actionID
+            //////
+            //////
+
+            // build as many attack sections as we need
+            let div6,
+                div7,
+                div8,
+                div9,
+                div10,
+                countAttacks = 0;
+
+            for (let k = 0; k < numberAttacks; k++) {
+                countAttacks += 1;
+                let section2 = document.createElement("div");
+                section2 = document.createElement("div");
+                section2.classList.add("ct_grid4columns");
+                section2.setAttribute("data-attack", k + 1);
+
+                div7 = document.createElement("div");
+                div7.classList.add("section");
+                div7.classList.add("header");
+                div7.classList.add(k % 2 == 0 ? "attack" : "pink");
+                div7.textContent =
+                    "Attack" + (numberAttacks > 1 ? " #" + countAttacks : "");
+                div8 = document.createElement("div");
+                div8.classList.add("section");
+                div8.classList.add("header");
+                div8.classList.add(k % 2 == 0 ? "attack" : "pink");
+                div8.textContent = "Hit?";
+                div9 = document.createElement("div");
+                div9.classList.add("section");
+                div9.classList.add("header");
+                div9.classList.add(k % 2 == 0 ? "attack" : "pink");
+                div9.textContent = "Target(s)";
+                div10 = document.createElement("div");
+                div10.classList.add("section");
+                div10.classList.add("header");
+                div10.classList.add(k % 2 == 0 ? "attack" : "pink");
+                div10.textContent = "hp";
+
+                section2.appendChild(div7);
+                section2.appendChild(div8);
+                section2.appendChild(div9);
+                section2.appendChild(div10);
+
+                ctApp.forEach((participant, index) => {
+                    if (
+                        test(
+                            participant.join_round,
+                            participant.dead_round,
+                            index + 1
+                        )
+                    ) {
+                        for (let i = 0; i <= 3; i++) {
+                            div6 = document.createElement("div");
+                            div6.classList.add("section");
+                            div6.classList.add("attack");
+                            div6.classList.add(k % 2 == 0 ? "attack" : "pink");
+                            div6.setAttribute(
+                                "data-participant",
+                                participant.pID
+                            );
+                            div6.setAttribute("data-action-ID", 0)
+                            section2.appendChild(div6);
+                        }
+                    }
+                    round.appendChild(section2);
+                });
+            }
+
+            // determine if we need a bonus section
+            // highest number of attacks by one character in this round?
+            let bonusArray = [];
+            for (let j = 0; j < numberParticipants; j++) {
+                bonusArray.push(
+                    encounterWireFrame[1]["participant1"].bonus
+                );
+            }
+            let numberBonus = Math.max(...bonusArray);
+            console.log("bonuses: " + numberBonus);
+
+            // build a bonus section if we need it
+            let div11, div12, div13, div14, div15;
+            if (numberBonus == 1) {
+                let section3 = document.createElement("div");
+                section3.classList.add("ct_grid4columns");
+                section3.setAttribute("data-bonus", 1);
+
+                div11 = document.createElement("div");
+                div11.classList.add("section");
+                div11.classList.add("header");
+                div11.classList.add("bonus");
+                div11.textContent = "Bonus";
+                div12 = document.createElement("div");
+                div12.classList.add("section");
+                div12.classList.add("header");
+                div12.classList.add("bonus");
+                div12.textContent = "Hit?";
+                div13 = document.createElement("div");
+                div13.classList.add("section");
+                div13.classList.add("header");
+                div13.classList.add("bonus");
+                div13.textContent = "Target(s)";
+                div14 = document.createElement("div");
+                div14.classList.add("section");
+                div14.classList.add("header");
+                div14.classList.add("bonus");
+                div14.textContent = "hp";
+
+                section3.appendChild(div11);
+                section3.appendChild(div12);
+                section3.appendChild(div13);
+                section3.appendChild(div14);
+
+                ctApp.forEach((participant, index) => {
+                    if (
+                        test(
+                            participant.join_round,
+                            participant.dead_round,
+                            index + 1
+                        )
+                    ) {
+                        for (let i = 0; i <= 3; i++) {
+                            div15 = document.createElement("div");
+                            div15.classList.add("section");
+                            // div15.classList.add("header");
+                            div15.classList.add("bonus");
+                            div15.setAttribute(
+                                "data-participant",
+                                participant.pID
+                            );
+                            section3.appendChild(div15);
+                        }
+                    }
+                    round.appendChild(section3);
+                });
+            }
+
+            // determine if we need a reaction section
+            // highest number of attacks by one character in this round?
+            let reactArray = [];
+            for (let j = 0; j < numberParticipants; j++) {
+                reactArray.push(encounterWireFrame[1]["participant1"].react);
+            }
+            let numberReact = Math.max(...reactArray);
+            console.log("reactions: " + numberReact);
+
+            // build a reaction section if we need it
+            let div16, div17, div18, div19, div20;
+            if (numberReact == 1) {
+                let section4 = document.createElement("div");
+                section4.classList.add("ct_grid4columns");
+                section4.setAttribute("data-react", 1);
+
+                div16 = document.createElement("div");
+                div16.classList.add("section");
+                div16.classList.add("header");
+                div16.classList.add("reaction");
+                div16.textContent = "React";
+                div17 = document.createElement("div");
+                div17.classList.add("section");
+                div17.classList.add("header");
+                div17.classList.add("reaction");
+                div17.textContent = "Hit?";
+                div18 = document.createElement("div");
+                div18.classList.add("section");
+                div18.classList.add("header");
+                div18.classList.add("reaction");
+                div18.textContent = "Target(s)";
+                div19 = document.createElement("div");
+                div19.classList.add("section");
+                div19.classList.add("header");
+                div19.classList.add("reaction");
+                div19.textContent = "hp";
+
+                section4.appendChild(div16);
+                section4.appendChild(div17);
+                section4.appendChild(div18);
+                section4.appendChild(div19);
+
+                ctApp.forEach((participant, index) => {
+                    if (
+                        test(
+                            participant.join_round,
+                            participant.dead_round,
+                            index + 1
+                        )
+                    ) {
+                        for (let i = 0; i <= 3; i++) {
+                            div20 = document.createElement("div");
+                            div20.classList.add("section");
+                            // div15.classList.add("header");
+                            div20.classList.add("reaction");
+                            div20.setAttribute(
+                                "data-participant",
+                                participant.pID
+                            );
+                            section4.appendChild(div20);
+                        }
+                    }
+                    round.appendChild(section4);
+                });
+            }
+
+            //build a tail section
+            let div21, div22, div23, div24, div25;
+            let section5 = document.createElement("div");
+            section5.classList.add("ct_grid4columns");
+            section5.setAttribute("data-section", 5);
+
+            div21 = document.createElement("div");
+            div21.classList.add("section");
+            div21.classList.add("header");
+            div21.classList.add("ct_turn_bookends");
+            div21.textContent = "Drop";
+            div22 = document.createElement("div");
+            div22.classList.add("section");
+            div22.classList.add("header");
+            div22.classList.add("ct_turn_bookends");
+            div22.textContent = "Start";
+            div23 = document.createElement("div");
+            div23.classList.add("section");
+            div23.classList.add("header");
+            div23.classList.add("ct_turn_bookends");
+            div23.textContent = "End";
+            div24 = document.createElement("div");
+            div24.classList.add("section");
+            div24.classList.add("header");
+            div24.classList.add("ct_turn_bookends");
+            div24.textContent = "Notes";
+
+            section5.appendChild(div21);
+            section5.appendChild(div22);
+            section5.appendChild(div23);
+            section5.appendChild(div24);
+
+            ctApp.forEach((participant, index) => {
+                if (
+                    test(
+                        participant.join_round,
+                        participant.dead_round,
+                        index + 1
+                    )
+                ) {
+                    for (let i = 0; i <= 3; i++) {
+                        div25 = document.createElement("div");
+                        div25.classList.add("section");
+                        // div15.classList.add("header");
+                        div25.classList.add("ct_turn_bookends");
+                        div25.setAttribute("data-participant", participant.pID);
+                        section5.appendChild(div25);
+                    }
+                }
+                round.appendChild(section5);
+            });
+
+            mainContainer.appendChild(round);
+        }
+
+        // send the HTML to the page!
+        document.querySelector(".ct_round_container").innerHTML =
+            mainContainer.innerHTML;
 
         // populate the round
+        turns.forEach((turn) => {
+            if (turn.action_type == "attack") {
+                // determine if attack 1 cell is in use
+                let check = document.querySelectorAll(
+                    '[data-round="' + turn.round + '"] [data-attack="1"] [data-participant="' + turn.pID + '"]'
+                );
+                // if it's in use, see if the actionIDs match
+                
+                // if they match, add the target to this attack section (e.g. "Giant Spider #1, #2")
+
+                // if it's in use, check the next one
+
+                // 
+                if (check[0].textContent == "") {
+
+                    check[0].setAttribute("data-action-ID", turn.actionID);
+                    check[0].innerText = turn.toolName;
+                    check[1].innerText = turn.hit == 1 ? "X" : "";
+                    let target = ctApp.find((participant) => {
+                        return participant.pID == turn.targetID;
+                    });
+                    check[2].innerText = target.character_name + (" #" + target.numeric_ID || "");
+                    check[3].innerText = turn.damage;
+                    
+                } else if (turn.actionID == check[0].getAttribute("data-action-ID")) {
+                    check[2].innerText = check[2].innerText + ", #2"
+                } else {
+                    // move to the next Attack section
+                }
+
+                // when we find one not in use, populate it
+            }
+            // document.querySelector(`[data-round="${turn.round}"] [data-attack="1"] [data-participant="1"]`)
+        });
+        console.log(mainContainer);
+        // let p = document.querySelector(
+        //     '[data-round="1"] [data-attack="1"] [data-participant="1"]'
+        // );
+        // p.textContent = "helpless";
+        // console.log("p: " + p.outerHTML);
+        // });
 
         // move to next round and determine how many participants (may change based on join_round property)
         // repeat
 
         // select all the html cells we need
-        let cells = document.querySelectorAll(
-            'div[data-round="1"] div[data-turn="1"]'
-        );
-        console.log(ctApp);
-        // participants section
+        // let cells = document.querySelectorAll(
+        //     'div[data-round="1"] div[data-participant="1"]'
+        // );
+        // console.log(ctApp);
+        // // participants section
 
-        cells[0].innerText = ctApp[0].AC;
-        cells[1].innerText = ctApp[0].hpID;
-        cells[2].innerText =
-            ctApp[0].character_name +
-            (ctApp[0].numeric_ID != null ? " #" + ctApp[0].numeric_ID : "");
-        cells[3].innerText = ctApp[0].init;
+        // cells[0].innerText = ctApp[0].AC;
+        // cells[1].innerText = ctApp[0].hpID;
+        // cells[2].innerText =
+        //     ctApp[0].character_name +
+        //     (ctApp[0].numeric_ID != null ? " #" + ctApp[0].numeric_ID : "");
+        // cells[3].innerText = ctApp[0].init;
 
-        // first attack section
-        let thisAction = turns[0];
-        cells[4].innerText = thisAction.toolName;
-        cells[5].innerText = thisAction.hit == 1 ? "X" : "";
-        let thisTarget = ctApp.find((item) => item.pID == thisAction.targetID);
-        cells[6].innerText =
-            thisTarget.character_name +
-            (thisTarget.numeric_ID != null ? " #" + thisTarget.numeric_ID : "");
-        cells[7].innerText = thisAction.damage;
+        // // first attack section
+        // let thisAction = turns[0];
+        // // cells[4].innerText = thisAction.toolName;
+        // // cells[5].innerText = thisAction.hit == 1 ? "X" : "";
+        // // let thisTarget = ctApp.find((item) => item.pID == thisAction.targetID);
+        // // cells[6].innerText =
+        // //     thisTarget.character_name +
+        // //     (thisTarget.numeric_ID != null ? " #" + thisTarget.numeric_ID : "");
+        // // cells[7].innerText = thisAction.damage;
 
-        // bonus attack
-        thisAction = turns[1];
-        cells[8].innerText = thisAction.toolName;
-        cells[9].innerText = thisAction.hit == 1 ? "X" : "";
-        thisTarget = ctApp.find((item) => item.pID == thisAction.targetID);
-        cells[10].innerText =
-            thisTarget.character_name +
-            (thisTarget.numeric_ID != null ? " #" + thisTarget.numeric_ID : "");
-        cells[11].innerText = thisAction.damage;
+        // // bonus attack
+        // thisAction = turns[1];
+        // cells[8].innerText = thisAction.toolName;
+        // cells[9].innerText = thisAction.hit == 1 ? "X" : "";
+        // thisTarget = ctApp.find((item) => item.pID == thisAction.targetID);
+        // cells[10].innerText =
+        //     thisTarget.character_name +
+        //     (thisTarget.numeric_ID != null ? " #" + thisTarget.numeric_ID : "");
+        // cells[11].innerText = thisAction.damage;
+
+        function test(x, y, i) {
+            if (x <= i && y >= i) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 </script>
