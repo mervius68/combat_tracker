@@ -542,4 +542,72 @@
             }
         }
     }
+
+    async function load_encounter_v2() {
+        ctApp = await dbQuery("GET", "participants");
+
+        let encounter = await dbQuery("GET", "actions")
+
+        let numberRounds = Math.max.apply(
+            Math,
+            encounter.map(function (item) {
+                return item.round;
+            })
+        );
+
+        for (let i = 1; i < numberRounds; i++) {
+            console.log("dog")
+            let mainContainer = document.createElement("div");
+            let div1 = document.createElement("div");
+            div1.classList.add("ct_round");
+            div1.setAttribute("data-round", "1");
+            let section1 = document.createElement("div");
+            section1.classList.add("ct_grid4columns");
+            section1.setAttribute("data-section", "1");
+
+            let div2 = document.createElement("div");
+            div2.classList.add("section")
+            div2.classList.add("header")
+            div2.classList.add("ct_turn_bookends");
+            div2.innerText = "AC";
+            let div3 = document.createElement("div");
+            div3.classList.add("section")
+            div3.classList.add("header")
+            div3.classList.add("ct_turn_bookends");
+            div3.innerText = "HP";
+            let div4 = document.createElement("div");
+            div4.classList.add("section")
+            div4.classList.add("header")
+            div4.classList.add("ct_turn_bookends");
+            div4.innerText = "Character";
+            let div5 = document.createElement("div");
+            div5.classList.add("section")
+            div5.classList.add("header")
+            div5.classList.add("ct_turn_bookends");
+            div5.innerText = "Init";
+            
+            // determine how many participants for this round
+            numberParticipants = ctApps.filter((participant) => {
+                return i >= participant.join_round && i <= participant.dead_round
+            }).length
+            console.log("participants #: " + numberParticipants)
+
+            let div6 = document.createElement("div");
+            div6.classList.add("section")
+            div6.classList.add("ct_turn_bookends")
+            div6.classList.add("center")
+            let div7 = document.createElement("div");
+            div7.classList.add("section")
+            div7.classList.add("ct_turn_bookends")
+            div7.classList.add("center")
+            let div8 = document.createElement("div");
+            div8.classList.add("section")
+            div8.classList.add("ct_turn_bookends")
+            div8.classList.add("center")
+            let div9 = document.createElement("div");
+            div9.classList.add("section")
+            div9.classList.add("ct_turn_bookends")
+            div9.classList.add("center")
+        }
+    }
 </script>

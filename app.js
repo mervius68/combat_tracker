@@ -46,14 +46,14 @@ app.get("/participants/", (req, res) => {
     let sql = `SELECT *
                 FROM ct_tbl_participant
                 JOIN ct_tbl_character ON ct_tbl_participant.chID = ct_tbl_character.chID
-                WHERE ct_tbl_participant.eID = "1";
+                WHERE ct_tbl_participant.eID = "1" ORDER BY init DESC;
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        console.log("results: " + results);
+        // console.log("results: " + results);
         res.send(results);
     });
 });
@@ -78,7 +78,26 @@ app.get("/turns/", (req, res) => {
         if (err) {
             throw err;
         }
-        console.log(results);
+        // console.log(results);
+        res.send(results);
+    });
+});
+
+app.get("/actions/", (req, res) => {
+    let sql = `SELECT *
+        FROM ct_tbl_encounter
+                    JOIN ct_tbl_round       ON ct_tbl_round.eID       = ct_tbl_encounter.eID
+                    JOIN ct_tbl_turn        ON ct_tbl_round.rID       = ct_tbl_turn.rID 
+                    JOIN ct_tbl_action      ON ct_tbl_action.tID      = ct_tbl_turn.tID
+                    JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
+                WHERE ct_tbl_encounter.eID = 1 ORDER BY rID, tID, actionID;
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log("results: " + results[0]);
         res.send(results);
     });
 });
