@@ -87,11 +87,11 @@
             if (
                 turn.action_type == "attack" &&
                 turn.actionID !=
-                    document
-                        .querySelector(
-                            '[data-round="1"] [data-attack="1"] [data-participant="1"]'
-                        )
-                        .getAttribute("[data-action-ID]")
+                document
+                    .querySelector(
+                        '[data-round="1"] [data-attack="1"] [data-participant="1"]'
+                    )
+                    .getAttribute("[data-action-ID]")
             ) {
                 if (
                     !encounterWireFrame[turn.rID][
@@ -455,10 +455,10 @@
                 // determine if attack 1 cell is in use
                 let check = document.querySelectorAll(
                     '[data-round="' +
-                        turn.round +
-                        '"] [data-attack="1"] [data-participant="' +
-                        turn.pID +
-                        '"]'
+                    turn.round +
+                    '"] [data-attack="1"] [data-participant="' +
+                    turn.pID +
+                    '"]'
                 );
                 // if it's in use, see if the actionIDs match
 
@@ -469,9 +469,9 @@
                 //
                 alert(
                     "turn.actionID = " +
-                        turn.actionID +
-                        "\ndata-action-ID = " +
-                        check[0].getAttribute("data-action-ID")
+                    turn.actionID +
+                    "\ndata-action-ID = " +
+                    check[0].getAttribute("data-action-ID")
                 );
                 if (check[0].textContent == "") {
                     check[0].setAttribute("data-action-ID", turn.actionID);
@@ -567,6 +567,10 @@
 
         let encounter = await dbQuery("GET", "actions");
 
+        let campaign = await dbQuery("GET", "current_encounter");
+        let header = document.querySelector(".main_header");
+        header.textContent = `${campaign[0].campaign} - ${campaign[0].location}`;
+
         let numberRounds = Math.max.apply(
             Math,
             encounter.map(function (item) {
@@ -609,7 +613,7 @@
             section1.appendChild(div4);
             section1.appendChild(div5);
 
-            // determine how many participants for this round
+            // determine participants for this round
             roundParticipants = ctApp.filter((participant) => {
                 return (
                     i >= participant.join_round && i <= participant.dead_round
@@ -645,7 +649,9 @@
             mainContainer.appendChild(div1);
             document.querySelector(".ct_round_container").innerHTML =
                 mainContainer.innerHTML;
-            console.log(mainContainer.innerHTML);
+
+            let hitPoints = await dbQuery("GET", "hitPoints/1/1")
+            console.log("hitPoints: " + hitPoints);
 
             roundParticipants.forEach((participant) => {
                 let participantTurn = document.querySelector(
@@ -666,6 +672,26 @@
                 participantTurn.nextSibling.nextSibling.nextSibling.innerText =
                     participant.init;
             });
+
+            // populate participants' hit points
+            let hpHTML;
+            console.log(roundParticipants);
+            roundParticipants.forEach((participant) => {
+                hpHTML = document.querySelector('[data-round="' + i + '"] [data-participant="' + participant.pID + '"]')
+                let obj = hitPoints.filter((hp) => {
+                    return hp.pID == participant.pID
+                })
+                obj.forEach((object) => {
+                    if (hpHTML.nextSibling.innerText == "undefined" || "") {
+                        hpHTML.nextSibling.innerText = object.hp
+                    } else {
+                        hpHTML.nextSibling.innerText = hpHTML.nextSibling.innerText + ", " + object.hp
+                    }
+                })
+
+
+            })
+            console.log("hpHTML: " + hpHTML);
         }
     }
 </script>

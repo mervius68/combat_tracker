@@ -58,6 +58,23 @@ app.get("/participants/", (req, res) => {
     });
 });
 
+app.get("/hitPoints/:encounter/:round", (req, res) => {
+    let encounter = req.params.encounter
+    let round = req.params.round
+    let sql = `SELECT *
+                FROM ct_tbl_hp
+                WHERE eID = "${encounter}" AND rID = "${round}" ORDER BY rID, pID;
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log("results: " + results[0].hp);
+        res.send(results);
+    });
+});
+
 app.get("/turns/", (req, res) => {
     let sql = `SELECT *
                 FROM ct_tbl_encounter
@@ -97,7 +114,7 @@ app.get("/actions/", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log("results: " + results[0]);
+        // console.log("results: " + results[0]);
         res.send(results);
     });
 });
