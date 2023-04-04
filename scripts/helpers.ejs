@@ -76,9 +76,7 @@
                         attacks: 0,
                         bonus: 0,
                         react: 0,
-                        actionIDs: [
-
-                        ]
+                        actionIDs: [],
                     };
                 }
             });
@@ -86,12 +84,22 @@
 
         // populate the encounterWireFrame object with info
         turns.forEach((turn) => {
-            if (turn.action_type == "attack" && turn.actionID != document.querySelector(
-                '[data-round="1"] [data-attack="1"] [data-participant="1"]'
-            ).getAttribute('[data-action-ID]')) {
-                if (!encounterWireFrame[turn.rID]["participant" + turn.pID].actionIDs.find((item) => {
-                    return item == turn.actionID
-                })) {
+            if (
+                turn.action_type == "attack" &&
+                turn.actionID !=
+                    document
+                        .querySelector(
+                            '[data-round="1"] [data-attack="1"] [data-participant="1"]'
+                        )
+                        .getAttribute("[data-action-ID]")
+            ) {
+                if (
+                    !encounterWireFrame[turn.rID][
+                        "participant" + turn.pID
+                    ].actionIDs.find((item) => {
+                        return item == turn.actionID;
+                    })
+                ) {
                     encounterWireFrame[turn.rID][
                         "participant" + turn.pID
                     ].attacks += 1;
@@ -178,7 +186,6 @@
             }
             let numberAttacks = Math.max(...attacksArray);
 
-
             //////
             //////
             ////// Figure out how to make the algorithm above not count turns that have same actionID
@@ -244,7 +251,7 @@
                                 "data-participant",
                                 participant.pID
                             );
-                            div6.setAttribute("data-action-ID", 0)
+                            div6.setAttribute("data-action-ID", 0);
                             section2.appendChild(div6);
                         }
                     }
@@ -256,9 +263,7 @@
             // highest number of attacks by one character in this round?
             let bonusArray = [];
             for (let j = 0; j < numberParticipants; j++) {
-                bonusArray.push(
-                    encounterWireFrame[1]["participant1"].bonus
-                );
+                bonusArray.push(encounterWireFrame[1]["participant1"].bonus);
             }
             let numberBonus = Math.max(...bonusArray);
 
@@ -449,7 +454,11 @@
             if (turn.action_type == "attack") {
                 // determine if attack 1 cell is in use
                 let check = document.querySelectorAll(
-                    '[data-round="' + turn.round + '"] [data-attack="1"] [data-participant="' + turn.pID + '"]'
+                    '[data-round="' +
+                        turn.round +
+                        '"] [data-attack="1"] [data-participant="' +
+                        turn.pID +
+                        '"]'
                 );
                 // if it's in use, see if the actionIDs match
 
@@ -457,22 +466,30 @@
 
                 // if it's in use, check the next one
 
-                // 
-                alert("turn.actionID = " + turn.actionID + "\ndata-action-ID = " + check[0].getAttribute("data-action-ID"))
+                //
+                alert(
+                    "turn.actionID = " +
+                        turn.actionID +
+                        "\ndata-action-ID = " +
+                        check[0].getAttribute("data-action-ID")
+                );
                 if (check[0].textContent == "") {
-
                     check[0].setAttribute("data-action-ID", turn.actionID);
                     check[0].innerText = turn.toolName;
                     check[1].innerText = turn.hit == 1 ? "X" : "";
                     let target = ctApp.find((participant) => {
                         return participant.pID == turn.targetID;
                     });
-                    check[2].innerText = target.character_name + (" #" + target.numeric_ID || "");
+                    check[2].innerText =
+                        target.character_name +
+                        (" #" + target.numeric_ID || "");
                     check[3].innerText = turn.damage;
-
-                } else if (turn.actionID == check[0].getAttribute("data-action-ID")) {
-                    check[2].innerText = check[2].innerText + ", " + turn.targetID;
-                    check[3].innerText = check[3].innerText + ", " + turn.hps
+                } else if (
+                    turn.actionID == check[0].getAttribute("data-action-ID")
+                ) {
+                    check[2].innerText =
+                        check[2].innerText + ", " + turn.targetID;
+                    check[3].innerText = check[3].innerText + ", " + turn.hps;
                 } else {
                     // move to the next Attack section
                     check[4].setAttribute("data-action-ID", turn.actionID);
@@ -481,7 +498,9 @@
                     let target = ctApp.find((participant) => {
                         return participant.pID == turn.targetID;
                     });
-                    check[6].innerText = target.character_name + (" #" + target.numeric_ID || "");
+                    check[6].innerText =
+                        target.character_name +
+                        (" #" + target.numeric_ID || "");
                     check[7].innerText = turn.damage;
                 }
 
@@ -546,7 +565,7 @@
     async function load_encounter_v2() {
         ctApp = await dbQuery("GET", "participants");
 
-        let encounter = await dbQuery("GET", "actions")
+        let encounter = await dbQuery("GET", "actions");
 
         let numberRounds = Math.max.apply(
             Math,
@@ -555,8 +574,7 @@
             })
         );
 
-        for (let i = 1; i < numberRounds; i++) {
-            console.log("dog")
+        for (let i = 1; i <= numberRounds; i++) {
             let mainContainer = document.createElement("div");
             let div1 = document.createElement("div");
             div1.classList.add("ct_round");
@@ -566,48 +584,88 @@
             section1.setAttribute("data-section", "1");
 
             let div2 = document.createElement("div");
-            div2.classList.add("section")
-            div2.classList.add("header")
+            div2.classList.add("section");
+            div2.classList.add("header");
             div2.classList.add("ct_turn_bookends");
             div2.innerText = "AC";
             let div3 = document.createElement("div");
-            div3.classList.add("section")
-            div3.classList.add("header")
+            div3.classList.add("section");
+            div3.classList.add("header");
             div3.classList.add("ct_turn_bookends");
             div3.innerText = "HP";
             let div4 = document.createElement("div");
-            div4.classList.add("section")
-            div4.classList.add("header")
+            div4.classList.add("section");
+            div4.classList.add("header");
             div4.classList.add("ct_turn_bookends");
             div4.innerText = "Character";
             let div5 = document.createElement("div");
-            div5.classList.add("section")
-            div5.classList.add("header")
+            div5.classList.add("section");
+            div5.classList.add("header");
             div5.classList.add("ct_turn_bookends");
             div5.innerText = "Init";
-            
-            // determine how many participants for this round
-            numberParticipants = ctApps.filter((participant) => {
-                return i >= participant.join_round && i <= participant.dead_round
-            }).length
-            console.log("participants #: " + numberParticipants)
 
-            let div6 = document.createElement("div");
-            div6.classList.add("section")
-            div6.classList.add("ct_turn_bookends")
-            div6.classList.add("center")
-            let div7 = document.createElement("div");
-            div7.classList.add("section")
-            div7.classList.add("ct_turn_bookends")
-            div7.classList.add("center")
-            let div8 = document.createElement("div");
-            div8.classList.add("section")
-            div8.classList.add("ct_turn_bookends")
-            div8.classList.add("center")
-            let div9 = document.createElement("div");
-            div9.classList.add("section")
-            div9.classList.add("ct_turn_bookends")
-            div9.classList.add("center")
+            section1.appendChild(div2);
+            section1.appendChild(div3);
+            section1.appendChild(div4);
+            section1.appendChild(div5);
+
+            // determine how many participants for this round
+            roundParticipants = ctApp.filter((participant) => {
+                return (
+                    i >= participant.join_round && i <= participant.dead_round
+                );
+            });
+
+            let div6, div7, div8, div9;
+            for (let i = 0; i < roundParticipants.length; i++) {
+                div6 = document.createElement("div");
+                div6.classList.add("section");
+                div6.classList.add("ct_turn_bookends");
+                div6.classList.add("center");
+                div6.setAttribute("data-participant", 0);
+                div7 = document.createElement("div");
+                div7.classList.add("section");
+                div7.classList.add("ct_turn_bookends");
+                div7.classList.add("center");
+                div8 = document.createElement("div");
+                div8.classList.add("section");
+                div8.classList.add("ct_turn_bookends");
+                div8.classList.add("center");
+                div9 = document.createElement("div");
+                div9.classList.add("section");
+                div9.classList.add("ct_turn_bookends");
+                div9.classList.add("center");
+                section1.appendChild(div6);
+                section1.appendChild(div7);
+                section1.appendChild(div8);
+                section1.appendChild(div9);
+            }
+
+            div1.appendChild(section1);
+            mainContainer.appendChild(div1);
+            document.querySelector(".ct_round_container").innerHTML =
+                mainContainer.innerHTML;
+            console.log(mainContainer.innerHTML);
+
+            roundParticipants.forEach((participant) => {
+                let participantTurn = document.querySelector(
+                    '[data-participant="0"]'
+                );
+                participantTurn.setAttribute(
+                    "data-participant",
+                    participant.pID
+                );
+                participantTurn.innerText =
+                    participant.AC +
+                    (participant.AC_secondary == null
+                        ? ""
+                        : " / " + participant.AC_secondary);
+                participantTurn.nextSibling.innerText = participant.hp;
+                participantTurn.nextSibling.nextSibling.innerText =
+                    participant.character_name + (participant.numeric_ID == null ? "" : " #" + participant.numeric_ID);
+                participantTurn.nextSibling.nextSibling.nextSibling.innerText =
+                    participant.init;
+            });
         }
     }
 </script>

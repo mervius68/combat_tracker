@@ -46,7 +46,7 @@ app.get("/participants/", (req, res) => {
     let sql = `SELECT *
                 FROM ct_tbl_participant
                 JOIN ct_tbl_character ON ct_tbl_participant.chID = ct_tbl_character.chID
-                WHERE ct_tbl_participant.eID = "1" ORDER BY init DESC;
+                WHERE ct_tbl_participant.eID = "1" ORDER BY init DESC, numeric_ID ASC;
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
