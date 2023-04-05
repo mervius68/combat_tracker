@@ -26,7 +26,6 @@
         }
     }
 
-
     let encounterWireFrame = {};
     async function load_encounter() {
         // get participants
@@ -89,11 +88,11 @@
             if (
                 turn.action_type == "attack" &&
                 turn.actionID !=
-                document
-                    .querySelector(
-                        '[data-round="1"] [data-attack="1"] [data-participant="1"]'
-                    )
-                    .getAttribute("[data-action-ID]")
+                    document
+                        .querySelector(
+                            '[data-round="1"] [data-attack="1"] [data-participant="1"]'
+                        )
+                        .getAttribute("[data-action-ID]")
             ) {
                 if (
                     !encounterWireFrame[turn.rID][
@@ -457,10 +456,10 @@
                 // determine if attack 1 cell is in use
                 let check = document.querySelectorAll(
                     '[data-round="' +
-                    turn.round +
-                    '"] [data-attack="1"] [data-participant="' +
-                    turn.pID +
-                    '"]'
+                        turn.round +
+                        '"] [data-attack="1"] [data-participant="' +
+                        turn.pID +
+                        '"]'
                 );
                 // if it's in use, see if the actionIDs match
 
@@ -471,9 +470,9 @@
                 //
                 alert(
                     "turn.actionID = " +
-                    turn.actionID +
-                    "\ndata-action-ID = " +
-                    check[0].getAttribute("data-action-ID")
+                        turn.actionID +
+                        "\ndata-action-ID = " +
+                        check[0].getAttribute("data-action-ID")
                 );
                 if (check[0].textContent == "") {
                     check[0].setAttribute("data-action-ID", turn.actionID);
@@ -565,7 +564,6 @@
     }
 
     async function load_encounter_v2() {
-
         let campaign = await dbQuery("GET", "current_encounter");
         let header = document.querySelector(".main_header");
         header.textContent = `${campaign[0].campaign} - ${campaign[0].location}`;
@@ -657,7 +655,7 @@
             document.querySelector(".ct_round_container").innerHTML =
                 mainContainer.innerHTML;
 
-            let hitPoints = await dbQuery("GET", "hitPoints/1/1")
+            let hitPoints = await dbQuery("GET", "hitPoints/1/1");
             console.log("hitPoints: " + hitPoints);
 
             roundParticipants.forEach((participant) => {
@@ -675,7 +673,10 @@
                         : " / " + participant.AC_secondary);
                 participantTurn.nextSibling.innerText = participant.hp;
                 participantTurn.nextSibling.nextSibling.innerText =
-                    participant.character_name + (participant.numeric_ID == null ? "" : " #" + participant.numeric_ID);
+                    participant.character_name +
+                    (participant.numeric_ID == null
+                        ? ""
+                        : " #" + participant.numeric_ID);
                 participantTurn.nextSibling.nextSibling.nextSibling.innerText =
                     participant.init;
             });
@@ -684,62 +685,87 @@
             let hpHTML;
             console.log(roundParticipants);
             roundParticipants.forEach((participant) => {
-                hpHTML = document.querySelector('[data-round="' + i + '"] [data-participant="' + participant.pID + '"]')
+                hpHTML = document.querySelector(
+                    '[data-round="' +
+                        i +
+                        '"] [data-participant="' +
+                        participant.pID +
+                        '"]'
+                );
                 let obj = hitPoints.filter((hp) => {
-                    return hp.pID == participant.pID
-                })
+                    return hp.pID == participant.pID;
+                });
                 obj.forEach((object) => {
                     if (hpHTML.nextSibling.innerText == "undefined" || "") {
-                        hpHTML.nextSibling.innerText = object.hp
+                        hpHTML.nextSibling.innerText = object.hp;
                     } else {
-                        hpHTML.nextSibling.innerText = hpHTML.nextSibling.innerText + ", " + object.hp
+                        hpHTML.nextSibling.innerText =
+                            hpHTML.nextSibling.innerText + ", " + object.hp;
                     }
-                })
-            })
+                });
+            });
 
             // build section 2
 
-
             // get info about rounds and turns
-            let attackTurns = await dbQuery("GET", "turns");
-            let countArray = []
+            let actionTurns = await dbQuery("GET", "turns");
+            let attacksThisRound = [];
+            let bonusThisRound = [];
+            let reactThisRound = [];
+
+            // how many attack, bonus, and react sections are needed for this round?
             roundParticipants.forEach((participant) => {
-                countArray.push(attackTurns.filter((turn) => {
-                return turn.pID == participant.pID && turn.action_type == "attack"
-            }));
-            })
-            console.log("countArray: " + countArray[0]);
-            let counter = [];
-            countArray.reduce((a, b) => {
-                console.log("a: " + item.length)
-                
-                counter = item.length > counter ? item.length : counter;
-            })
-            console.log("attack count for round: " + counter)
-
-            // how many attack sections are needed for this round?
-
-            for (let i = 1; i <= numberRounds; i++) {
-                encounterWireFrame[i] = {};
-                ctApp.forEach((participant) => {
-                    if (
-                        participant.join_round <= i &&
-                        participant.dead_round >= i
-                    ) {
-                        encounterWireFrame[i]["participant" + participant.pID] = {
-                            attacks: 0,
-                            bonus: 0,
-                            react: 0,
-                            actionIDs: [],
-                        };
+                attacksThisRound.push(
+                    actionTurns.filter((turn) => {
+                        return (
+                            turn.pID == participant.pID &&
+                            turn.action_type == "attack"
+                        );
+                    })
+                );
+            });
+            roundParticipants.forEach((participant) => {
+                bonusThisRound.push(
+                    actionTurns.filter((turn) => {
+                        return (
+                            turn.pID == participant.pID &&
+                            turn.action_type == "bonus"
+                        );
+                    })
+                );
+            });
+            roundParticipants.forEach((participant) => {
+                reactThisRound.push(
+                    actionTurns.filter((turn) => {
+                        return (
+                            turn.pID == participant.pID &&
+                            turn.action_type == "react"
+                        );
+                    })
+                );
+            });
+            function findLargestSubarray(arr) {
+                let largestSubarray = arr[0];
+                let largestLength = arr[0].length;
+                for (let i = 1; i < arr.length; i++) {
+                    if (arr[i].length > largestLength) {
+                        largestSubarray = arr[i];
+                        largestLength = arr[i].length;
                     }
-                });
+                }
+                return largestLength;
             }
+
+            // here are the variables describing how many action sections to build for this round
+            let numAttacks = findLargestSubarray(attacksThisRound);
+            let bonusAttacks = findLargestSubarray(bonusThisRound);
+            let reactAttacks = findLargestSubarray(reactThisRound);
+
+            console.log("react attacks: " + reactAttacks);
 
             let section2 = document.createElement("div");
             section2.classList.add("ct_grid4columns");
-            section2.setAttribute("data-attack", 1)
-
+            section2.setAttribute("data-attack", 1);
         }
     }
 </script>
