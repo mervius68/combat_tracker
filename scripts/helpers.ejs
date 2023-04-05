@@ -25,6 +25,8 @@
             return request;
         }
     }
+
+
     let encounterWireFrame = {};
     async function load_encounter() {
         // get participants
@@ -563,17 +565,18 @@
     }
 
     async function load_encounter_v2() {
-        ctApp = await dbQuery("GET", "participants");
-
-        let encounter = await dbQuery("GET", "actions");
 
         let campaign = await dbQuery("GET", "current_encounter");
         let header = document.querySelector(".main_header");
         header.textContent = `${campaign[0].campaign} - ${campaign[0].location}`;
 
+        ctApp = await dbQuery("GET", "participants");
+
+        let roundActions = await dbQuery("GET", "actions");
+
         let numberRounds = Math.max.apply(
             Math,
-            encounter.map(function (item) {
+            roundActions.map(function (item) {
                 return item.round;
             })
         );
@@ -591,21 +594,25 @@
             div2.classList.add("section");
             div2.classList.add("header");
             div2.classList.add("ct_turn_bookends");
+            div2.classList.add("center");
             div2.innerText = "AC";
             let div3 = document.createElement("div");
             div3.classList.add("section");
             div3.classList.add("header");
             div3.classList.add("ct_turn_bookends");
+            div3.classList.add("center");
             div3.innerText = "HP";
             let div4 = document.createElement("div");
             div4.classList.add("section");
             div4.classList.add("header");
             div4.classList.add("ct_turn_bookends");
+            div4.classList.add("center");
             div4.innerText = "Character";
             let div5 = document.createElement("div");
             div5.classList.add("section");
             div5.classList.add("header");
             div5.classList.add("ct_turn_bookends");
+            div5.classList.add("center");
             div5.innerText = "Init";
 
             section1.appendChild(div2);
@@ -673,7 +680,7 @@
                     participant.init;
             });
 
-            // populate participants' hit points
+            // populate participants' hit points cells
             let hpHTML;
             console.log(roundParticipants);
             roundParticipants.forEach((participant) => {
@@ -688,10 +695,51 @@
                         hpHTML.nextSibling.innerText = hpHTML.nextSibling.innerText + ", " + object.hp
                     }
                 })
-
-
             })
-            console.log("hpHTML: " + hpHTML);
+
+            // build section 2
+
+
+            // get info about rounds and turns
+            let attackTurns = await dbQuery("GET", "turns");
+            let countArray = []
+            roundParticipants.forEach((participant) => {
+                countArray.push(attackTurns.filter((turn) => {
+                return turn.pID == participant.pID && turn.action_type == "attack"
+            }));
+            })
+            console.log("countArray: " + countArray[0]);
+            let counter = [];
+            countArray.reduce((a, b) => {
+                console.log("a: " + item.length)
+                
+                counter = item.length > counter ? item.length : counter;
+            })
+            console.log("attack count for round: " + counter)
+
+            // how many attack sections are needed for this round?
+
+            for (let i = 1; i <= numberRounds; i++) {
+                encounterWireFrame[i] = {};
+                ctApp.forEach((participant) => {
+                    if (
+                        participant.join_round <= i &&
+                        participant.dead_round >= i
+                    ) {
+                        encounterWireFrame[i]["participant" + participant.pID] = {
+                            attacks: 0,
+                            bonus: 0,
+                            react: 0,
+                            actionIDs: [],
+                        };
+                    }
+                });
+            }
+
+            let section2 = document.createElement("div");
+            section2.classList.add("ct_grid4columns");
+            section2.setAttribute("data-attack", 1)
+
         }
     }
 </script>
