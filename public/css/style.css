@@ -39,6 +39,10 @@ body {
     background-color: lightcyan;
 }
 
+.attack_alt {
+    background-color: pink;
+}
+
 .ct_turn_bookends {
     background-color: white;
 }
