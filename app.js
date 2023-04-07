@@ -58,11 +58,13 @@ app.get("/participants/", (req, res) => {
     });
 });
 
-app.get("/hitPoints/:encounter/:round", (req, res) => {
+
+
+app.get("/participantActions/:encounter/:round", (req, res) => {
     let encounter = req.params.encounter
     let round = req.params.round
     let sql = `SELECT *
-                FROM ct_tbl_hp
+                FROM ct_tbl_action
                 WHERE eID = "${encounter}" AND rID = "${round}" ORDER BY rID, pID;
                 `;
     let query = db.all(sql, [], (err, results) => {
@@ -83,8 +85,8 @@ app.get("/turns/", (req, res) => {
                 LEFT JOIN ct_tbl_action      ON ct_tbl_action.tID      = ct_tbl_turn.tID
                      JOIN ct_tbl_participant ON ct_tbl_turn.pID        = ct_tbl_participant.pID
                      JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
-                
-                WHERE ct_tbl_encounter.eID = 1;
+                    
+                WHERE ct_tbl_encounter.eID = 1 ORDER BY aID ASC;
     `;
     // above explicit join is basically the same as the following IMPLICIT join
     // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
