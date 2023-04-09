@@ -26,6 +26,18 @@
         }
     }
 
+    function findLargestSubarray(arr) {
+        let largestSubarray = arr[0];
+        let largestLength = arr[0].length;
+        for (let i = 1; i < arr.length; i++) {
+            if (arr[i].length > largestLength) {
+                largestSubarray = arr[i];
+                largestLength = arr[i].length;
+            }
+        }
+        return largestLength;
+    }
+
     async function load_encounter() {
         let encounter = await dbQuery("GET", "current_encounter");
         let header = document.querySelector(".main_header");
@@ -33,8 +45,212 @@
 
         ctApp = await dbQuery("GET", "participants/1");
 
+        // get all the actions of this encounter
         let eActions = await dbQuery("GET", "actions/1");
-        console.log(eActions)
+
+        // determine how many rounds are represented in the database
+        let totalRounds = eActions.reduce((max, obj) => {
+            return obj.round > max ? obj.round : max;
+        }, -Infinity);
+
+        // start a loop, round.forEach()
+        for (let i = 1; i <= totalRounds; i++) {
+            // determine which of the participants should be in this round
+            let roundParticipants = ctApp.filter(
+                (participant) =>
+                    participant.join_round <= i &&
+                    (participant.dead_round || 500) >= i
+            );
+
+            // build the wireframe of first section (participants);
+            let mainContainer = document.createElement("div");
+            let round1 = document.createElement("div");
+            round1.classList.add("ct_round");
+            round1.setAttribute("data-round", i);
+
+            let section1 = document.createElement("div");
+            section1.classList.add("ct_grid4columns");
+            section1.setAttribute("data-section", "1");
+
+            let div1 = document.createElement("div");
+            div1.classList.add("section");
+            div1.classList.add("header");
+            div1.classList.add("ct_turn_bookends");
+            div1.classList.add("center");
+            div1.textContent = "AC";
+            let div2 = document.createElement("div");
+            div2.classList.add("section");
+            div2.classList.add("header");
+            div2.classList.add("ct_turn_bookends");
+            div2.classList.add("center");
+            div2.textContent = "HP";
+            let div3 = document.createElement("div");
+            div3.classList.add("section");
+            div3.classList.add("header");
+            div3.classList.add("ct_turn_bookends");
+            div3.classList.add("center");
+            div3.textContent = "Character";
+            let div4 = document.createElement("div");
+            div4.classList.add("section");
+            div4.classList.add("header");
+            div4.classList.add("ct_turn_bookends");
+            div4.classList.add("center");
+            div4.textContent = "Init";
+
+            section1.appendChild(div1);
+            section1.appendChild(div2);
+            section1.appendChild(div3);
+            section1.appendChild(div4);
+
+            round1.appendChild(section1);
+            mainContainer.appendChild(round1);
+
+            for (let j = 0; j <= roundParticipants.length - 1; j++) {
+                let div5 = document.createElement("div");
+                div5.classList.add("section");
+                div5.classList.add("ct_turn_bookends");
+                div5.classList.add("center");
+                div5.setAttribute("data-participant", roundParticipants[j].pID);
+                let div6 = document.createElement("div");
+                div6.classList.add("section");
+                div6.classList.add("ct_turn_bookends");
+                div6.classList.add("center");
+                let div7 = document.createElement("div");
+                div7.classList.add("section");
+                div7.classList.add("ct_turn_bookends");
+                div7.classList.add("center");
+                let div8 = document.createElement("div");
+                div8.classList.add("section");
+                div8.classList.add("ct_turn_bookends");
+                div8.classList.add("center");
+                section1.appendChild(div5);
+                section1.appendChild(div6);
+                section1.appendChild(div7);
+                section1.appendChild(div8);
+            }
+            round1.appendChild(section1);
+
+            let attacksThisRound = [];
+            let bonusThisRound = [];
+            let reactThisRound = [];
+
+            // how many attack, bonus, and react sections are needed for this round?
+            roundParticipants.forEach((participant) => {
+                attacksThisRound.push(
+                    eActions.filter((action) => {
+                        return (
+                            action.pID == participant.pID &&
+                            action.action_type == "attack"
+                        );
+                    })
+                );
+            });
+            roundParticipants.forEach((participant) => {
+                bonusThisRound.push(
+                    eActions.filter((action) => {
+                        return (
+                            action.pID == participant.pID &&
+                            action.action_type == "bonus"
+                        );
+                    })
+                );
+            });
+            roundParticipants.forEach((participant) => {
+                reactThisRound.push(
+                    eActions.filter((action) => {
+                        return (
+                            action.pID == participant.pID &&
+                            action.action_type == "react"
+                        );
+                    })
+                );
+            });
+
+            // build the attack section(s), empty; we'll fill 'em up at the end of the loop'
+
+            let numAttacks = findLargestSubarray(attacksThisRound);
+            let bonusActions = findLargestSubarray(bonusThisRound);
+            let reactActions = findLargestSubarray(reactThisRound);
+
+            
+            for (let j = 1; j <= numAttacks; j++) {
+                let section2 = document.createElement("div");
+                section2.classList.add("ct_grid4columns");
+                section2.setAttribute("data-attack", j);
+
+                let div5 = document.createElement("div");
+                div5.classList.add("section");
+                div5.classList.add("header");
+                div5.classList.add("attack" + (j % 2 == 0 ? "_alt" : ""));
+                div5.classList.add("center");
+                div5.textContent =
+                    "Attack" + (numAttacks > 1 ? " #" + j : "");
+                let div6 = document.createElement("div");
+                div6.classList.add("section");
+                div6.classList.add("header");
+                div6.classList.add("attack" + (j % 2 == 0 ? "_alt" : ""));
+                div6.classList.add("center");
+                div6.textContent = "Hit?";
+                let div7 = document.createElement("div");
+                div7.classList.add("section");
+                div7.classList.add("header");
+                div7.classList.add("attack" + (j % 2 == 0 ? "_alt" : ""));
+                div7.classList.add("center");
+                div7.textContent = "Target(s)";
+                let div8 = document.createElement("div");
+                div8.classList.add("section");
+                div8.classList.add("header");
+                div8.classList.add("attack" + (j % 2 == 0 ? "_alt" : ""));
+                div8.classList.add("center");
+                div8.textContent = "hp";
+                section2.appendChild(div5);
+                section2.appendChild(div6);
+                section2.appendChild(div7);
+                section2.appendChild(div8);
+
+                roundParticipants.forEach((participant) => {
+                    let div9 = document.createElement("div");
+                    div9.classList.add("section");
+                    div9.classList.add("attack" + (j % 2 == 0 ? "_alt" : ""));
+                    div9.classList.add("center");
+                    div9.setAttribute("div-participant", participant.pID);
+                    let div10 = document.createElement("div");
+                    div10.classList.add("section");
+                    div10.classList.add("attack" + (j % 2 == 0 ? "_alt" : ""));
+                    div10.classList.add("center");
+                    let div11 = document.createElement("div");
+                    div11.classList.add("section");
+                    div11.classList.add("attack" + (j % 2 == 0 ? "_alt" : ""));
+                    div11.classList.add("center");
+                    let div12 = document.createElement("div");
+                    div12.classList.add("section");
+                    div12.classList.add("attack" + (j % 2 == 0 ? "_alt" : ""));
+                    div12.classList.add("center");
+                    section2.appendChild(div9);
+                    section2.appendChild(div10);
+                    section2.appendChild(div11);
+                    section2.appendChild(div12);
+                });
+                round1.appendChild(section2);
+            }
+            mainContainer.appendChild(round1);
+
+            // build the bonus section if there is one, empty.
+
+            for (let j = 1; j <= bonusThisRound; j++) {}
+
+            // build the reaction section if there is one, empty
+
+            for (let j = 1; j <= reactThisRound; j++) {}
+
+            // build the final section, empty
+
+            // populate the sections
+            // include any ct_tbl_target adjustments for hit points
+
+            document.querySelector(".ct_round_container").innerHTML =
+                mainContainer.innerHTML;
+        }
 
         // let numberRounds = Math.max.apply(
         //     Math,
@@ -509,14 +725,13 @@
         //         mainContainer.innerHTML;
         //     console.log(mainContainer);
 
-
         //     // populate attacks
         //     console.log(actionTurns);
         //     const attackDivs = document.querySelectorAll("[data-attack]");
         //     let attackIndex = 0;
 
         //     let yyy = await dbQuery("GET","participantActions/1/" + i)
-            
+
         //     actionTurns.forEach((action) => {
         //         const attackDiv = attackDivs[attackIndex];
         //         console.log(attackDivs);
@@ -528,7 +743,7 @@
         //                 participantDiv.innerText = action.toolName;
         //                 participantDiv.nextSibling.innerText =
         //                     action.hit == 0 ? "" : "X";
-        //                 participantDiv.nextSibling.nextSibling.innerText = 
+        //                 participantDiv.nextSibling.nextSibling.innerText =
         //                     roundParticipants.find(participant => participant.pID === action.targetID).character_name
         //             } else {
         //                 // Handle case where participantDiv already has content
@@ -537,11 +752,11 @@
         //         attackIndex++; // Increment index for next iteration
         //     });
 
-            // if action is an attack, determine first available attack section
-            // querySelector first open attack section
-            // populate attack section
+        // if action is an attack, determine first available attack section
+        // querySelector first open attack section
+        // populate attack section
 
-            // if action is not an attack, assign it appropriately
+        // if action is not an attack, assign it appropriately
         // }
     }
 </script>
