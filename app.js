@@ -6,7 +6,7 @@ const app = express();
 let ctApp;
 
 const db = new sqlite3.Database(
-    "./combat.db",
+    "./combat2.db",
     sqlite3.OPEN_READWRITE,
     (err) => {
         if (err) return console.error(err.message);
@@ -23,40 +23,39 @@ app.get("/", function (req, res) {
 
 app.get("/current_encounter/", (req, res) => {
     let sql = `SELECT *
-                FROM ct_tbl_campaign
-                JOIN ct_tbl_encounter
-                ON ct_tbl_campaign.cID = ct_tbl_encounter.cID
-                WHERE ct_tbl_campaign.cID = 1;
+                FROM tbl_encounter
+                WHERE eID = 1;
     `;
-    // above explicity join is basically the same as the following IMPLICIT join
-    // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
-    // where ct_tbl_campaigns.cID = ct_tbl_encounters.cID
-    // AND ct_tbl_campaigns.cID = 1
-
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
 
-app.get("/participants/", (req, res) => {
+app.get("/participants/:encounter", (req, res) => {
+    let encounter = req.params.encounter;
     let sql = `SELECT *
                 FROM ct_tbl_participant
-                JOIN ct_tbl_character ON ct_tbl_participant.chID = ct_tbl_character.chID
-                WHERE ct_tbl_participant.eID = "1" ORDER BY init DESC, numeric_ID ASC;
+                WHERE eID = ${encounter} ORDER BY init DESC, numeric_value ASC;
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        // console.log("results: " + results);
         res.send(results);
     });
 });
+
+
+
+
+
+
+
+
 
 
 
@@ -65,6 +64,23 @@ app.get("/participantActions/:encounter/:round", (req, res) => {
     let round = req.params.round
     let sql = `SELECT *
                 FROM ct_tbl_action
+                WHERE eID = "${encounter}" AND rID = "${round}" ORDER BY rID, pID;
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        // console.log("results: " + results[0].hp);
+        res.send(results);
+    });
+});
+
+app.get("/hitPoints/:encounter/:round", (req, res) => {
+    let encounter = req.params.encounter
+    let round = req.params.round
+    let sql = `SELECT *
+                FROM ct_tbl_hp
                 WHERE eID = "${encounter}" AND rID = "${round}" ORDER BY rID, pID;
                 `;
     let query = db.all(sql, [], (err, results) => {
@@ -88,11 +104,6 @@ app.get("/turns/", (req, res) => {
                     
                 WHERE ct_tbl_encounter.eID = 1 ORDER BY aID ASC;
     `;
-    // above explicit join is basically the same as the following IMPLICIT join
-    // SELECT * FROM ct_tbl_campaigns, ct_tbl_encounters 
-    // where ct_tbl_campaigns.cID = ct_tbl_encounters.cID
-    // AND ct_tbl_campaigns.cID = 1
-
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             throw err;
@@ -102,21 +113,17 @@ app.get("/turns/", (req, res) => {
     });
 });
 
-app.get("/actions/", (req, res) => {
+app.get("/actions/:encounter", (req, res) => {
+    let encounter = req.params.encounter
     let sql = `SELECT *
-        FROM ct_tbl_encounter
-                    JOIN ct_tbl_round       ON ct_tbl_round.eID       = ct_tbl_encounter.eID
-                    JOIN ct_tbl_turn        ON ct_tbl_round.rID       = ct_tbl_turn.rID 
-                    JOIN ct_tbl_action      ON ct_tbl_action.tID      = ct_tbl_turn.tID
-                    JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
-                WHERE ct_tbl_encounter.eID = 1 ORDER BY rID, tID, actionID;
+        FROM ct_tbl_action
+                WHERE eID = ${encounter} ORDER BY round, aID;
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        // console.log("results: " + results[0]);
         res.send(results);
     });
 });
