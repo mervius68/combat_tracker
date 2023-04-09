@@ -49,7 +49,20 @@ app.get("/participants/:encounter", (req, res) => {
     });
 });
 
-
+app.get("/damages/:encounter", (req, res) => {
+    let encounter = req.params.encounter;
+    let sql = `SELECT *
+                FROM ct_tbl_target
+                WHERE eID = ${encounter} ORDER BY round ;
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
 
 
 
