@@ -145,7 +145,7 @@ app.get("/turns/", (req, res) => {
 
 app.get("/actions/:encounter", (req, res) => {
     let encounter = req.params.encounter
-    let sql = `SELECT *
+    let sql = `SELECT * 
         FROM ct_tbl_action
                 WHERE eID = ${encounter} ORDER BY round, aID;
                 `;
