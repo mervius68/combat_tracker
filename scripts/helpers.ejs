@@ -156,7 +156,6 @@
         }).round;
 
         totalRounds = Math.max(totalRounds, damageRounds);
-        console.log("real totalRounds is " + totalRounds);
 
         // start a loop, round.forEach()
         let mainContainer = document.createElement("div");
@@ -370,6 +369,9 @@
             mainContainer.appendChild(headerText);
 
             // populate the sections
+            let roundActions = ctActions.filter((action) => {
+                return action.round == i
+            })
 
             // populate participants
             // let participantHTML;
@@ -397,8 +399,8 @@
                     '"]'
                 );
 
-            //     // for each HTML element that goes with this participant...
-                participantHTML.forEach((turn) => {
+                //     // for each HTML element that goes with this participant...
+                participantHTML.forEach((turn, index) => {
                     turn.innerText =
                         participant.ac +
                         (participant.ac_secondary == null
@@ -414,6 +416,7 @@
                         i === 1 ? `<b>${participant.starting_hp}</b>` : "";
 
                     // if hit points drop below 50%, yellow background for character in question; if drop to zero, red.
+                    let carryForwardHP = ""
                     damageObjects.forEach((item) => {
                         let html;
                         if (item.new_hp <= 0) {
@@ -433,9 +436,18 @@
                                 "yellow"
                             );
                         }
+                        
+                        try {
+                            let paypay = mainContainer.querySelector('[data-round="' + (i - 1) + '"] [data-section="1"] [data-participant="' + participant.pID + '"]');
+                            const arr = paypay.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
+                            const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
+                            console.log(lastNum); // output: "12"
+                            carryForwardHP = lastNum;
+                        }
+                        catch (err) { }
 
                         // add hit points for this row
-                        turn.nextSibling.innerHTML =
+                        turn.nextSibling.innerHTML = carryForwardHP + (carryForwardHP != "" ? ", " : "")+
                             turn.nextSibling.innerHTML +
                             (turn.nextSibling.innerText == "" ? "" : ", ") +
                             item.new_hp;
@@ -453,17 +465,14 @@
                             turn.nextSibling.innerHTML = `<b>${participant.starting_hp}</b>`;
                         }
                     }
+                    // if they haven't taken damage this round...
+                    // if (damageObjects.length == 0) {
 
-                    if (damageObjects.length == 0) {
-                        let latestDamage = findLatestDamage(
-                            roundDamages,
-                            i,
-                            participant.pID,
-                            totalRounds
-                        );
-                        turn.nextSibling.innerHTML =
-                            latestDamage || `<b>${participant.starting_hp}</b>`;
-                    }
+                    //     // get last round's latest hp
+
+                    //     turn.nextSibling.innerHTML =
+                    //         `<b>${participant.starting_hp}</b>`
+                    // }
 
                     turn.nextSibling.nextSibling.innerText =
                         participant.character_name +
@@ -473,72 +482,49 @@
                     turn.nextSibling.nextSibling.nextSibling.innerText =
                         participant.init;
                 });
-
-                // populate attack sections
-                // create sub-arrays containing info of each attack section
-                let attackArray = ctActions.filter((item) => {
-                    item.round == i && item.pID == participant.pID && item.action_type == "attack"
-                })
-
-                let roundActions = ctActions.filter((action) => {
-                    return action.round == i
-                })
-
-                // Group the objects based on pID and action_type
-                const grouped = roundActions.reduce((groups, obj) => {
-                    const key = `${obj.action_type}-${obj.pID}`;
-                    groups[key] = groups[key] || [];
-                    groups[key].push(obj);
-                    return groups;
-                }, {});
-
-                // Create an array of arrays for the results
-                const attackArrays = [];
-
-                // Iterate over the groups and distribute the objects evenly among the sub-arrays
-                for (const key in grouped) {
-                    if (grouped.hasOwnProperty(key)) {
-                        const group = grouped[key];
-                        if (group.length === 1) {
-                            // Add single-object groups to the first sub-array
-                            attackArrays[0] = attackArrays[0] || [];
-                            attackArrays[0].push(group[0]);
-                        } else {
-                            // Sort the group by id and distribute the objects among the sub-arrays
-                            const sortedGroup = group.sort((a, b) => a.id - b.id);
-                            const numSubArrays = Math.max(group.length, attackArrays.length);
-                            for (let i = 0; i < numSubArrays; i++) {
-                                attackArrays[i] = attackArrays[i] || [];
-                                if (i < group.length) {
-                                    attackArrays[i].push(sortedGroup[i]);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                for (let g = 1; g <= attackArrays.length; g++) {
-                    participantHTML = mainContainer.querySelectorAll(
-                        '[data-round="' +
-                        i +
-                        '"] [data-attack="' +
-                        g +
-                        '"] [data-participant="' +
-                        participant.pID +
-                        '"]'
-                    );
-
-                    participantHTML.forEach((turn) => {
-                        turn.innerText = participant.pID
-                    })
-                }
             });
-            document.querySelector(".ct_round_container").innerHTML =
-                mainContainer.innerHTML;
-            // include any ct_tbl_target adjustments for hit points
-
-            console.log(document.querySelector(".ct_round_container"));
         }
+
+        for (const action of ctActions) {
+            let tool = await dbQuery("GET", "tool/" + action.toolID);
+            let target = await dbQuery("GET", "target/" + action.targetID);
+            let targets = await dbQuery("GET", "targets/" + target[0].targetID)
+            let targetString = "";
+            let damageString = "";
+            targets.forEach((item, index) => {
+                targetString += (index > 0 ? " / " : "") + item.character_name + (item.numeric_value != 0 ? " #" + item.numeric_value : "")
+                damageString += (index > 0 ? " / " : "") + item.damage
+            })
+            let actionArray = []
+            actionArray[0] = tool[0].toolName;
+            actionArray[1] = action.hit == 1 ? "X" : "";
+            actionArray[2] = targetString
+            actionArray[3] = damageString
+
+
+            await sendToCoordinate(action.round, action.pID, action.action_type, actionArray);
+        }
+
+
+
+
+        function sendToCoordinate(round, participant, actionType, actionArray) {
+            let actionHTML = "data-" + actionType
+            let action = 1;
+            let x;
+            do {
+                x = mainContainer.querySelector(`[data-round="${round}"] [${actionHTML}="${action}"] [data-participant="${participant}"]`);
+                action += 1;
+            } while (x.innerHTML !== "");
+            x.innerHTML = actionArray[0]
+            x.nextSibling.innerHTML = actionArray[1]
+            x.nextSibling.nextSibling.innerHTML = actionArray[2]
+            x.nextSibling.nextSibling.nextSibling.innerHTML = actionArray[3]
+        }
+
+        document.querySelector(".ct_round_container").innerHTML =
+            mainContainer.innerHTML;
+        // include any ct_tbl_target adjustments for hit points
     }
 
     function findLatestDamage(roundDamages, currentRound, pID, totalRounds) {
@@ -549,521 +535,17 @@
                     item.round == currentRound && pID == roundDamages.target_pID
                 );
             });
+
+            console.log(p.length)
             if (p.length > 0) {
                 highestValueObj = p.reduce((acc, cur) => {
                     return cur.tID > acc.tID ? cur : acc;
                 });
+                console.log(highestValueObj)
                 return highestValueObj;
             } else {
                 return "";
             }
         }
     }
-
-    // let numberRounds = Math.max.apply(
-    //     Math,
-    //     roundActions.map(function (item) {
-    //         return item.round;
-    //     })
-    // );
-
-    // for (let i = 1; i <= numberRounds; i++) {
-    //     let mainContainer = document.createElement("div");
-    //     let div1 = document.createElement("div");
-    //     div1.classList.add("ct_round");
-    //     div1.setAttribute("data-round", "1");
-    //     let section1 = document.createElement("div");
-    //     section1.classList.add("ct_grid4columns");
-    //     section1.setAttribute("data-section", "1");
-
-    //     let div2 = document.createElement("div");
-    //     div2.classList.add("section");
-    //     div2.classList.add("header");
-    //     div2.classList.add("ct_turn_bookends");
-    //     div2.classList.add("center");
-    //     div2.innerText = "AC";
-    //     let div3 = document.createElement("div");
-    //     div3.classList.add("section");
-    //     div3.classList.add("header");
-    //     div3.classList.add("ct_turn_bookends");
-    //     div3.classList.add("center");
-    //     div3.innerText = "HP";
-    //     let div4 = document.createElement("div");
-    //     div4.classList.add("section");
-    //     div4.classList.add("header");
-    //     div4.classList.add("ct_turn_bookends");
-    //     div4.classList.add("center");
-    //     div4.innerText = "Character";
-    //     let div5 = document.createElement("div");
-    //     div5.classList.add("section");
-    //     div5.classList.add("header");
-    //     div5.classList.add("ct_turn_bookends");
-    //     div5.classList.add("center");
-    //     div5.innerText = "Init";
-
-    //     section1.appendChild(div2);
-    //     section1.appendChild(div3);
-    //     section1.appendChild(div4);
-    //     section1.appendChild(div5);
-
-    //     // determine participants for this round
-    //     roundParticipants = ctApp.filter((participant) => {
-    //         return (
-    //             i >= participant.join_round && i <= participant.dead_round
-    //         );
-    //     });
-
-    //     let div6, div7, div8, div9;
-    //     roundParticipants.forEach((participant) => {
-    //         div6 = document.createElement("div");
-    //         div6.classList.add("section");
-    //         div6.classList.add("ct_turn_bookends");
-    //         div6.classList.add("center");
-    //         div6.setAttribute("data-participant", participant.pID);
-    //         div7 = document.createElement("div");
-    //         div7.classList.add("section");
-    //         div7.classList.add("ct_turn_bookends");
-    //         div7.classList.add("center");
-    //         div8 = document.createElement("div");
-    //         div8.classList.add("section");
-    //         div8.classList.add("ct_turn_bookends");
-    //         div8.classList.add("center");
-    //         div9 = document.createElement("div");
-    //         div9.classList.add("section");
-    //         div9.classList.add("ct_turn_bookends");
-    //         div9.classList.add("center");
-    //         section1.appendChild(div6);
-    //         section1.appendChild(div7);
-    //         section1.appendChild(div8);
-    //         section1.appendChild(div9);
-    //     });
-
-    //     div1.appendChild(section1);
-    //     mainContainer.appendChild(div1);
-
-    //     document.querySelector(".ct_round_container").innerHTML =
-    //         mainContainer.innerHTML;
-
-    //     let hitPoints = await dbQuery("GET", "hitPoints/1/" + i);
-
-    //     let participantTurn;
-    //     roundParticipants.forEach((participant) => {
-    //         participantTurn = mainContainer.querySelector(
-    //             '[data-participant="' + participant.pID + '"]'
-    //         );
-    //         participantTurn.innerText =
-    //             participant.AC +
-    //             (participant.AC_secondary == null
-    //                 ? ""
-    //                 : " / " + participant.AC_secondary);
-    //         participantTurn.nextSibling.innerText = getHitPointsByRound(
-    //             i,
-    //             participant.pID
-    //         );
-    //         participantTurn.nextSibling.nextSibling.innerText =
-    //             participant.character_name +
-    //             (participant.numeric_ID == null
-    //                 ? ""
-    //                 : " #" + participant.numeric_ID);
-    //         participantTurn.nextSibling.nextSibling.nextSibling.innerText =
-    //             participant.init;
-    //     });
-
-    //     function getHitPointsByRound(round, pID) {
-    //         let hpText = "";
-    //         let y = hitPoints.filter((participant) => {
-    //             return participant.pID == pID;
-    //         });
-    //         y.forEach((item, index) => {
-    //             hpText = hpText + (index == 0 ? "" : ", ") + item.hp;
-    //         });
-    //         return hpText;
-    //     }
-    //     console.log("got here here here");
-    //     // populate participants' hit points cells
-    //     let hpHTML;
-    //     console.log(roundParticipants);
-    //     roundParticipants.forEach((participant) => {
-    //         hpHTML = document.querySelector(
-    //             '[data-round="' +
-    //                 i +
-    //                 '"] [data-participant="' +
-    //                 participant.pID +
-    //                 '"]'
-    //         );
-    //         let obj = hitPoints.filter((hp) => {
-    //             return hp.pID == participant.pID;
-    //         });
-    //         obj.forEach((object) => {
-    //             if (hpHTML.nextSibling.innerText == "undefined" || "") {
-    //                 hpHTML.nextSibling.innerText = object.hp;
-    //             } else {
-    //                 hpHTML.nextSibling.innerText =
-    //                     hpHTML.nextSibling.innerText + ", " + object.hp;
-    //             }
-    //         });
-    //     });
-
-    //     // build section 2
-
-    //     // get info about rounds and turns
-    //     let actionTurns = await dbQuery("GET", "turns");
-    //     let attacksThisRound = [];
-    //     let bonusThisRound = [];
-    //     let reactThisRound = [];
-    //     console.log(actionTurns);
-    //     // how many attack, bonus, and react sections are needed for this round?
-    //     roundParticipants.forEach((participant) => {
-    //         attacksThisRound.push(
-    //             actionTurns.filter((turn) => {
-    //                 return (
-    //                     turn.pID == participant.pID &&
-    //                     turn.action_type == "attack"
-    //                 );
-    //             })
-    //         );
-    //     });
-    //     roundParticipants.forEach((participant) => {
-    //         bonusThisRound.push(
-    //             actionTurns.filter((turn) => {
-    //                 return (
-    //                     turn.pID == participant.pID &&
-    //                     turn.action_type == "bonus"
-    //                 );
-    //             })
-    //         );
-    //     });
-    //     roundParticipants.forEach((participant) => {
-    //         reactThisRound.push(
-    //             actionTurns.filter((turn) => {
-    //                 return (
-    //                     turn.pID == participant.pID &&
-    //                     turn.action_type == "react"
-    //                 );
-    //             })
-    //         );
-    //     });
-    //     function findLargestSubarray(arr) {
-    //         let largestSubarray = arr[0];
-    //         let largestLength = arr[0].length;
-    //         for (let i = 1; i < arr.length; i++) {
-    //             if (arr[i].length > largestLength) {
-    //                 largestSubarray = arr[i];
-    //                 largestLength = arr[i].length;
-    //             }
-    //         }
-    //         return largestLength;
-    //     }
-
-    //     // here are the variables describing how many action sections to build for this round
-    //     let numAttacks = findLargestSubarray(attacksThisRound);
-    //     let bonusActions = findLargestSubarray(bonusThisRound);
-    //     let reactActions = findLargestSubarray(reactThisRound);
-
-    //     // build attack section(s)
-    //     for (let i = 1; i <= numAttacks; i++) {
-    //         let section2 = document.createElement("div");
-    //         section2.classList.add("ct_grid4columns");
-    //         section2.setAttribute("data-attack", i);
-
-    //         // headers
-    //         let div10 = document.createElement("div");
-    //         div10.classList.add("section");
-    //         div10.classList.add("header");
-    //         div10.classList.add("attack" + (i % 2 ? "" : "_alt"));
-    //         div10.classList.add("center");
-    //         div10.innerText = "Attack" + (numAttacks > 1 ? " #" + i : "");
-    //         let div11 = document.createElement("div");
-    //         div11.classList.add("section");
-    //         div11.classList.add("header");
-    //         div11.classList.add("attack" + (i % 2 ? "" : "_alt"));
-    //         div11.classList.add("center");
-    //         div11.innerText = "Hit?";
-    //         let div12 = document.createElement("div");
-    //         div12.classList.add("section");
-    //         div12.classList.add("header");
-    //         div12.classList.add("attack" + (i % 2 ? "" : "_alt"));
-    //         div12.classList.add("center");
-    //         div12.innerText = "Target(s)";
-    //         let div13 = document.createElement("div");
-    //         div13.classList.add("section");
-    //         div13.classList.add("header");
-    //         div13.classList.add("attack" + (i % 2 ? "" : "_alt"));
-    //         div13.classList.add("center");
-    //         div13.innerText = "hp";
-
-    //         section2.appendChild(div10);
-    //         section2.appendChild(div11);
-    //         section2.appendChild(div12);
-    //         section2.appendChild(div13);
-
-    //         // build rows of attack(s)
-    //         roundParticipants.forEach((participant) => {
-    //             let div14 = document.createElement("div");
-    //             div14.classList.add("section");
-    //             div14.classList.add("attack" + (i % 2 ? "" : "_alt"));
-    //             div14.classList.add("center");
-    //             div14.setAttribute("data-participant", participant.pID);
-    //             let div15 = document.createElement("div");
-    //             div15.classList.add("section");
-    //             div15.classList.add("attack" + (i % 2 ? "" : "_alt"));
-    //             div15.classList.add("center");
-    //             let div16 = document.createElement("div");
-    //             div16.classList.add("section");
-    //             div16.classList.add("attack" + (i % 2 ? "" : "_alt"));
-    //             div16.classList.add("center");
-    //             let div17 = document.createElement("div");
-    //             div17.classList.add("section");
-    //             div17.classList.add("attack" + (i % 2 ? "" : "_alt"));
-    //             div17.classList.add("center");
-
-    //             section2.appendChild(div14);
-    //             section2.appendChild(div15);
-    //             section2.appendChild(div16);
-    //             section2.appendChild(div17);
-
-    //             div1.appendChild(section2);
-    //         });
-
-    //         mainContainer.appendChild(div1);
-    //         document.querySelector(".ct_round_container").innerHTML =
-    //             mainContainer.innerHTML;
-    //     }
-
-    //     // build bonus section
-    //     for (let i = 1; i <= bonusActions; i++) {
-    //         let section3 = document.createElement("div");
-    //         section3.classList.add("ct_grid4columns");
-    //         section3.setAttribute("data-bonus", i);
-
-    //         // headers
-    //         let div18 = document.createElement("div");
-    //         div18.classList.add("section");
-    //         div18.classList.add("header");
-    //         div18.classList.add("bonus");
-    //         div18.classList.add("center");
-    //         div18.innerText = "Bonus";
-    //         let div19 = document.createElement("div");
-    //         div19.classList.add("section");
-    //         div19.classList.add("header");
-    //         div19.classList.add("bonus");
-    //         div19.classList.add("center");
-    //         div19.innerText = "Hit?";
-    //         let div20 = document.createElement("div");
-    //         div20.classList.add("section");
-    //         div20.classList.add("header");
-    //         div20.classList.add("bonus");
-    //         div20.classList.add("center");
-    //         div20.innerText = "Target(s)";
-    //         let div21 = document.createElement("div");
-    //         div21.classList.add("section");
-    //         div21.classList.add("header");
-    //         div21.classList.add("bonus");
-    //         div21.classList.add("center");
-    //         div21.innerText = "hp";
-
-    //         section3.appendChild(div18);
-    //         section3.appendChild(div19);
-    //         section3.appendChild(div20);
-    //         section3.appendChild(div21);
-
-    //         roundParticipants.forEach((participant) => {
-    //             let div22 = document.createElement("div");
-    //             div22.classList.add("section");
-    //             div22.classList.add("bonus");
-    //             div22.classList.add("center");
-    //             div22.setAttribute("data-participant", participant.pID);
-    //             let div23 = document.createElement("div");
-    //             div23.classList.add("section");
-    //             div23.classList.add("bonus");
-    //             div23.classList.add("center");
-    //             let div24 = document.createElement("div");
-    //             div24.classList.add("section");
-    //             div24.classList.add("bonus");
-    //             div24.classList.add("center");
-    //             let div25 = document.createElement("div");
-    //             div25.classList.add("section");
-    //             div25.classList.add("bonus");
-    //             div25.classList.add("center");
-
-    //             section3.appendChild(div22);
-    //             section3.appendChild(div23);
-    //             section3.appendChild(div24);
-    //             section3.appendChild(div25);
-
-    //             div1.appendChild(section3);
-    //         });
-    //         mainContainer.appendChild(div1);
-    //         document.querySelector(".ct_round_container").innerHTML =
-    //             mainContainer.innerHTML;
-    //     }
-
-    //     // build reaction section
-    //     for (let i = 1; i <= reactActions; i++) {
-    //         let section4 = document.createElement("div");
-    //         section4.classList.add("ct_grid4columns");
-    //         section4.setAttribute("data-react", i);
-
-    //         // headers
-    //         let div26 = document.createElement("div");
-    //         div26.classList.add("section");
-    //         div26.classList.add("header");
-    //         div26.classList.add("reaction");
-    //         div26.classList.add("center");
-    //         div26.innerText = "React";
-    //         let div27 = document.createElement("div");
-    //         div27.classList.add("section");
-    //         div27.classList.add("header");
-    //         div27.classList.add("reaction");
-    //         div27.classList.add("center");
-    //         div27.innerText = "Hit?";
-    //         let div28 = document.createElement("div");
-    //         div28.classList.add("section");
-    //         div28.classList.add("header");
-    //         div28.classList.add("reaction");
-    //         div28.classList.add("center");
-    //         div28.innerText = "Target(s)";
-    //         let div29 = document.createElement("div");
-    //         div29.classList.add("section");
-    //         div29.classList.add("header");
-    //         div29.classList.add("reaction");
-    //         div29.classList.add("center");
-    //         div29.innerText = "hp";
-
-    //         section4.appendChild(div26);
-    //         section4.appendChild(div27);
-    //         section4.appendChild(div28);
-    //         section4.appendChild(div29);
-
-    //         roundParticipants.forEach((participant) => {
-    //             let div30 = document.createElement("div");
-    //             div30.classList.add("section");
-    //             div30.classList.add("reaction");
-    //             div30.classList.add("center");
-    //             div30.setAttribute("data-participant", participant.pID);
-    //             let div31 = document.createElement("div");
-    //             div31.classList.add("section");
-    //             div31.classList.add("reaction");
-    //             div31.classList.add("center");
-    //             let div32 = document.createElement("div");
-    //             div32.classList.add("section");
-    //             div32.classList.add("reaction");
-    //             div32.classList.add("center");
-    //             let div33 = document.createElement("div");
-    //             div33.classList.add("section");
-    //             div33.classList.add("reaction");
-    //             div33.classList.add("center");
-
-    //             section4.appendChild(div30);
-    //             section4.appendChild(div31);
-    //             section4.appendChild(div32);
-    //             section4.appendChild(div33);
-
-    //             div1.appendChild(section4);
-    //         });
-    //         mainContainer.appendChild(div1);
-    //         document.querySelector(".ct_round_container").innerHTML =
-    //             mainContainer.innerHTML;
-    //     }
-
-    //     // build start-end section
-    //     let section5 = document.createElement("div");
-    //     section5.classList.add("ct_grid4columns");
-    //     section5.setAttribute("data-section", 2);
-
-    //     // headers
-    //     let div34 = document.createElement("div");
-    //     div34.classList.add("section");
-    //     div34.classList.add("header");
-    //     div34.classList.add("ct_turn_bookends");
-    //     div34.classList.add("center");
-    //     div34.innerText = "Drop";
-    //     let div35 = document.createElement("div");
-    //     div35.classList.add("section");
-    //     div35.classList.add("header");
-    //     div35.classList.add("ct_turn_bookends");
-    //     div35.classList.add("center");
-    //     div35.innerText = "Start";
-    //     let div36 = document.createElement("div");
-    //     div36.classList.add("section");
-    //     div36.classList.add("header");
-    //     div36.classList.add("ct_turn_bookends");
-    //     div36.classList.add("center");
-    //     div36.innerText = "End";
-    //     let div37 = document.createElement("div");
-    //     div37.classList.add("section");
-    //     div37.classList.add("header");
-    //     div37.classList.add("ct_turn_bookends");
-    //     div37.classList.add("center");
-    //     div37.innerText = "Notes";
-
-    //     section5.appendChild(div34);
-    //     section5.appendChild(div35);
-    //     section5.appendChild(div36);
-    //     section5.appendChild(div37);
-
-    //     roundParticipants.forEach((participant) => {
-    //         let div38 = document.createElement("div");
-    //         div38.classList.add("section");
-    //         div38.classList.add("ct_turn_bookends");
-    //         div38.classList.add("center");
-    //         div38.setAttribute("data-participant", participant.pID);
-    //         let div39 = document.createElement("div");
-    //         div39.classList.add("section");
-    //         div39.classList.add("ct_turn_bookends");
-    //         div39.classList.add("center");
-    //         let div40 = document.createElement("div");
-    //         div40.classList.add("section");
-    //         div40.classList.add("ct_turn_bookends");
-    //         div40.classList.add("center");
-    //         let div41 = document.createElement("div");
-    //         div41.classList.add("section");
-    //         div41.classList.add("ct_turn_bookends");
-    //         div41.classList.add("center");
-
-    //         section5.appendChild(div38);
-    //         section5.appendChild(div39);
-    //         section5.appendChild(div40);
-    //         section5.appendChild(div41);
-
-    //         div1.appendChild(section5);
-    //     });
-    //     mainContainer.appendChild(div1);
-    //     document.querySelector(".ct_round_container").innerHTML =
-    //         mainContainer.innerHTML;
-    //     console.log(mainContainer);
-
-    //     // populate attacks
-    //     console.log(actionTurns);
-    //     const attackDivs = document.querySelectorAll("[data-attack]");
-    //     let attackIndex = 0;
-
-    //     let yyy = await dbQuery("GET","participantActions/1/" + i)
-
-    //     actionTurns.forEach((action) => {
-    //         const attackDiv = attackDivs[attackIndex];
-    //         console.log(attackDivs);
-    //         const participantDiv =
-    //             attackDiv.querySelector("[data-participant]");
-    //         if (participantDiv) {
-    //             let participantText = participantDiv.innerText;
-    //             if (participantText == "") {
-    //                 participantDiv.innerText = action.toolName;
-    //                 participantDiv.nextSibling.innerText =
-    //                     action.hit == 0 ? "" : "X";
-    //                 participantDiv.nextSibling.nextSibling.innerText =
-    //                     roundParticipants.find(participant => participant.pID === action.targetID).character_name
-    //             } else {
-    //                 // Handle case where participantDiv already has content
-    //             }
-    //         }
-    //         attackIndex++; // Increment index for next iteration
-    //     });
-
-    // if action is an attack, determine first available attack section
-    // querySelector first open attack section
-    // populate attack section
-
-    // if action is not an attack, assign it appropriately
-    // }
 </script>

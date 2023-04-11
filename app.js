@@ -158,17 +158,51 @@ app.get("/actions/:encounter", (req, res) => {
     });
 });
 
-app.get("/tool/:actionID/", (req, res) => {
-    let actionID = req.params.actionID
+app.get("/tool/:toolID/", (req, res) => {
+    let toolID = req.params.toolID
     let sql = `SELECT *
-        FROM ct_tbl_action
-                WHERE eID = ${encounter} ORDER BY round, aID;
+        FROM tbl_tool
+                WHERE toolID = "${toolID}"
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
+        console.log(results);
+        res.send(results);
+    });
+});
+
+app.get("/target/:targetID/", (req, res) => {
+    let targetID = req.params.targetID
+    let sql = `SELECT *
+        FROM ct_tbl_target
+                WHERE tID = "${targetID}" ORDER BY round
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log(results);
+        res.send(results);
+    });
+});
+
+app.get("/targets/:targetID/", (req, res) => {
+    let targetID = req.params.targetID
+    let sql = `SELECT *
+        FROM ct_tbl_target
+        JOIN ct_tbl_participant ON ct_tbl_target.target_pID = ct_tbl_participant.pID
+                WHERE targetID = "${targetID}" ORDER BY round
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log(results);
         res.send(results);
     });
 });
