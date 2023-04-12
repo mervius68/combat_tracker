@@ -118,7 +118,7 @@ app.get("/hitPoints/:encounter/:round", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log("results: " + results[0].hp);
+        // console.log("results: " + results[0].hp);
         res.send(results);
     });
 });
@@ -169,7 +169,7 @@ app.get("/tool/:toolID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log(results);
+        // console.log(results);
         res.send(results);
     });
 });

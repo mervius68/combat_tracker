@@ -88,3 +88,7 @@ body {
 .red {
     background-color: red;
 }
+
+.selected {
+    background-color: orange;
+}

@@ -1,4 +1,5 @@
 <script>
+    let cellCountVertical = 1;
     async function dbQuery(httpReqType, httpReqString) {
         // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
         let dbReturn = makePromise(httpReqType, httpReqString);
@@ -94,7 +95,6 @@
             section2.appendChild(div6);
             section2.appendChild(div7);
             section2.appendChild(div8);
-
             roundParticipants.forEach((participant) => {
                 let div9 = document.createElement("div");
                 div9.classList.add("section");
@@ -136,6 +136,13 @@
     }
 
     async function load_encounter() {
+        let htm = await getTurnModal();
+        // Swal.fire({
+        //     title: 'Round 1! Honza! Let\'s do this!',
+        //     html: htm,
+        //     showCancelButton: true,
+        //     confirmButtonText: "Submit"
+        // })
         let encounter = await dbQuery("GET", "current_encounter");
         let header = document.querySelector(".main_header");
         header.textContent = `${encounter[0].campaign} - ${encounter[0].location} (${encounter[0].description})`;
@@ -216,6 +223,9 @@
                 div5.classList.add("ct_turn_bookends");
                 div5.classList.add("center");
                 div5.setAttribute("data-participant", roundParticipants[j].pID);
+                div5.setAttribute('data-nav', cellCountVertical)
+                div5.setAttribute('data-round', i)
+                cellCountVertical += 1;
                 let div6 = document.createElement("div");
                 div6.classList.add("section");
                 div6.classList.add("ct_turn_bookends");
@@ -436,7 +446,7 @@
                                 "yellow"
                             );
                         }
-                        
+
                         try {
                             let paypay = mainContainer.querySelector('[data-round="' + (i - 1) + '"] [data-section="1"] [data-participant="' + participant.pID + '"]');
                             const arr = paypay.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
@@ -447,7 +457,7 @@
                         catch (err) { }
 
                         // add hit points for this row
-                        turn.nextSibling.innerHTML = carryForwardHP + (carryForwardHP != "" ? ", " : "")+
+                        turn.nextSibling.innerHTML = carryForwardHP + (carryForwardHP != "" ? ", " : "") +
                             turn.nextSibling.innerHTML +
                             (turn.nextSibling.innerText == "" ? "" : ", ") +
                             item.new_hp;
@@ -500,11 +510,8 @@
             actionArray[1] = action.hit == 1 ? "X" : "";
             actionArray[2] = targetString
             actionArray[3] = damageString
-
-
             await sendToCoordinate(action.round, action.pID, action.action_type, actionArray);
         }
-
 
 
 
@@ -524,7 +531,104 @@
 
         document.querySelector(".ct_round_container").innerHTML =
             mainContainer.innerHTML;
-        // include any ct_tbl_target adjustments for hit points
+        gridify()
+    }
+
+    function gridify() {
+        let x = document.querySelectorAll('[data-round="1"] [data-section="1"] [data-participant]');
+        x.forEach(function (element, index) {
+            console.log("parent " + index + ": " + element.outerHTML);
+        });
+
+        let xx = document.querySelector('[data-participant="2"]');
+        let yy = xx.nextSibling.nextSibling.nextSibling.nextSibling
+        console.log("jibby: " + yy.outerHTML)
+
+        yy.classList.add("selected")
+        yy.nextSibling.classList.add("selected")
+        yy.nextSibling.nextSibling.classList.add("selected")
+        yy.nextSibling.nextSibling.nextSibling.classList.add("selected")
+
+        document.addEventListener('keydown', function (event) {
+            // Check if the key pressed was the down arrow
+
+            if (event.key === 'ArrowDown') {
+                let myElement = document.querySelectorAll(".selected");
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) + 1;
+                if (nav < cellCountVertical -1) {
+
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    })
+
+                    let newTarget = document.querySelector('[data-nav="' + targetNum + '"]');
+                    console.log(targetNum)
+                    newTarget.classList.add("selected")
+                    newTarget.nextSibling.classList.add("selected")
+                    newTarget.nextSibling.nextSibling.classList.add("selected")
+                    newTarget.nextSibling.nextSibling.nextSibling.classList.add("selected")
+                }
+
+
+
+
+                // Add the CSS class to the element
+                // myElement.forEach((element) => {
+                //     if (element.nextSibling.nextSibling.nextSibling.nextSibling) {
+                //         element.classList.remove('selected');
+                //         element.nextSibling.nextSibling.nextSibling.nextSibling.classList.add("selected")
+                //     } else {
+
+                //     }
+
+                // })
+
+            }
+        });
+        document.addEventListener('keydown', function (event) {
+            // Check if the key pressed was the down arrow
+
+
+            if (event.key === 'ArrowUp') {
+                let myElement = document.querySelectorAll(".selected");
+
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) - 1;
+                if (nav != 1) {
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    })
+                    let newTarget = document.querySelector('[data-nav="' + targetNum + '"]');
+                    console.log(newTarget)
+                    newTarget.classList.add("selected")
+                    newTarget.nextSibling.classList.add("selected")
+                    newTarget.nextSibling.nextSibling.classList.add("selected")
+                    newTarget.nextSibling.nextSibling.nextSibling.classList.add("selected")
+                }
+
+
+
+
+                // Add the CSS class to the element
+                // myElement.forEach((element) => {
+                //     if (element.nextSibling.nextSibling.nextSibling.nextSibling) {
+                //         element.classList.remove('selected');
+                //         element.nextSibling.nextSibling.nextSibling.nextSibling.classList.add("selected")
+                //     } else {
+
+                //     }
+
+                // })
+
+            }
+        });
+
+    }
+
+    function move() {
+        let selected = document.querySelector(".selected");
+        selected.nextSibling.nextSibling.nextSibling.classList.add(".selected");
     }
 
     function findLatestDamage(roundDamages, currentRound, pID, totalRounds) {
@@ -547,5 +651,17 @@
                 return "";
             }
         }
+    }
+
+    async function getTurnModal() {
+        return "Happy Joy"
+    }
+
+    async function selectRow() {
+        let row = document.querySelector('[data-round="1"] [data-section="1"] [data-participant="2"]')
+        row.classList.add("selected");
+        row.nextSibling.classList.add("selected")
+        row.nextSibling.nextSibling.classList.add("selected")
+        row.nextSibling.nextSibling.nextSibling.classList.add("selected")
     }
 </script>
