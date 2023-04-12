@@ -531,37 +531,25 @@
 
         document.querySelector(".ct_round_container").innerHTML =
             mainContainer.innerHTML;
-        gridify()
+        let startNav = document.querySelector('[data-nav="1"]')
+        startNav.classList.add("selected")
+        startNav.nextSibling.classList.add("selected")
+        startNav.nextSibling.nextSibling.classList.add("selected")
+        startNav.nextSibling.nextSibling.nextSibling.classList.add("selected")
+        navify()
     }
 
-    function gridify() {
-        let x = document.querySelectorAll('[data-round="1"] [data-section="1"] [data-participant]');
-        x.forEach(function (element, index) {
-            console.log("parent " + index + ": " + element.outerHTML);
-        });
-
-        let xx = document.querySelector('[data-participant="2"]');
-        let yy = xx.nextSibling.nextSibling.nextSibling.nextSibling
-        console.log("jibby: " + yy.outerHTML)
-
-        yy.classList.add("selected")
-        yy.nextSibling.classList.add("selected")
-        yy.nextSibling.nextSibling.classList.add("selected")
-        yy.nextSibling.nextSibling.nextSibling.classList.add("selected")
-
+    function navify() {
         document.addEventListener('keydown', function (event) {
             // Check if the key pressed was the down arrow
-
             if (event.key === 'ArrowDown') {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) + 1;
-                if (nav < cellCountVertical -1) {
-
+                if (nav < cellCountVertical - 1) {
                     myElement.forEach((ele) => {
                         ele.classList.remove("selected");
                     })
-
                     let newTarget = document.querySelector('[data-nav="' + targetNum + '"]');
                     console.log(targetNum)
                     newTarget.classList.add("selected")
@@ -569,30 +557,12 @@
                     newTarget.nextSibling.nextSibling.classList.add("selected")
                     newTarget.nextSibling.nextSibling.nextSibling.classList.add("selected")
                 }
-
-
-
-
-                // Add the CSS class to the element
-                // myElement.forEach((element) => {
-                //     if (element.nextSibling.nextSibling.nextSibling.nextSibling) {
-                //         element.classList.remove('selected');
-                //         element.nextSibling.nextSibling.nextSibling.nextSibling.classList.add("selected")
-                //     } else {
-
-                //     }
-
-                // })
-
             }
         });
         document.addEventListener('keydown', function (event) {
-            // Check if the key pressed was the down arrow
-
-
+            // Check if the key pressed was the up arrow
             if (event.key === 'ArrowUp') {
                 let myElement = document.querySelectorAll(".selected");
-
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) - 1;
                 if (nav != 1) {
@@ -606,21 +576,6 @@
                     newTarget.nextSibling.nextSibling.classList.add("selected")
                     newTarget.nextSibling.nextSibling.nextSibling.classList.add("selected")
                 }
-
-
-
-
-                // Add the CSS class to the element
-                // myElement.forEach((element) => {
-                //     if (element.nextSibling.nextSibling.nextSibling.nextSibling) {
-                //         element.classList.remove('selected');
-                //         element.nextSibling.nextSibling.nextSibling.nextSibling.classList.add("selected")
-                //     } else {
-
-                //     }
-
-                // })
-
             }
         });
 
