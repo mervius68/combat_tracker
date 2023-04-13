@@ -38,7 +38,7 @@ app.get("/participants/:encounter", (req, res) => {
     let encounter = req.params.encounter;
     let sql = `SELECT *
                 FROM ct_tbl_participant
-                WHERE eID = ${encounter} ORDER BY init DESC, numeric_value ASC;
+                WHERE eID = ${encounter} ORDER BY init DESC, character_name, numeric_value ASC;
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {

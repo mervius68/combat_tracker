@@ -57,7 +57,7 @@
             div5.classList.add("header");
             div5.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div5.classList.add("center");
             div5.textContent =
@@ -69,7 +69,7 @@
             div6.classList.add("header");
             div6.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div6.classList.add("center");
             div6.textContent = "Hit?";
@@ -78,7 +78,7 @@
             div7.classList.add("header");
             div7.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div7.classList.add("center");
             div7.textContent = "Target(s)";
@@ -87,7 +87,7 @@
             div8.classList.add("header");
             div8.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div8.classList.add("center");
             div8.textContent = "hp";
@@ -100,7 +100,7 @@
                 div9.classList.add("section");
                 div9.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div9.classList.add("center");
                 div9.setAttribute("data-participant", participant.pID);
@@ -108,21 +108,21 @@
                 div10.classList.add("section");
                 div10.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div10.classList.add("center");
                 let div11 = document.createElement("div");
                 div11.classList.add("section");
                 div11.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div11.classList.add("center");
                 let div12 = document.createElement("div");
                 div12.classList.add("section");
                 div12.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div12.classList.add("center");
                 section2.appendChild(div9);
@@ -166,7 +166,7 @@
 
         // start a loop, round.forEach()
         let mainContainer = document.createElement("div");
-        for (let i = 1; i <= totalRounds +1; i++) {
+        for (let i = 1; i <= totalRounds + 1; i++) {
             // determine which of the participants should be in this round
             let roundParticipants = ctApp.filter(
                 (participant) =>
@@ -223,8 +223,8 @@
                 div5.classList.add("ct_turn_bookends");
                 div5.classList.add("center");
                 div5.setAttribute("data-participant", roundParticipants[j].pID);
-                div5.setAttribute('data-nav', cellCountVertical)
-                div5.setAttribute('data-round', i)
+                div5.setAttribute("data-nav", cellCountVertical);
+                div5.setAttribute("data-round", i);
                 cellCountVertical += 1;
                 let div6 = document.createElement("div");
                 div6.classList.add("section");
@@ -375,13 +375,14 @@
 
             mainContainer.appendChild(ctRound);
             let headerText = document.createElement("h2");
-            headerText.textContent = i == totalRounds +1 ? "" : "Round " + (i + 1);
+            headerText.textContent =
+                i == totalRounds + 1 ? "" : "Round " + (i + 1);
             mainContainer.appendChild(headerText);
 
             // populate the sections
             let roundActions = ctActions.filter((action) => {
-                return action.round == i
-            })
+                return action.round == i;
+            });
 
             // populate participants
             // let participantHTML;
@@ -403,10 +404,10 @@
                 // locate the HTML elements for this participant
                 participantHTML = mainContainer.querySelectorAll(
                     '[data-round="' +
-                    i +
-                    '"] [data-section="1"] [data-participant="' +
-                    participant.pID +
-                    '"]'
+                        i +
+                        '"] [data-section="1"] [data-participant="' +
+                        participant.pID +
+                        '"]'
                 );
 
                 //     // for each HTML element that goes with this participant...
@@ -426,59 +427,15 @@
                         i === 1 ? `<b>${participant.starting_hp}</b>` : "";
 
                     // if hit points drop below 50%, yellow background for character in question; if drop to zero, red.
-                    let carryForwardHP = ""
+                    let carryForwardHP = "";
                     damageObjects.forEach((item) => {
-                        let html;
-                        if (item.new_hp <= 0) {
-                            turn.classList.add("red");
-                            turn.nextSibling.classList.add("red");
-                            turn.nextSibling.nextSibling.classList.add("red");
-                            turn.nextSibling.nextSibling.nextSibling.classList.add(
-                                "red"
-                            );
-                        } else if (item.new_hp <= participant.starting_hp / 2) {
-                            turn.classList.add("yellow");
-                            turn.nextSibling.classList.add("yellow");
-                            turn.nextSibling.nextSibling.classList.add(
-                                "yellow"
-                            );
-                            turn.nextSibling.nextSibling.nextSibling.classList.add(
-                                "yellow"
-                            );
-                        }
-
-                        try {
-                            let previousHP = mainContainer.querySelector('[data-round="' + (i - 1) + '"] [data-section="1"] [data-participant="' + participant.pID + '"]');
-                            const arr = previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
-                            const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
-                            carryForwardHP = lastNum;
-                        }
-                        catch (err) { }
-
                         // add hit points for this row
-                        turn.nextSibling.innerHTML = carryForwardHP + (carryForwardHP != "" ? ", " : "") +
+                        turn.nextSibling.innerHTML =
+                            carryForwardHP +
+                            (carryForwardHP != "" ? ", " : "") +
                             turn.nextSibling.innerHTML +
                             (turn.nextSibling.innerText == "" ? "" : ", ") +
                             item.new_hp;
-                            
-                        
-                        // if (carryForwardHP <= 0) {
-                        //     turn.classList.add("red");
-                        //     turn.nextSibling.classList.add("red");
-                        //     turn.nextSibling.nextSibling.classList.add("red");
-                        //     turn.nextSibling.nextSibling.nextSibling.classList.add(
-                        //         "red"
-                        //     );
-                        // } else if (carryForwardHP <= participant.starting_hp) {
-                        //     turn.classList.add("yellow");
-                        //     turn.nextSibling.classList.add("yellow");
-                        //     turn.nextSibling.nextSibling.classList.add(
-                        //         "yellow"
-                        //     );
-                        //     turn.nextSibling.nextSibling.nextSibling.classList.add(
-                        //         "yellow"
-                        //     );
-                        // }
                     });
 
                     // check to see if participant pID is in roundDamages
@@ -493,7 +450,6 @@
                             turn.nextSibling.innerHTML = `<b>${participant.starting_hp}</b>`;
                         }
                     }
-
                     turn.nextSibling.nextSibling.innerText =
                         participant.character_name +
                         (participant.numeric_value == null
@@ -503,83 +459,105 @@
                         participant.init;
                 });
                 participantHTML.forEach((turn, index) => {
-                    let newValue = turn.nextSibling.innerText
+                    let newValue = turn.nextSibling.innerText.split(",");
                     // if newValue contains comma, get what's to the right of the last comma
-                    // compare that value to participant.starting_hp 
-                    // determine if turn gets yellow class assignment
-                    console.log(newValue);
-                    console.log(participant.pID)
-                })
-
+                    // const arr = previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
+                    const lastNum = newValue.pop().trim(); // remove and return the last element of the array, and trim any whitespace
+                    // compare that value to participant.starting_hp
+                    if (lastNum <= participant.starting_hp / 2) {
+                        turn.classList.add("yellow")
+                        turn.nextSibling.classList.add("yellow")
+                        turn.nextSibling.nextSibling.classList.add("yellow")
+                        turn.nextSibling.nextSibling.nextSibling.classList.add("yellow")
+                    } else if (lastNum <= 0) {
+                        turn.classList.add("red")
+                        turn.nextSibling.classList.add("red")
+                        turn.nextSibling.nextSibling.classList.add("red")
+                        turn.nextSibling.nextSibling.nextSibling.classList.add("red")
+                    }
+                });
             });
         }
 
         for (const action of ctActions) {
             let tool = await dbQuery("GET", "tool/" + action.toolID);
             let target = await dbQuery("GET", "target/" + action.targetID);
-            let targets = await dbQuery("GET", "targets/" + target[0].targetID)
+            let targets = await dbQuery("GET", "targets/" + target[0].targetID);
             let targetString = "";
             let damageString = "";
             targets.forEach((item, index) => {
-                targetString += (index > 0 ? " / " : "") + item.character_name + (item.numeric_value != 0 ? " #" + item.numeric_value : "")
-                damageString += (index > 0 ? " / " : "") + item.damage
-            })
-            let actionArray = []
+                targetString +=
+                    (index > 0 ? " / " : "") +
+                    item.character_name +
+                    (item.numeric_value != 0 ? " #" + item.numeric_value : "");
+                damageString += (index > 0 ? " / " : "") + item.damage;
+            });
+            let actionArray = [];
             actionArray[0] = tool[0].toolName;
             actionArray[1] = action.hit == 1 ? "<b class='lightred'>X</b>" : "";
-            actionArray[2] = targetString
-            actionArray[3] = damageString
-            await sendToCoordinate(action.round, action.pID, action.action_type, actionArray);
+            actionArray[2] = targetString;
+            actionArray[3] = damageString;
+            await sendToCoordinate(
+                action.round,
+                action.pID,
+                action.action_type,
+                actionArray
+            );
         }
-
-       
 
         document.querySelector(".ct_round_container").innerHTML =
             mainContainer.innerHTML;
         resizeSections();
-        let startNav = document.querySelector('[data-nav="1"]')
-        console.log(startNav.parentNode.clientWidth)
-        startNav.classList.add("selected")
-        startNav.nextSibling.classList.add("selected")
-        startNav.nextSibling.nextSibling.classList.add("selected")
-        startNav.nextSibling.nextSibling.nextSibling.classList.add("selected")
-        navify()
+        let startNav = document.querySelector('[data-nav="1"]');
+        console.log(startNav.parentNode.clientWidth);
+        startNav.classList.add("selected");
+        startNav.nextSibling.classList.add("selected");
+        startNav.nextSibling.nextSibling.classList.add("selected");
+        startNav.nextSibling.nextSibling.nextSibling.classList.add("selected");
+        navify();
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
-            let actionHTML = "data-" + actionType
+            let actionHTML = "data-" + actionType;
             let action = 1;
             let x;
             do {
-                x = mainContainer.querySelector(`[data-round="${round}"] [${actionHTML}="${action}"] [data-participant="${participant}"]`);
+                x = mainContainer.querySelector(
+                    `[data-round="${round}"] [${actionHTML}="${action}"] [data-participant="${participant}"]`
+                );
                 action += 1;
             } while (x.innerHTML !== "");
-            x.innerHTML = actionArray[0]
-            x.nextSibling.innerHTML = actionArray[1]
-            x.nextSibling.nextSibling.innerHTML = actionArray[2]
-            x.nextSibling.nextSibling.nextSibling.innerHTML = actionArray[3]
+            x.innerHTML = actionArray[0];
+            x.nextSibling.innerHTML = actionArray[1];
+            x.nextSibling.nextSibling.innerHTML = actionArray[2];
+            x.nextSibling.nextSibling.nextSibling.innerHTML = actionArray[3];
         }
     }
 
     function resizeSections() {
-        let variety = ["section='1'", "attack", "bonus", "react", "section='2'"]
+        let variety = [
+            "section='1'",
+            "attack",
+            "bonus",
+            "react",
+            "section='2'",
+        ];
         variety.forEach((item) => {
             let grab = document.querySelectorAll(`[data-round] [data-${item}]`);
             let maxWidth = 0;
             grab.forEach((round) => {
-                maxWidth = maxWidth > round.clientWidth ? maxWidth : round.clientWidth;
-            })
+                maxWidth =
+                    maxWidth > round.clientWidth ? maxWidth : round.clientWidth;
+            });
             grab.forEach((round) => {
                 round.style.width = maxWidth + "px";
-            })
-        })
-
-
-    };
+            });
+        });
+    }
 
     function navify() {
-        document.addEventListener('keydown', function (event) {
+        document.addEventListener("keydown", function (event) {
             // Check if the key pressed was the down arrow
-            if (event.key === 'ArrowDown') {
+            if (event.key === "ArrowDown") {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) + 1;
@@ -587,18 +565,22 @@
                 if (nav < cellCountVertical - 1) {
                     myElement.forEach((ele) => {
                         ele.classList.remove("selected");
-                    })
-                    newTarget = document.querySelector('[data-nav="' + targetNum + '"]');
-                    newTarget.classList.add("selected")
-                    newTarget.nextSibling.classList.add("selected")
-                    newTarget.nextSibling.nextSibling.classList.add("selected")
-                    newTarget.nextSibling.nextSibling.nextSibling.classList.add("selected")
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    newTarget.classList.add("selected");
+                    newTarget.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
                 }
             }
         });
-        document.addEventListener('keydown', function (event) {
+        document.addEventListener("keydown", function (event) {
             // Check if the key pressed was the up arrow
-            if (event.key === 'ArrowUp') {
+            if (event.key === "ArrowUp") {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) - 1;
@@ -606,16 +588,19 @@
                 if (nav != 1) {
                     myElement.forEach((ele) => {
                         ele.classList.remove("selected");
-                    })
-                    newTarget = document.querySelector('[data-nav="' + targetNum + '"]');
-                    newTarget.classList.add("selected")
-                    newTarget.nextSibling.classList.add("selected")
-                    newTarget.nextSibling.nextSibling.classList.add("selected")
-                    newTarget.nextSibling.nextSibling.nextSibling.classList.add("selected")
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    newTarget.classList.add("selected");
+                    newTarget.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
                 }
             }
         });
-
     }
 
     function move() {
@@ -632,12 +617,12 @@
                 );
             });
 
-            console.log(p.length)
+            console.log(p.length);
             if (p.length > 0) {
                 highestValueObj = p.reduce((acc, cur) => {
                     return cur.tID > acc.tID ? cur : acc;
                 });
-                console.log(highestValueObj)
+                console.log(highestValueObj);
                 return highestValueObj;
             } else {
                 return "";
@@ -646,14 +631,16 @@
     }
 
     async function getTurnModal() {
-        return "Happy Joy"
+        return "Happy Joy";
     }
 
     async function selectRow() {
-        let row = document.querySelector('[data-round="1"] [data-section="1"] [data-participant="2"]')
+        let row = document.querySelector(
+            '[data-round="1"] [data-section="1"] [data-participant="2"]'
+        );
         row.classList.add("selected");
-        row.nextSibling.classList.add("selected")
-        row.nextSibling.nextSibling.classList.add("selected")
-        row.nextSibling.nextSibling.nextSibling.classList.add("selected")
+        row.nextSibling.classList.add("selected");
+        row.nextSibling.nextSibling.classList.add("selected");
+        row.nextSibling.nextSibling.nextSibling.classList.add("selected");
     }
 </script>
