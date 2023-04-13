@@ -166,7 +166,7 @@
 
         // start a loop, round.forEach()
         let mainContainer = document.createElement("div");
-        for (let i = 1; i <= totalRounds; i++) {
+        for (let i = 1; i <= totalRounds +1; i++) {
             // determine which of the participants should be in this round
             let roundParticipants = ctApp.filter(
                 (participant) =>
@@ -375,7 +375,7 @@
 
             mainContainer.appendChild(ctRound);
             let headerText = document.createElement("h2");
-            headerText.textContent = i == totalRounds ? "" : "Round " + (i + 1);
+            headerText.textContent = i == totalRounds +1 ? "" : "Round " + (i + 1);
             mainContainer.appendChild(headerText);
 
             // populate the sections
@@ -448,10 +448,9 @@
                         }
 
                         try {
-                            let paypay = mainContainer.querySelector('[data-round="' + (i - 1) + '"] [data-section="1"] [data-participant="' + participant.pID + '"]');
-                            const arr = paypay.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
+                            let previousHP = mainContainer.querySelector('[data-round="' + (i - 1) + '"] [data-section="1"] [data-participant="' + participant.pID + '"]');
+                            const arr = previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
                             const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
-                            console.log(lastNum); // output: "12"
                             carryForwardHP = lastNum;
                         }
                         catch (err) { }
@@ -461,6 +460,25 @@
                             turn.nextSibling.innerHTML +
                             (turn.nextSibling.innerText == "" ? "" : ", ") +
                             item.new_hp;
+                            
+                        
+                        // if (carryForwardHP <= 0) {
+                        //     turn.classList.add("red");
+                        //     turn.nextSibling.classList.add("red");
+                        //     turn.nextSibling.nextSibling.classList.add("red");
+                        //     turn.nextSibling.nextSibling.nextSibling.classList.add(
+                        //         "red"
+                        //     );
+                        // } else if (carryForwardHP <= participant.starting_hp) {
+                        //     turn.classList.add("yellow");
+                        //     turn.nextSibling.classList.add("yellow");
+                        //     turn.nextSibling.nextSibling.classList.add(
+                        //         "yellow"
+                        //     );
+                        //     turn.nextSibling.nextSibling.nextSibling.classList.add(
+                        //         "yellow"
+                        //     );
+                        // }
                     });
 
                     // check to see if participant pID is in roundDamages
@@ -475,14 +493,6 @@
                             turn.nextSibling.innerHTML = `<b>${participant.starting_hp}</b>`;
                         }
                     }
-                    // if they haven't taken damage this round...
-                    // if (damageObjects.length == 0) {
-
-                    //     // get last round's latest hp
-
-                    //     turn.nextSibling.innerHTML =
-                    //         `<b>${participant.starting_hp}</b>`
-                    // }
 
                     turn.nextSibling.nextSibling.innerText =
                         participant.character_name +
@@ -492,6 +502,15 @@
                     turn.nextSibling.nextSibling.nextSibling.innerText =
                         participant.init;
                 });
+                participantHTML.forEach((turn, index) => {
+                    let newValue = turn.nextSibling.innerText
+                    // if newValue contains comma, get what's to the right of the last comma
+                    // compare that value to participant.starting_hp 
+                    // determine if turn gets yellow class assignment
+                    console.log(newValue);
+                    console.log(participant.pID)
+                })
+
             });
         }
 
@@ -507,13 +526,24 @@
             })
             let actionArray = []
             actionArray[0] = tool[0].toolName;
-            actionArray[1] = action.hit == 1 ? "X" : "";
+            actionArray[1] = action.hit == 1 ? "<b class='lightred'>X</b>" : "";
             actionArray[2] = targetString
             actionArray[3] = damageString
             await sendToCoordinate(action.round, action.pID, action.action_type, actionArray);
         }
 
+       
 
+        document.querySelector(".ct_round_container").innerHTML =
+            mainContainer.innerHTML;
+        resizeSections();
+        let startNav = document.querySelector('[data-nav="1"]')
+        console.log(startNav.parentNode.clientWidth)
+        startNav.classList.add("selected")
+        startNav.nextSibling.classList.add("selected")
+        startNav.nextSibling.nextSibling.classList.add("selected")
+        startNav.nextSibling.nextSibling.nextSibling.classList.add("selected")
+        navify()
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
             let actionHTML = "data-" + actionType
@@ -528,16 +558,23 @@
             x.nextSibling.nextSibling.innerHTML = actionArray[2]
             x.nextSibling.nextSibling.nextSibling.innerHTML = actionArray[3]
         }
-
-        document.querySelector(".ct_round_container").innerHTML =
-            mainContainer.innerHTML;
-        let startNav = document.querySelector('[data-nav="1"]')
-        startNav.classList.add("selected")
-        startNav.nextSibling.classList.add("selected")
-        startNav.nextSibling.nextSibling.classList.add("selected")
-        startNav.nextSibling.nextSibling.nextSibling.classList.add("selected")
-        navify()
     }
+
+    function resizeSections() {
+        let variety = ["section='1'", "attack", "bonus", "react", "section='2'"]
+        variety.forEach((item) => {
+            let grab = document.querySelectorAll(`[data-round] [data-${item}]`);
+            let maxWidth = 0;
+            grab.forEach((round) => {
+                maxWidth = maxWidth > round.clientWidth ? maxWidth : round.clientWidth;
+            })
+            grab.forEach((round) => {
+                round.style.width = maxWidth + "px";
+            })
+        })
+
+
+    };
 
     function navify() {
         document.addEventListener('keydown', function (event) {
@@ -546,12 +583,12 @@
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) + 1;
+                let newTarget;
                 if (nav < cellCountVertical - 1) {
                     myElement.forEach((ele) => {
                         ele.classList.remove("selected");
                     })
-                    let newTarget = document.querySelector('[data-nav="' + targetNum + '"]');
-                    console.log(targetNum)
+                    newTarget = document.querySelector('[data-nav="' + targetNum + '"]');
                     newTarget.classList.add("selected")
                     newTarget.nextSibling.classList.add("selected")
                     newTarget.nextSibling.nextSibling.classList.add("selected")
@@ -565,12 +602,12 @@
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) - 1;
+                let newTarget;
                 if (nav != 1) {
                     myElement.forEach((ele) => {
                         ele.classList.remove("selected");
                     })
-                    let newTarget = document.querySelector('[data-nav="' + targetNum + '"]');
-                    console.log(newTarget)
+                    newTarget = document.querySelector('[data-nav="' + targetNum + '"]');
                     newTarget.classList.add("selected")
                     newTarget.nextSibling.classList.add("selected")
                     newTarget.nextSibling.nextSibling.classList.add("selected")

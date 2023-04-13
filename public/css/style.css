@@ -92,3 +92,8 @@ body {
 .selected {
     background-color: orange;
 }
+.lightred {
+    background-color: red;
+    color: white;
+    padding: 2px;
+}
