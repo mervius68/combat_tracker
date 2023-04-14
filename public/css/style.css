@@ -157,8 +157,8 @@ body {
   }
   
   #modal-header {
-    background: orange;
-    color: black;
+    background: gray;
+    color: white;
     padding: 5px 10px;
     text-align: center;
     text-transform: uppercase;
@@ -177,8 +177,8 @@ body {
   }
   
   #modal-footer {
-    background: orange;
-    color: black;
+    background: gray;
+    color: white;
     padding: 5px 5px;
     text-align: center;
     text-transform: uppercase;
