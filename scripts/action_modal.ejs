@@ -1,0 +1,260 @@
+<script>
+    // Populate modal
+    function addNode(ev) {
+
+        let miscEle =
+            document?.querySelector(".context-menu-item-selected") ||
+            document?.querySelector(".context-menu-item-selected-gray");
+
+        let miscIdSelected = miscEle.id;
+        miscIdSelected = miscIdSelected.match(/\d/g);
+        miscIdSelected = miscIdSelected.join("");
+        // alert(miscIdSelected)
+        let checkAlphabet = checkAlpha(miscIdSelected) || false;
+        let buildMiscModalBody = ``;
+        let hiddenMiscNums = ``;
+        let nodeStuff = -1;
+        let miscPriorityNum;
+        if (checkAlphabet == true) {
+            // if node list is set to be arranged alphabetically
+            buildMiscModalBody = `<div class="form-group"><p><b>The list to which you want to add a node is arranged
+                    alphabetically.</b> You may proceed, but a new entry will be added
+                    to the appropriate alphabetic position.</p></div>`;
+        } else {
+            buildMiscModalBody = `<div class="form-group-buttons">
+                        <input type="radio" name="choice" value="yes" id="choice-before">
+                        <label id="addBefore" for="choice-yes">Add Entry BEFORE</label><br>
+                        <span id="miscTitleBuffer"></span>
+                        <br>
+                        <input type="radio" name="choice" value="no" id="choice-after" checked="checked">
+                        <label id = "addAfter" for="choice-no">Add Entry AFTER</label>
+                    </div>`;
+        }
+
+        
+
+        let miscParentNum = document.getElementById(
+            "m" + miscIdSelected
+        ).parentElement.parentElement.id;
+        if (miscParentNum !== "myUL") {
+            miscParentNum = miscParentNum.match(/\d/g);
+            miscParentNum = miscParentNum.join("");
+        } else {
+            miscParentNum = 0;
+        }
+        
+
+        let miscNodeCount;
+        if (miscParentNum === 0) {
+            miscNodeCount = document.getElementById("myUL").childNodes.length;
+        } else {
+            miscNodeCount = document.getElementById("m" + miscParentNum + "a")
+                .childNodes.length;
+        }
+        if (checkAlphabet == true) {
+            miscPriorityNum = miscNodeCount;
+        } else {
+            nodeStuff = treeviewPlaceholder.filter(function (item) {
+                return item.miscParent == miscParentNum;
+            });
+            miscPriorityNum = nodeStuff.findIndex(function (item) {
+                return item.miscID == miscIdSelected;
+            });
+        }
+        
+        hiddenMiscNums = `<textarea name="miscParentNum" id="miscParentNum" style="display: none">${miscParentNum}</textarea>
+                    <textarea name="miscPriorityNum" id="miscPriorityNum" style="display: none">${miscPriorityNum}</textarea>
+                    <textarea name="miscNodeCount" id="miscNodeCount" style="display: none">${miscNodeCount}</textarea>
+                    `;
+        buildMiscModalBody += `<div class="form-group">
+                         <label for="first-name">Miscellaneous Entry Name</label>
+                         <input id="modal-miscName" name="miscName" type="text" placeholder="Name" autocomplete="off" required="true">
+                     </div>
+                    <div class="form-group">
+                        <label for="assoc-date">Associated Date (optional)</label>
+                        <input id="modal-miscDate" name="miscDate" type="text" placeholder="e.g. 8/9/81 or 8 9 81" autocomplete="off">
+                    </div>
+                    ${hiddenMiscNums}
+                    <input id="submitB" type="submit" formmethod="post" value="Submit">
+               `;
+        document.getElementById("misc-modal-body").innerHTML =
+            buildMiscModalBody;
+
+        // addMenuListeners(checkAlphabet === true ? true : false);
+
+        // Set title in header of modal box to title of selected node
+        let misc = document.getElementById(
+            "m" + miscIdSelected
+        ).innerHTML;
+        document.getElementById(
+            "misc-modal-header-title"
+        ).innerHTML = `<h2>${misc}</h2>`;
+        if (checkAlphabet == false) {
+            document.getElementById(
+                "miscTitleBuffer"
+            ).innerHTML = `<b>${misc}</b>`;
+        }
+        // Show the modal box
+        modal.style.display = "block";
+        addNodePop();
+        const picker = datepicker("#modal-miscDate");
+        document.getElementById("modal-miscName").focus();
+        // alert(checkAlphabet)
+        
+    }
+
+    // Add listeners to modal
+    function addNodePop() {
+        if (document.getElementById("addBefore")) {
+            document
+            .getElementById("addBefore")
+            .addEventListener("click", function () {
+                document.getElementById("choice-before").checked = true;
+            });
+
+        document
+            .getElementById("addAfter")
+            .addEventListener("click", function () {
+                document.getElementById("choice-after").checked = true;
+            });
+        }
+       
+        let input1 = document.getElementById("modal-miscName");
+        let input2 = document.getElementById("modal-miscDate");
+        input1.addEventListener("keyup", function (event) {
+            if (event.keyCode === 13) {
+                submitB();
+            }
+        });
+        input2.addEventListener("keyup", function (event) {
+            if (event.keyCode === 13) {
+                submitB();
+            }
+        });
+        document
+            .getElementById("submitB")
+            .addEventListener("click", function () {
+                submitB();
+            });
+    }
+
+    // Check to see if parentElement is set to alphabetize its children
+    function checkAlpha(miscIdSelected) {
+
+        
+        let miscCheckAlpha = document.getElementById(
+            "m" + miscIdSelected
+        ).parentElement.parentElement.id;
+        miscCheckAlpha = miscCheckAlpha.substring(1, miscCheckAlpha.length - 1); // trim first and last characters from ID
+        if (miscCheckAlpha != "yU") {
+            let testForAlphabetical = treeviewPlaceholder.find(
+                (tvItem) => tvItem.miscID == miscCheckAlpha
+            );
+            if (testForAlphabetical.miscAlpha === 1) return true;
+        } else {
+            return false;
+        }
+    }
+
+    // what happens when we click Submit
+    async function submitB() {
+        if (
+            document.getElementById("modal-miscName").value.trim().length == 0
+        ) {
+            swalWarning("name", "modal-miscName");
+        } else {
+            backTrackY(); // not async
+            if (document
+                .querySelectorAll(".tvSelect").length > 0 ) {
+                retireTv(); // async
+            }
+            modal.style.display = "none";
+            await getNewMiscID();
+            let miscAdd = document.getElementById("modal-miscName").value;
+
+            miscAdd =
+                miscAdd +
+                " | " +
+                document.getElementById("modal-miscDate").value;
+            miscAdd =
+                miscAdd +
+                " | " +
+                document.getElementById("miscParentNum").value;
+
+            miscAdd = makeStringLegal(miscAdd);
+               
+            //invalid characters: %
+
+            let miscPriority = parseInt(
+                document.getElementById("miscPriorityNum").innerHTML
+            );
+            try {
+                if (document.getElementById("choice-after").checked) {
+                    miscPriority = miscPriority + 1;
+                }
+            } catch (err) {}
+            miscAdd = miscAdd + " | " + miscPriority;
+
+            // Determine if list is alphabetized or not, i.e. is miscPriority = list length
+            // Next line: if they're equal, list is NOT alphabetized, and we need to clear a path
+            if (
+                document.getElementById("miscPriorityNum").innerHTML !=
+                document.getElementById("miscNodeCount").innerHTML
+            ) {
+                miscClearAPathInDb();
+            }
+            
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = async function () {
+                let state = xhttp.readyState;
+                // alert(backTrack[backTrack.length -1])
+                if (state == 4 && xhttp.status == 200) {
+                        await buildMiscTreeview();
+                        await miscClick("m" + miscIdSelected);
+                }
+            };
+            xhttp.open("POST", "../addMiscNode/" + miscAdd, true);
+            xhttp.send();
+        }
+    }
+
+    // Adjust siblings' miscPriority in db
+    function miscClearAPathInDb() {
+        let miscParentNum = document.getElementById("miscParentNum").innerHTML;
+
+        let miscPriority = parseInt(
+            document.getElementById("miscPriorityNum").innerHTML
+        );
+        // alert(miscPriority);
+        if (document.getElementById("choice-after").checked) {
+            miscPriority = miscPriority + 1;
+        }
+        var xhttp = new XMLHttpRequest();
+        xhttp.open(
+            "POST",
+            "../clearMiscPath/" + miscParentNum + "/" + miscPriority,
+            true
+        );
+        xhttp.send();
+    }
+
+    // Grab next available miscID number
+    function getNewMiscID() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = async function () {
+            let state = xhttp.readyState;
+            if (state == 4 && xhttp.status == 200) {
+                const text = this.responseText;
+                const obj = JSON.parse(text);
+                await buildMiscTreeview();
+                // setTimeout(function () {
+                    document
+                        .getElementById("frame1")
+                        .contentWindow.loadMiscEntry(obj[0].miscID);
+                // }, 10);
+            }
+        };
+        xhttp.open("GET", "../getNewMiscID/", true);
+        xhttp.send();
+    }
+</script>

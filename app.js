@@ -5,6 +5,7 @@ const sqlite3 = require("sqlite3").verbose();
 const app = express();
 let ctApp;
 
+
 const db = new sqlite3.Database(
     "./combat2.db",
     sqlite3.OPEN_READWRITE,

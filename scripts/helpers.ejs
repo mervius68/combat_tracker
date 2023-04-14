@@ -1,5 +1,6 @@
 <script>
     let cellCountVertical = 1;
+
     async function dbQuery(httpReqType, httpReqString) {
         // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
         let dbReturn = makePromise(httpReqType, httpReqString);
@@ -429,14 +430,19 @@
                     // if hit points drop below 50%, yellow background for character in question; if drop to zero, red.
                     let carryForwardHP = "";
                     damageObjects.forEach((item) => {
-
                         try {
-                            let previousHP = mainContainer.querySelector('[data-round="' + (i - 1) + '"] [data-section="1"] [data-participant="' + participant.pID + '"]');
-                            const arr = previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
+                            let previousHP = mainContainer.querySelector(
+                                '[data-round="' +
+                                    (i - 1) +
+                                    '"] [data-section="1"] [data-participant="' +
+                                    participant.pID +
+                                    '"]'
+                            );
+                            const arr =
+                                previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
                             const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
                             carryForwardHP = lastNum;
-                        }
-                        catch (err) { }
+                        } catch (err) {}
                         // add hit points for this row
                         turn.nextSibling.innerHTML =
                             carryForwardHP +
@@ -445,12 +451,6 @@
                             (turn.nextSibling.innerText == "" ? "" : ", ") +
                             item.new_hp;
                     });
-
-
-                  
-
-           
-                    
 
                     // check to see if participant pID is in roundDamages
                     if (damageObjects.length == 0 && i !== 1) {
@@ -479,15 +479,19 @@
                     const lastNum = newValue.pop().trim(); // remove and return the last element of the array, and trim any whitespace
                     // compare that value to participant.starting_hp
                     if (lastNum <= participant.starting_hp / 2) {
-                        turn.classList.add("yellow")
-                        turn.nextSibling.classList.add("yellow")
-                        turn.nextSibling.nextSibling.classList.add("yellow")
-                        turn.nextSibling.nextSibling.nextSibling.classList.add("yellow")
+                        turn.classList.add("yellow");
+                        turn.nextSibling.classList.add("yellow");
+                        turn.nextSibling.nextSibling.classList.add("yellow");
+                        turn.nextSibling.nextSibling.nextSibling.classList.add(
+                            "yellow"
+                        );
                     } else if (lastNum <= 0) {
-                        turn.classList.add("red")
-                        turn.nextSibling.classList.add("red")
-                        turn.nextSibling.nextSibling.classList.add("red")
-                        turn.nextSibling.nextSibling.nextSibling.classList.add("red")
+                        turn.classList.add("red");
+                        turn.nextSibling.classList.add("red");
+                        turn.nextSibling.nextSibling.classList.add("red");
+                        turn.nextSibling.nextSibling.nextSibling.classList.add(
+                            "red"
+                        );
                     }
                 });
             });
@@ -656,5 +660,28 @@
         row.nextSibling.classList.add("selected");
         row.nextSibling.nextSibling.classList.add("selected");
         row.nextSibling.nextSibling.nextSibling.classList.add("selected");
+    }
+
+    function launchModal() {
+        let modal = document.querySelector(".modal");
+        let closeModal = document.querySelector(".close-modal");
+        modal.style.display = "block";
+
+        closeModalBox(closeModal);
+    }
+
+    function closeModalBox(closeModal) {
+        closeModal.addEventListener("click", function (e) {
+            modal.style.display = "none";
+        
+        });
+        window.addEventListener("click", function (e) {
+            if (e.target == modal) {
+                modal.style.display = "none";
+
+                
+            }
+        });
+        
     }
 </script>
