@@ -429,6 +429,14 @@
                     // if hit points drop below 50%, yellow background for character in question; if drop to zero, red.
                     let carryForwardHP = "";
                     damageObjects.forEach((item) => {
+
+                        try {
+                            let previousHP = mainContainer.querySelector('[data-round="' + (i - 1) + '"] [data-section="1"] [data-participant="' + participant.pID + '"]');
+                            const arr = previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
+                            const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
+                            carryForwardHP = lastNum;
+                        }
+                        catch (err) { }
                         // add hit points for this row
                         turn.nextSibling.innerHTML =
                             carryForwardHP +
@@ -437,6 +445,12 @@
                             (turn.nextSibling.innerText == "" ? "" : ", ") +
                             item.new_hp;
                     });
+
+
+                  
+
+           
+                    
 
                     // check to see if participant pID is in roundDamages
                     if (damageObjects.length == 0 && i !== 1) {
