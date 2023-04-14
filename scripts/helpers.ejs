@@ -673,13 +673,10 @@
     function closeModalBox(closeModal) {
         closeModal.addEventListener("click", function (e) {
             modal.style.display = "none";
-        
         });
         window.addEventListener("click", function (e) {
             if (e.target == modal) {
                 modal.style.display = "none";
-
-                
             }
         });
         
