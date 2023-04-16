@@ -30,8 +30,8 @@
 
     function findLargestSubarray(arr) {
         let largestSubarray = arr[0];
-        let largestLength = arr[0].length;
-        for (let i = 1; i < arr.length; i++) {
+        let largestLength = arr[0]?.length;
+        for (let i = 1; i < arr?.length; i++) {
             if (arr[i].length > largestLength) {
                 largestSubarray = arr[i];
                 largestLength = arr[i].length;
@@ -58,7 +58,7 @@
             div5.classList.add("header");
             div5.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div5.classList.add("center");
             div5.textContent =
@@ -70,7 +70,7 @@
             div6.classList.add("header");
             div6.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div6.classList.add("center");
             div6.textContent = "Hit?";
@@ -79,7 +79,7 @@
             div7.classList.add("header");
             div7.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div7.classList.add("center");
             div7.textContent = "Target(s)";
@@ -88,7 +88,7 @@
             div8.classList.add("header");
             div8.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div8.classList.add("center");
             div8.textContent = "hp";
@@ -101,7 +101,7 @@
                 div9.classList.add("section");
                 div9.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div9.classList.add("center");
                 div9.setAttribute("data-participant", participant.pID);
@@ -109,21 +109,21 @@
                 div10.classList.add("section");
                 div10.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div10.classList.add("center");
                 let div11 = document.createElement("div");
                 div11.classList.add("section");
                 div11.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div11.classList.add("center");
                 let div12 = document.createElement("div");
                 div12.classList.add("section");
                 div12.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div12.classList.add("center");
                 section2.appendChild(div9);
@@ -136,32 +136,47 @@
         return round;
     }
 
-    async function load_encounter() {
-        let htm = await getTurnModal();
-        // Swal.fire({
-        //     title: 'Round 1! Honza! Let\'s do this!',
-        //     html: htm,
-        //     showCancelButton: true,
-        //     confirmButtonText: "Submit"
-        // })
-        let encounter = await dbQuery("GET", "current_encounter");
+    async function load_encounter(encounterCode = 0) {
+        let latestID = await dbQuery("GET", "latest_eID");
+        let encounterID;
+        if (encounterCode == 0) {
+            encounterID = latestID[0]?.eID || 0
+        } else if (encounterCode == 1) {
+            // get encounterID from selected value in dropdown
+            let html = document.querySelector(".indexDrpDwn").getAttribute("value");
+        }
+        if (encounterID == 0) {
+            // initiate modal to request info for new encounter:
+            // name of the encounter;
+            // participants;
+            // initiative
+
+            new_encounter(encounterID)
+        }
+        let encounter = await dbQuery("GET", "selected_encounter/" + encounterID);
         let header = document.querySelector(".main_header");
         header.textContent = `${encounter[0].campaign} - ${encounter[0].location} (${encounter[0].description})`;
 
-        ctApp = await dbQuery("GET", "participants/1");
+        ctApp = await dbQuery("GET", "participants/" + encounterID);
 
         // get all the actions of this encounter
-        let ctActions = await dbQuery("GET", "actions/1");
+        let ctActions = await dbQuery("GET", "actions/" + encounterID);
 
         // determine how many rounds are represented in the database
         let totalRounds = ctActions.reduce((max, obj) => {
             return obj.round > max ? obj.round : max;
         }, -Infinity);
 
-        let ct_damages = await dbQuery("GET", "damages/1");
-        let damageRounds = ct_damages.reduce((max, obj) => {
-            return obj.round > max.round ? obj : max;
-        }).round;
+        // calculate # of rounds
+        let ct_damages = await dbQuery("GET", "damages/" + encounterID);
+        let damageRounds = 1;
+        try {
+            damageRounds = ct_damages?.reduce((max, obj) => {
+                return obj.round > max.round ? obj : max;
+            }).round || 1;
+        }
+        catch (err) { }
+
 
         totalRounds = Math.max(totalRounds, damageRounds);
 
@@ -405,10 +420,10 @@
                 // locate the HTML elements for this participant
                 participantHTML = mainContainer.querySelectorAll(
                     '[data-round="' +
-                        i +
-                        '"] [data-section="1"] [data-participant="' +
-                        participant.pID +
-                        '"]'
+                    i +
+                    '"] [data-section="1"] [data-participant="' +
+                    participant.pID +
+                    '"]'
                 );
 
                 //     // for each HTML element that goes with this participant...
@@ -433,16 +448,16 @@
                         try {
                             let previousHP = mainContainer.querySelector(
                                 '[data-round="' +
-                                    (i - 1) +
-                                    '"] [data-section="1"] [data-participant="' +
-                                    participant.pID +
-                                    '"]'
+                                (i - 1) +
+                                '"] [data-section="1"] [data-participant="' +
+                                participant.pID +
+                                '"]'
                             );
                             const arr =
                                 previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
                             const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
                             carryForwardHP = lastNum;
-                        } catch (err) {}
+                        } catch (err) { }
                         // add hit points for this row
                         turn.nextSibling.innerHTML =
                             carryForwardHP +
@@ -526,13 +541,16 @@
         document.querySelector(".ct_round_container").innerHTML =
             mainContainer.innerHTML;
         resizeSections();
-        let startNav = document.querySelector('[data-nav="1"]');
-        console.log(startNav.parentNode.clientWidth);
-        startNav.classList.add("selected");
-        startNav.nextSibling.classList.add("selected");
-        startNav.nextSibling.nextSibling.classList.add("selected");
-        startNav.nextSibling.nextSibling.nextSibling.classList.add("selected");
-        navify();
+        try {
+            let startNav = document.querySelector('[data-nav="1"]');
+            startNav.classList.add("selected");
+            startNav.nextSibling.classList.add("selected");
+            startNav.nextSibling.nextSibling.classList.add("selected");
+            startNav.nextSibling.nextSibling.nextSibling.classList.add("selected");
+            navify();
+        }
+        catch (err) { }
+
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
             let actionHTML = "data-" + actionType;
@@ -549,6 +567,27 @@
             x.nextSibling.nextSibling.innerHTML = actionArray[2];
             x.nextSibling.nextSibling.nextSibling.innerHTML = actionArray[3];
         }
+        // fill values for dropdown
+        fillDropdown(encounterCode)
+    }
+
+    async function fillDropdown(encounterID) {
+        let encounters = await dbQuery("GET", "encounters")
+        let html = document.querySelector(".indexDrpDwn");
+        let container = document.createElement("div");
+
+        encounters.forEach((encounter, index) => {
+            let option = document.createElement("option");
+            option.setAttribute("value", encounter.eID)
+            option.innerText = "(" + encounter.eID + ") " + encounter.campaign + ": " + encounter.location + " (" + encounter.description + ")"
+            if (encounterID == encounter.eID) {
+                option.setAttribute("selected", "true")
+            } else if (encounterID == 0 && index == encounters.length - 1) {
+                option.setAttribute("selected", "true")
+            }
+            html.appendChild(option);
+        })
+
     }
 
     function resizeSections() {
@@ -635,21 +674,15 @@
                 );
             });
 
-            console.log(p.length);
             if (p.length > 0) {
                 highestValueObj = p.reduce((acc, cur) => {
                     return cur.tID > acc.tID ? cur : acc;
                 });
-                console.log(highestValueObj);
                 return highestValueObj;
             } else {
                 return "";
             }
         }
-    }
-
-    async function getTurnModal() {
-        return "Happy Joy";
     }
 
     async function selectRow() {
@@ -662,11 +695,32 @@
         row.nextSibling.nextSibling.nextSibling.classList.add("selected");
     }
 
+    function new_encounter(encounterID) {
+        let modalContainer = document.createElement("div");
+        modalContainer.innerHTML;
+
+        let innerContainer = document.createElement("div");
+        innerContainer.classList.add("modalContainer")
+
+        let participantsHeader = document.createElement("h2");
+        participantHeader.innerText = "Participants";
+        // choose participants
+
+        // assign initiative
+
+        // app.js:
+        // insert encounter into db with encounterID
+        // insert participants with encounterID and initiative
+
+        let x = document.getElementById("modal-body");
+        x.innerHTML = modalContainer.outerHTML;
+        launchModal()
+    }
+
     function launchModal() {
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";
-
         closeModalBox(closeModal);
     }
 
@@ -679,6 +733,6 @@
                 modal.style.display = "none";
             }
         });
-        
+
     }
 </script>

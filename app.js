@@ -22,10 +22,37 @@ app.get("/", function (req, res) {
     res.render("index");
 });
 
-app.get("/current_encounter/", (req, res) => {
+app.get("/selected_encounter/:eID", (req, res) => {
+    eID = req.params.eID
     let sql = `SELECT *
                 FROM tbl_encounter
-                WHERE eID = 1;
+                WHERE eID = ${eID}
+    `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            throw err;
+        }
+        console.log(results)
+        res.send(results);
+    });
+});
+
+app.get("/encounters/", (req, res) => {
+    let sql = `SELECT *
+                FROM tbl_encounter
+    `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
+app.get("/latest_eID/", (req, res) => {
+    let sql = `SELECT *
+                FROM tbl_encounter
+                ORDER BY eID DESC limit 1
     `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {

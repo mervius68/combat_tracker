@@ -13,12 +13,14 @@
             content="text/html; charset=utf8_unicode_ci"
         />
         <%- include ('../scripts/helpers'); %>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </head>
     <body onload="load_encounter()">
         <%- include ('modal.ejs'); %>
         <h1 class="main_header"></h1>
-        <button class="test2" onclick="launchModal()">Click Me!</button>
+        <button class="button newBtn" onclick="new_encounter()">New</button>
+        <select class="dropdown indexDrpDwn">
+        </select>
+        <button class="button latestBtn" onclick="load_encounter(1)">Go</button>
         <h2 class="round_header_text">Round 1</h2>
         <div class="ct_round_container">
             <div class="ct_round" data-round="1">
