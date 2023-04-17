@@ -202,6 +202,39 @@ app.get("/tool/:toolID/", (req, res) => {
     });
 });
 
+app.get("/participantTools/:pID/", (req, res) => {
+    let pID = req.params.pID
+    let sql = `SELECT *
+        FROM tbl_tool
+                WHERE pID = "${pID}"
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log(results);
+        res.send(results);
+    });
+});
+
+app.get("/conditionsInEffect/:eID/:round", (req, res) => {
+    let eID = req.params.eID;
+    let round = req.params.round;
+    let sql = `SELECT *
+        FROM ct_tbl_condition
+                WHERE eID = "${eID}" AND start_round <= ${round} AND end_round >= ${round}
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log(results);
+        res.send(results);
+    });
+});
+
 app.get("/target/:targetID/", (req, res) => {
     let targetID = req.params.targetID
     let sql = `SELECT *

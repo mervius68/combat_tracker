@@ -58,7 +58,7 @@
             div5.classList.add("header");
             div5.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div5.classList.add("center");
             div5.textContent =
@@ -70,7 +70,7 @@
             div6.classList.add("header");
             div6.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div6.classList.add("center");
             div6.textContent = "Hit?";
@@ -79,7 +79,7 @@
             div7.classList.add("header");
             div7.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div7.classList.add("center");
             div7.textContent = "Target(s)";
@@ -88,7 +88,7 @@
             div8.classList.add("header");
             div8.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div8.classList.add("center");
             div8.textContent = "hp";
@@ -101,7 +101,7 @@
                 div9.classList.add("section");
                 div9.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div9.classList.add("center");
                 div9.setAttribute("data-participant", participant.pID);
@@ -109,21 +109,21 @@
                 div10.classList.add("section");
                 div10.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div10.classList.add("center");
                 let div11 = document.createElement("div");
                 div11.classList.add("section");
                 div11.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div11.classList.add("center");
                 let div12 = document.createElement("div");
                 div12.classList.add("section");
                 div12.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div12.classList.add("center");
                 section2.appendChild(div9);
@@ -140,10 +140,12 @@
         let latestID = await dbQuery("GET", "latest_eID");
         let encounterID;
         if (encounterCode == 0) {
-            encounterID = latestID[0]?.eID || 0
+            encounterID = latestID[0]?.eID || 0;
         } else if (encounterCode == 1) {
             // get encounterID from selected value in dropdown
-            let html = document.querySelector(".indexDrpDwn").getAttribute("value");
+            let html = document
+                .querySelector(".indexDrpDwn")
+                .getAttribute("value");
         }
         if (encounterID == 0) {
             // initiate modal to request info for new encounter:
@@ -151,11 +153,19 @@
             // participants;
             // initiative
 
-            new_encounter(encounterID)
+            new_encounter(encounterID);
         }
-        let encounter = await dbQuery("GET", "selected_encounter/" + encounterID);
+        let encounter = await dbQuery(
+            "GET",
+            "selected_encounter/" + encounterID
+        );
         let header = document.querySelector(".main_header");
-        header.textContent = `${encounter[0].campaign} - ${encounter[0].location} (${encounter[0].description})`;
+
+        header.textContent = `${
+            encounter[0]?.campaign || "No available encounters yet"
+        } - ${encounter[0]?.location || ""} (${
+            encounter[0]?.description || ""
+        })`;
 
         ctApp = await dbQuery("GET", "participants/" + encounterID);
 
@@ -171,12 +181,11 @@
         let ct_damages = await dbQuery("GET", "damages/" + encounterID);
         let damageRounds = 1;
         try {
-            damageRounds = ct_damages?.reduce((max, obj) => {
-                return obj.round > max.round ? obj : max;
-            }).round || 1;
-        }
-        catch (err) { }
-
+            damageRounds =
+                ct_damages?.reduce((max, obj) => {
+                    return obj.round > max.round ? obj : max;
+                }).round || 1;
+        } catch (err) {}
 
         totalRounds = Math.max(totalRounds, damageRounds);
 
@@ -420,10 +429,10 @@
                 // locate the HTML elements for this participant
                 participantHTML = mainContainer.querySelectorAll(
                     '[data-round="' +
-                    i +
-                    '"] [data-section="1"] [data-participant="' +
-                    participant.pID +
-                    '"]'
+                        i +
+                        '"] [data-section="1"] [data-participant="' +
+                        participant.pID +
+                        '"]'
                 );
 
                 //     // for each HTML element that goes with this participant...
@@ -448,16 +457,16 @@
                         try {
                             let previousHP = mainContainer.querySelector(
                                 '[data-round="' +
-                                (i - 1) +
-                                '"] [data-section="1"] [data-participant="' +
-                                participant.pID +
-                                '"]'
+                                    (i - 1) +
+                                    '"] [data-section="1"] [data-participant="' +
+                                    participant.pID +
+                                    '"]'
                             );
                             const arr =
                                 previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
                             const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
                             carryForwardHP = lastNum;
-                        } catch (err) { }
+                        } catch (err) {}
                         // add hit points for this row
                         turn.nextSibling.innerHTML =
                             carryForwardHP +
@@ -546,11 +555,11 @@
             startNav.classList.add("selected");
             startNav.nextSibling.classList.add("selected");
             startNav.nextSibling.nextSibling.classList.add("selected");
-            startNav.nextSibling.nextSibling.nextSibling.classList.add("selected");
+            startNav.nextSibling.nextSibling.nextSibling.classList.add(
+                "selected"
+            );
             navify();
-        }
-        catch (err) { }
-
+        } catch (err) {}
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
             let actionHTML = "data-" + actionType;
@@ -568,26 +577,34 @@
             x.nextSibling.nextSibling.nextSibling.innerHTML = actionArray[3];
         }
         // fill values for dropdown
-        fillDropdown(encounterCode)
+        fillDropdown(encounterCode);
     }
 
     async function fillDropdown(encounterID) {
-        let encounters = await dbQuery("GET", "encounters")
+        let encounters = await dbQuery("GET", "encounters");
         let html = document.querySelector(".indexDrpDwn");
         let container = document.createElement("div");
 
         encounters.forEach((encounter, index) => {
             let option = document.createElement("option");
-            option.setAttribute("value", encounter.eID)
-            option.innerText = "(" + encounter.eID + ") " + encounter.campaign + ": " + encounter.location + " (" + encounter.description + ")"
+            option.setAttribute("value", encounter.eID);
+            option.innerText =
+                "(" +
+                encounter.eID +
+                ") " +
+                encounter.campaign +
+                ": " +
+                encounter.location +
+                " (" +
+                encounter.description +
+                ")";
             if (encounterID == encounter.eID) {
-                option.setAttribute("selected", "true")
+                option.setAttribute("selected", "true");
             } else if (encounterID == 0 && index == encounters.length - 1) {
-                option.setAttribute("selected", "true")
+                option.setAttribute("selected", "true");
             }
             html.appendChild(option);
-        })
-
+        });
     }
 
     function resizeSections() {
@@ -658,6 +675,12 @@
                 }
             }
         });
+        document.addEventListener("keydown", function (event) {
+            // Check if the key pressed was the up arrow
+            if (event.ctrlKey && event.key == "Enter") {
+                launchModal("turn");
+            }
+        });
     }
 
     function move() {
@@ -700,10 +723,10 @@
         modalContainer.innerHTML;
 
         let innerContainer = document.createElement("div");
-        innerContainer.classList.add("modalContainer")
+        innerContainer.classList.add("modalContainer");
 
         let participantsHeader = document.createElement("h2");
-        participantHeader.innerText = "Participants";
+        participantsHeader.innerText = "Participants";
         // choose participants
 
         // assign initiative
@@ -714,10 +737,11 @@
 
         let x = document.getElementById("modal-body");
         x.innerHTML = modalContainer.outerHTML;
-        launchModal()
+        launchModal();
     }
 
-    function launchModal() {
+    function launchModal(event) {
+        modalTurn();
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";
@@ -733,6 +757,173 @@
                 modal.style.display = "none";
             }
         });
+    }
 
+    async function modalTurn() {
+        let modal = document.querySelector("#modal-body");
+        let html = document.querySelector(".selected");
+        let participantID = html.getAttribute("data-participant");
+        let currentRound = html.getAttribute("data-round");
+        let encounter = ctApp[0].eID;
+
+        // get participant's info
+        // tools
+        let participantTools = await dbQuery(
+            "GET",
+            "participantTools/" + participantID
+        );
+        // targets
+        let allParticipants = ctApp.filter((participant) => {
+            return (
+                participant.join_round <= currentRound &&
+                (participant.dead_round >= currentRound ||
+                    participant.dead_round == "")
+            );
+        });
+        // conditions in effect (with option to end them)
+        let conditionsInEffect = await dbQuery(
+            "GET",
+            "conditionsInEffect/" + encounter + "/" + currentRound
+        );
+
+        // build the HTML
+        let container = document.createElement("div");
+        container.classList.add("modal-body");
+
+        let h3 = document.createElement("h3");
+        let character = ctApp.find((participant) => {
+            return participant.pID == participantID;
+        });
+        h3.innerHTML =
+            character.character_name +
+            (character.numeric_value ? " #" + character.numeric_value : "");
+        container.appendChild(h3);
+
+        let divLeftRight = document.createElement("div");
+        divLeftRight.classList.add("flex_horizontal");
+
+        let divLeft = document.createElement("div");
+        divLeft.classList.add("flex-left");
+
+        let div13 = document.createElement("div");
+        let div1Title = document.createElement("h2");
+        div1Title.classList.add("left");
+        div1Title.innerHTML = "Weapons/Tools";
+        div13.appendChild(div1Title);
+
+        let div14 = document.createElement("div");
+        let defaultTool = document.createElement("input");
+        defaultTool.setAttribute("type", "radio");
+        defaultTool.setAttribute("value", 0);
+        defaultTool.setAttribute("id", "default");
+        defaultTool.setAttribute("name", "weapons");
+        let defaultLabel = document.createElement("label");
+        defaultLabel.setAttribute("for", "default");
+        defaultLabel.classList.add("radio_buttons");
+        defaultLabel.innerHTML = "NONE";
+        defaultLabel.setAttribute("default", "true");
+        let br1 = document.createElement("br");
+        div14.appendChild(defaultTool);
+        div14.appendChild(defaultLabel);
+        div14.appendChild(br1);
+
+        participantTools.forEach((item) => {
+            let tool = document.createElement("input");
+            tool.setAttribute("type", "radio");
+            tool.setAttribute("value", item.toolID);
+            tool.setAttribute("id", item.toolID);
+            tool.setAttribute("name", "weapons");
+            let label = document.createElement("label");
+            label.setAttribute("for", item.toolID);
+            label.classList.add("radio_buttons");
+            label.innerHTML =
+                item.toolName +
+                (item.damage_dice ? " (" + item.damage_dice + ")" : "");
+            let br = document.createElement("br");
+            div14.appendChild(tool);
+            div14.appendChild(label);
+            div14.appendChild(br);
+        });
+
+        divLeft.appendChild(div13);
+
+        let weaponTextInput = document.createElement("input");
+        weaponTextInput.setAttribute("type", "text");
+        // weaponTextInput.setAttribute("value", item.toolID);
+        // weaponTextInput.setAttribute("id", item.toolID);
+        weaponTextInput.setAttribute("name", "weapons");
+        weaponTextInput.classList.add("text_field");
+        let label1 = document.createElement("label");
+
+        // label1.setAttribute("for", item.toolID);
+        let br2 = document.createElement("br");
+        div14.appendChild(weaponTextInput);
+        div14.appendChild(label1);
+        div14.appendChild(br2);
+
+        divLeft.appendChild(div14);
+
+        divLeftRight.appendChild(divLeft);
+
+        let divRight = document.createElement("div");
+        divRight.classList.add("flex-right");
+
+        let div15 = document.createElement("h2");
+        div15.innerHTML = "Targets / Damage/HP";
+        divRight.appendChild(div15);
+        let div16 = document.createElement("div");
+
+        allParticipants.forEach((participant) => {
+            let target = document.createElement("input");
+            target.setAttribute("type", "text");
+            target.setAttribute("value", "");
+            target.classList.add("text_field");
+            target.classList.add("numeric");
+            target.setAttribute("id", "id" + participant.pID);
+            let targetLabel = document.createElement("label");
+            targetLabel.setAttribute("for", "id" + participant.pID);
+            targetLabel.classList.add("radio_buttons");
+            targetLabel.innerHTML =
+                participant.character_name +
+                (participant.numeric_value
+                    ? " #" + participant.numeric_value
+                    : "");
+
+            let br3 = document.createElement("br");
+            div16.appendChild(target);
+            div16.appendChild(targetLabel);
+            div16.appendChild(br3);
+        });
+
+        divRight.appendChild(div16);
+
+        let notesLabel = document.createElement("h2");
+        notesLabel.innerText = "Notes"
+        // let br4 = document.createElement("br");
+        let notes = document.createElement("input");
+        notes.setAttribute("type", "textarea");
+        notes.setAttribute("rows", "3")
+        notes.setAttribute("cols", "50")
+        notes.setAttribute("name", "notes")
+        notes.setAttribute("style", "height: 70px")
+        notes.innerText = "Hello"
+
+        divRight.appendChild(notesLabel);
+        // divRight.appendChild(br4);
+        divRight.appendChild(notes);
+
+
+        divLeftRight.appendChild(divRight);
+        container.appendChild(divLeftRight);
+
+        let divConditions = document.createElement("div");
+        let hr = document.createElement("hr");
+
+        divConditions.appendChild(hr);
+
+        container.appendChild(divConditions)
+
+        modal.innerHTML = container.outerHTML;
+        console.log("here");
     }
 </script>

@@ -109,6 +109,67 @@ body {
   font-size: 1.5em;
 }
 
+.left {
+  text-align: left;
+}
+
+hr {
+  height: 5px;
+  background-color: black;
+}
+
+.radio_buttons {
+  font-size: 1.5em;
+}
+
+textarea {
+  width: 150px;
+  height: 60px;
+  display: block;
+}
+
+.text_field {
+  height: 25px;
+  line-height: 15px;
+  padding: 5px;
+  font-size: 1.5em;
+  width: 50%
+}
+
+.numeric {
+  width: 40px;
+}
+
+.flex_horizontal {
+  display: flex;
+}
+
+.flex-left {
+
+  width: 50%;
+}
+
+.flex-right {
+  width: 50%;
+  padding-left: 10%;
+}
+
+.checkboxes {
+  display: flex;
+  text-align: right;
+  font-size: 1.5em;
+  /* line-height: 1.2em; */
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkboxes input {
+  display: flex;
+  align-items: center;
+}
+
+
+
 /* Modal boxes */
 
 #modal-open {
@@ -199,7 +260,10 @@ input[type='button'] {
 }
 
 #modal-body {
-  padding: 5px 3px;
+  padding: 5px 13px;
+  border-left: 15px solid gray;
+  border-right: 15px solid gray;
+  min-height: 200px;
 }
 
 #modal-body h3 {
