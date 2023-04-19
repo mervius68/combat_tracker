@@ -32,7 +32,7 @@ app.get("/selected_encounter/:eID", (req, res) => {
         if (err) {
             throw err;
         }
-        console.log(results)
+        // console.log(results)
         res.send(results);
     });
 });
@@ -108,6 +108,58 @@ app.get("/hitPointsByParticipant/:encounter/:pID", (req, res) => {
     });
 });
 
+app.get("/getNewAID", (req, res) => {
+    let sql = `SELECT aID
+        FROM ct_tbl_action
+                ORDER by aID DESC limit 1
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
+app.get("/getNextTargetID", (req, res) => {
+    let sql = `SELECT tID
+        FROM ct_tbl_target
+                ORDER by tID DESC limit 1
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
+app.post("/submitAction/:encounter/:round/:tool/:action_type/:pID/:target_pID/:damage/:notes/:disable_condition/:nextAID/:nextToolID", (req, res) => {
+    let encounter = req.params.encounter
+    let round = req.params.round
+    let tool = req.params.tool
+    let action_type = req.params.action_type
+    let pID = req.params.pID
+    let target_pID = req.params.target_pID
+    let damage = req.params.damage
+    let notes = req.params.notes
+    let disable_condition = req.params.disable_condition
+    let nextAID = req.params.nextAID
+    let sql = `INSERT into ct_tbl_action
+            (aID, eID, round, pID, targetID, hit, action_type, action, toolID)
+            values (nextAID, encounter, round, pID, target_pID, )
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log("results: " + results);
+        res.send(results);
+    });
+});
 
 
 
@@ -202,18 +254,18 @@ app.get("/tool/:toolID/", (req, res) => {
     });
 });
 
-app.get("/participantTools/:pID/", (req, res) => {
-    let pID = req.params.pID
+app.get("/participantTools/:chID/", (req, res) => {
+    let chID = req.params.chID
     let sql = `SELECT *
         FROM tbl_tool
-                WHERE pID = "${pID}"
+                WHERE chID = "${chID}"
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        console.log(results);
+        // console.log(results);
         res.send(results);
     });
 });
@@ -223,6 +275,7 @@ app.get("/conditionsInEffect/:eID/:round", (req, res) => {
     let round = req.params.round;
     let sql = `SELECT *
         FROM ct_tbl_condition
+        JOIN tbl_condition_pool on ct_tbl_condition.cpID = tbl_condition_pool.cpID
                 WHERE eID = "${eID}" AND start_round <= ${round} AND end_round >= ${round}
                 `;
     let query = db.all(sql, [], (err, results) => {
@@ -230,7 +283,7 @@ app.get("/conditionsInEffect/:eID/:round", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log(results);
+        // console.log(results);
         res.send(results);
     });
 });
@@ -246,7 +299,7 @@ app.get("/target/:targetID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log(results);
+        // console.log(results);
         res.send(results);
     });
 });

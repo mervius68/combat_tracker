@@ -102,11 +102,11 @@ body {
 
 .button {
   margin-right: 30px;
-  font-size: 1.5em
+  font-size: 1em
 }
 
 .dropdown {
-  font-size: 1.5em;
+  font-size: 1em;
 }
 
 .left {
@@ -119,20 +119,20 @@ hr {
 }
 
 .radio_buttons {
-  font-size: 1.5em;
+  font-size: 1em;
 }
 
 textarea {
-  width: 150px;
-  height: 60px;
-  display: block;
+  overflow-wrap: break-word;
+  font-size: 1em;
+  font-family: Verdana, Geneva, Tahoma, sans-serif
 }
 
 .text_field {
-  height: 25px;
-  line-height: 15px;
+  height: 15px;
+  line-height: 12px;
   padding: 5px;
-  font-size: 1.5em;
+  font-size: 1em;
   width: 50%
 }
 
@@ -144,20 +144,24 @@ textarea {
   display: flex;
 }
 
-.flex-left {
+.horizontal_bottom {
+  min-height: 200px;
+  font-size: 1.2em;
+}
 
-  width: 50%;
+.flex-left {
+  width: max-content;
 }
 
 .flex-right {
-  width: 50%;
-  padding-left: 10%;
+  width: max-content;
+  /* padding-left: 10%; */
 }
 
 .checkboxes {
   display: flex;
   text-align: right;
-  font-size: 1.5em;
+  /* font-size: 1.5em; */
   /* line-height: 1.2em; */
   align-items: center;
   cursor: pointer;
@@ -166,6 +170,31 @@ textarea {
 .checkboxes input {
   display: flex;
   align-items: center;
+}
+
+.conditions_list_div {
+  max-height: 200px;
+  display: flex;
+  flex-direction: column;
+  /* flex-wrap: wrap; */
+  overflow: auto;
+}
+
+.div_bottom_right {
+  max-width: 700px;
+  padding: 15px;
+}
+
+.button_container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+button {
+  height: 25px;
+  font-size: 1.2em;
+  width: max-content;
 }
 
 
@@ -223,11 +252,26 @@ input[type='button'] {
 #modal-content {
   background: #efefef;
   margin: 55px auto;
-  width: 48%;
+  width: max-content;
   box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.25);
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   animation-name: modalSlideUp;
-  animation-duration: .82s;
+  animation-duration: .72s;
+  max-width: 50%;
+  min-width: 900px;
+}
+
+.modal_column {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-left: 10px;
+  padding-right: 35px;
+}
+
+.modal_column_int {
+  border: 2px solid lightgray;
+  padding: 5px;
 }
 
 #modal-header {
@@ -259,8 +303,12 @@ input[type='button'] {
   font-size: 14px;
 }
 
+h3 {
+  margin-top: 1px;
+}
+
 #modal-body {
-  padding: 5px 13px;
+  padding: 1px 13px;
   border-left: 15px solid gray;
   border-right: 15px solid gray;
   min-height: 200px;

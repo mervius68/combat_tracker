@@ -58,7 +58,7 @@
             div5.classList.add("header");
             div5.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div5.classList.add("center");
             div5.textContent =
@@ -70,7 +70,7 @@
             div6.classList.add("header");
             div6.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div6.classList.add("center");
             div6.textContent = "Hit?";
@@ -79,7 +79,7 @@
             div7.classList.add("header");
             div7.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div7.classList.add("center");
             div7.textContent = "Target(s)";
@@ -88,7 +88,7 @@
             div8.classList.add("header");
             div8.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div8.classList.add("center");
             div8.textContent = "hp";
@@ -101,7 +101,7 @@
                 div9.classList.add("section");
                 div9.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div9.classList.add("center");
                 div9.setAttribute("data-participant", participant.pID);
@@ -109,21 +109,21 @@
                 div10.classList.add("section");
                 div10.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div10.classList.add("center");
                 let div11 = document.createElement("div");
                 div11.classList.add("section");
                 div11.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div11.classList.add("center");
                 let div12 = document.createElement("div");
                 div12.classList.add("section");
                 div12.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div12.classList.add("center");
                 section2.appendChild(div9);
@@ -161,11 +161,9 @@
         );
         let header = document.querySelector(".main_header");
 
-        header.textContent = `${
-            encounter[0]?.campaign || "No available encounters yet"
-        } - ${encounter[0]?.location || ""} (${
-            encounter[0]?.description || ""
-        })`;
+        header.textContent = `${encounter[0]?.campaign || "No available encounters yet"
+            } - ${encounter[0]?.location || ""} (${encounter[0]?.description || ""
+            })`;
 
         ctApp = await dbQuery("GET", "participants/" + encounterID);
 
@@ -185,7 +183,7 @@
                 ct_damages?.reduce((max, obj) => {
                     return obj.round > max.round ? obj : max;
                 }).round || 1;
-        } catch (err) {}
+        } catch (err) { }
 
         totalRounds = Math.max(totalRounds, damageRounds);
 
@@ -249,6 +247,7 @@
                 div5.classList.add("center");
                 div5.setAttribute("data-participant", roundParticipants[j].pID);
                 div5.setAttribute("data-nav", cellCountVertical);
+                div5.setAttribute("tabindex", cellCountVertical)
                 div5.setAttribute("data-round", i);
                 cellCountVertical += 1;
                 let div6 = document.createElement("div");
@@ -429,10 +428,10 @@
                 // locate the HTML elements for this participant
                 participantHTML = mainContainer.querySelectorAll(
                     '[data-round="' +
-                        i +
-                        '"] [data-section="1"] [data-participant="' +
-                        participant.pID +
-                        '"]'
+                    i +
+                    '"] [data-section="1"] [data-participant="' +
+                    participant.pID +
+                    '"]'
                 );
 
                 //     // for each HTML element that goes with this participant...
@@ -457,16 +456,16 @@
                         try {
                             let previousHP = mainContainer.querySelector(
                                 '[data-round="' +
-                                    (i - 1) +
-                                    '"] [data-section="1"] [data-participant="' +
-                                    participant.pID +
-                                    '"]'
+                                (i - 1) +
+                                '"] [data-section="1"] [data-participant="' +
+                                participant.pID +
+                                '"]'
                             );
                             const arr =
                                 previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
                             const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
                             carryForwardHP = lastNum;
-                        } catch (err) {}
+                        } catch (err) { }
                         // add hit points for this row
                         turn.nextSibling.innerHTML =
                             carryForwardHP +
@@ -559,7 +558,7 @@
                 "selected"
             );
             navify();
-        } catch (err) {}
+        } catch (err) { }
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
             let actionHTML = "data-" + actionType;
@@ -677,9 +676,35 @@
         });
         document.addEventListener("keydown", function (event) {
             // Check if the key pressed was the up arrow
-            if (event.ctrlKey && event.key == "Enter") {
-                launchModal("turn");
+            if (event.altKey && event.key == "Enter") {
+                launchActionModal("turn");
             }
+            if (event.altKey && event.keyCode == 67) {
+                alert("HUZZAH!")
+            }
+        });
+        document.addEventListener("click", function (event) {
+            if (event.target.getAttribute("data-nav")) {
+                let myElement = document.querySelectorAll(".selected");
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) + 1;
+                let newTarget;
+                if (nav < cellCountVertical - 1) {
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    event.target.classList.add("selected");
+                    event.target.nextSibling.classList.add("selected");
+                    event.target.nextSibling.nextSibling.classList.add("selected");
+                    event.target.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
+                }
+            }
+
         });
     }
 
@@ -737,10 +762,10 @@
 
         let x = document.getElementById("modal-body");
         x.innerHTML = modalContainer.outerHTML;
-        launchModal();
+        launchActionModal();
     }
 
-    function launchModal(event) {
+    function launchActionModal(event) {
         modalTurn();
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
@@ -762,7 +787,12 @@
     async function modalTurn() {
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
+        let dataNavSelected = html.getAttribute('data-nav')
         let participantID = html.getAttribute("data-participant");
+        let characterID = ctApp.find((participant) => {
+            return participant.pID == participantID
+        }).chID
+        console.log(characterID)
         let currentRound = html.getAttribute("data-round");
         let encounter = ctApp[0].eID;
 
@@ -770,7 +800,7 @@
         // tools
         let participantTools = await dbQuery(
             "GET",
-            "participantTools/" + participantID
+            "participantTools/" + characterID
         );
         // targets
         let allParticipants = ctApp.filter((participant) => {
@@ -799,12 +829,13 @@
             (character.numeric_value ? " #" + character.numeric_value : "");
         container.appendChild(h3);
 
-        let divLeftRight = document.createElement("div");
-        divLeftRight.classList.add("flex_horizontal");
+        let divModalTop = document.createElement("div");
+        divModalTop.classList.add("flex_horizontal");
 
         let divLeft = document.createElement("div");
         divLeft.classList.add("flex-left");
 
+        // load weapons/tools
         let div13 = document.createElement("div");
         let div1Title = document.createElement("h2");
         div1Title.classList.add("left");
@@ -831,7 +862,7 @@
             let tool = document.createElement("input");
             tool.setAttribute("type", "radio");
             tool.setAttribute("value", item.toolID);
-            tool.setAttribute("id", item.toolID);
+            tool.setAttribute("id", item.toolID)
             tool.setAttribute("name", "weapons");
             let label = document.createElement("label");
             label.setAttribute("for", item.toolID);
@@ -863,7 +894,57 @@
 
         divLeft.appendChild(div14);
 
-        divLeftRight.appendChild(divLeft);
+        divModalTop.appendChild(divLeft);
+
+        let divMiddleLeft = document.createElement("div");
+        divMiddleLeft.classList.add("modal_column");
+        let anotherDiv = document.createElement("div");
+        let actionsArray = ["dash", "disarm", "disengage", "dodge", "escape", "grapple", "help", "hide", "improvise", "ready", "search", "shove", "use an object"]
+        actionsArray.forEach((action) => {
+            let actionsRadio = document.createElement("input");
+            actionsRadio.setAttribute("type", "radio");
+            actionsRadio.setAttribute("value", action);
+            actionsRadio.setAttribute("id", action);
+            actionsRadio.setAttribute("name", "weapons");
+            let label = document.createElement("label");
+            label.setAttribute("for", action);
+            label.classList.add("radio_buttons");
+            label.innerHTML = action;
+            let br = document.createElement("br");
+            anotherDiv.appendChild(actionsRadio);
+            anotherDiv.appendChild(label);
+            anotherDiv.appendChild(br);
+        })
+
+        divMiddleLeft.appendChild(anotherDiv)
+
+        divModalTop.appendChild(divMiddleLeft);
+
+        let divMiddleRight = document.createElement("div");
+        divMiddleRight.classList.add("modal_column");
+        let anotherDiv2 = document.createElement("div");
+        anotherDiv2.classList.add("modal_column_int")
+        let actions2 = ["action", "bonus", "reaction", "other"]
+
+        actions2.forEach((action) => {
+            let actionsRadio = document.createElement("input");
+            actionsRadio.setAttribute("type", "radio");
+            actionsRadio.setAttribute("value", action);
+            actionsRadio.setAttribute("id", action);
+            actionsRadio.setAttribute("name", "actions");
+            let label = document.createElement("label");
+            label.setAttribute("for", action);
+            label.classList.add("radio_buttons");
+            label.innerHTML = action;
+            let br = document.createElement("br");
+            anotherDiv2.appendChild(actionsRadio);
+            anotherDiv2.appendChild(label);
+            anotherDiv2.appendChild(br);
+        })
+
+        divMiddleRight.appendChild(anotherDiv2)
+
+        divModalTop.appendChild(divMiddleRight);
 
         let divRight = document.createElement("div");
         divRight.classList.add("flex-right");
@@ -879,9 +960,10 @@
             target.setAttribute("value", "");
             target.classList.add("text_field");
             target.classList.add("numeric");
-            target.setAttribute("id", "id" + participant.pID);
+            target.setAttribute("name", "participants")
+            target.setAttribute("id", participant.pID);
             let targetLabel = document.createElement("label");
-            targetLabel.setAttribute("for", "id" + participant.pID);
+            targetLabel.setAttribute("for", participant.pID);
             targetLabel.classList.add("radio_buttons");
             targetLabel.innerHTML =
                 participant.character_name +
@@ -900,30 +982,164 @@
         let notesLabel = document.createElement("h2");
         notesLabel.innerText = "Notes"
         // let br4 = document.createElement("br");
-        let notes = document.createElement("input");
-        notes.setAttribute("type", "textarea");
-        notes.setAttribute("rows", "3")
-        notes.setAttribute("cols", "50")
+        let notes = document.createElement("textarea");
+        notes.setAttribute("rows", "5")
+        notes.setAttribute("cols", "30")
         notes.setAttribute("name", "notes")
-        notes.setAttribute("style", "height: 70px")
-        notes.innerText = "Hello"
+        notes.classList.add("notes_text")
 
         divRight.appendChild(notesLabel);
-        // divRight.appendChild(br4);
         divRight.appendChild(notes);
 
 
-        divLeftRight.appendChild(divRight);
-        container.appendChild(divLeftRight);
+        divModalTop.appendChild(divRight);
+        container.appendChild(divModalTop);
 
-        let divConditions = document.createElement("div");
+        let divModalBottom = document.createElement("div");
+        divModalBottom.classList.add("horizontal_bottom")
         let hr = document.createElement("hr");
+        container.appendChild(hr);
 
-        divConditions.appendChild(hr);
+        // let divNewConditions = document.createElement("div");
 
-        container.appendChild(divConditions)
+        // let divNewConditionsArray = ["none selected", "concentration", "blinded", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "poisoned", "prone", "restrained", "stunned", "unconscious", "exhaustion", "ready", "death save"]
+        // divNewConditionsArray.forEach((condition) => {
+        //     let actionsRadio = document.createElement("input");
+        //     actionsRadio.setAttribute("type", "radio");
+        //     actionsRadio.setAttribute("value", condition);
+        //     actionsRadio.setAttribute("id", condition);
+        //     actionsRadio.setAttribute("name", "conditions");
+        //     let label = document.createElement("label");
+        //     label.setAttribute("for", condition);
+        //     label.classList.add("radio_buttons");
+        //     label.innerHTML = condition;
+        //     let br = document.createElement("br");
+        //     divNewConditions.appendChild(actionsRadio);
+        //     divNewConditions.appendChild(label);
+        //     divNewConditions.appendChild(br);
+        // })
+
+
+        // let conditionText = document.createElement("input");
+        // conditionText.setAttribute("type", "text");
+        // // weaponTextInput.setAttribute("value", item.toolID);
+        // // weaponTextInput.setAttribute("id", item.toolID);
+        // conditionText.setAttribute("name", "weapons");
+        // conditionText.classList.add("text_field");
+        // let label2 = document.createElement("label");
+
+        // // label1.setAttribute("for", item.toolID);
+        // let br5 = document.createElement("br");
+        // divBottomLeft.appendChild(conditionText);
+        // divBottomLeft.appendChild(label2);
+        // divBottomLeft.appendChild(br5);
+
+        // divBottomLeft.appendChild(divNewConditions);
+
+
+        // let divBottomRight = document.createElement("div");
+        // divBottomRight.classList.add("div_bottom_right")
+
+        let condition = conditionsInEffect.filter((condition) => {
+            let conditionParticipant = condition.pID
+            let startHTML = document.querySelector('[data-round="' + condition.start_round + '"] [data-section="1"] [data-participant="' + condition.pID + '"]')
+            let start = startHTML.getAttribute('data-nav')
+            let endHTML = document.querySelector('[data-round="' + condition.end_round + '"] [data-section="1"] [data-participant="' + condition.end_pID + '"]') || "100";
+            let end = endHTML instanceof Element ? endHTML.getAttribute('data-nav') : "1000";
+            console.log("start: " + start)
+            console.log("dataNavSelected: " + dataNavSelected)
+            console.log("end: " + end)
+            if (dataNavSelected >= start && dataNavSelected <= end) {
+                let checkbox = document.createElement("input");
+                checkbox.setAttribute("type", "checkbox");
+                checkbox.setAttribute("name", condition.conditon_name)
+                let label = document.createElement("label");
+                label.setAttribute("for", condition.condition_name);
+                let causer = ctApp.find((participant) => {
+                    return condition.pID == participant.pID
+                }).character_name
+                let affected = ctApp.find((participant) => {
+                    return condition.target_affected == participant.pID
+                }).character_name
+                let numeric = ctApp.find((participant) => {
+                    return condition.target_affected == participant.pID
+                }).numeric_value
+                label.innerHTML = condition.condition_name + ": " + causer + " => <b>" + affected + (numeric ? " #" + numeric : "") + "</b> / " + condition.description
+                let br6 = document.createElement("br")
+                divModalBottom.appendChild(checkbox)
+                divModalBottom.appendChild(label)
+                divModalBottom.appendChild(br6);
+            }
+        })
+
+        // add dropdowns for new conditions to start
+        // blinded, charmed, deafened, frightened, grappled, incapacitated, invisible, paralyzed,
+        // petrified, poisoned, prone, restrained, stunned, unconscious, exhaustion, concentrating
+        // ready
+        // death save
+        // notes section (e.g. "next attack on Spider #1 has disadvantage until end of Honza's turn in round 3")
+
+
+        // divModalBottom.appendChild(divBottomLeft);
+        // divModalBottom.appendChild(divBottomRight);
+        container.appendChild(divModalBottom)
+
+        let buttonContainer = document.createElement("div")
+        buttonContainer.classList.add("button_container")
+        let submit = document.createElement("button");
+        submit.innerText = "SUBMIT"
+        submit.setAttribute("onclick", "submitAction()")
+
+        buttonContainer.appendChild(submit)
+
+        container.appendChild(buttonContainer)
 
         modal.innerHTML = container.outerHTML;
-        console.log("here");
+
+
+    }
+
+    async function submitAction() {
+        // get current round
+        let html = document.querySelector(".selected");
+        let currentRound = html.getAttribute("data-round");
+        let pID = html.getAttribute("data-participant");
+        // determine next available action number
+        let nextAID = await dbQuery("GET", "getNewAID")
+        nextAID = nextAID[0].aID + 1;
+        // determine next available targetID
+        let nextTargetID = await dbQuery("GET", "getNextTargetID")
+        nextTargetID = nextTargetID[0].tID + 1;
+
+        // get weapon radio buttons
+        let weapons = document.getElementsByName("weapons");
+        let weapon = Array.from(weapons).find((weapon) => {
+            return weapon.checked == true;
+        })?.value || 0;
+        let action;
+        if (parseInt(weapon) == NaN) {
+            action = weapon;
+        }
+
+        // determine hits and combine them into string, like "0/1" (for miss/hit)
+        let targets = document.getElementsByName("participants");
+        let targetHits = ""
+        let tID = ""
+        targets.forEach((target) => {
+            if (parseInt(target.value) != NaN && target.value != 0) {
+                targetHits += "1"
+                tID += target.id + " "
+            } else if (target.value == "0") {
+                targetHits += "0"
+                tID += target.id + " "
+            }
+        })
+        if (targetHits == "") {
+            targetHits = "null"
+        }
+     
+
+        let data = "submitAction/" + nextAID + "/" + ctApp[0].eID + "/" + currentRound + "/" + weapon + "/" + action + "/" + pID + "/" + tID + "/" +  + "/It\'s got him good!/1/2"
+        // await dbQuery("POST", data)
     }
 </script>
