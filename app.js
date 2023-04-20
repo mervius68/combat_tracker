@@ -136,17 +136,19 @@ app.get("/getNextTargetID", (req, res) => {
     });
 });
 
-app.post("/submitAction/:encounter/:round/:tool/:action_type/:pID/:target_pID/:damage/:notes/:disable_condition/:nextAID/:nextToolID", (req, res) => {
+app.post("/submitAction/:encounter/:round/:tool/:action_type/:pID/:target_pID/:hit/:damage/:notes/:disable_condition/:nextAID/:nextTargetID", (req, res) => {
     let encounter = req.params.encounter
     let round = req.params.round
     let tool = req.params.tool
     let action_type = req.params.action_type
     let pID = req.params.pID
     let target_pID = req.params.target_pID
+    let hit = req.params.hit
     let damage = req.params.damage
     let notes = req.params.notes
     let disable_condition = req.params.disable_condition
     let nextAID = req.params.nextAID
+    let nextTargetID = req.params.nextTargetID
     let sql = `INSERT into ct_tbl_action
             (aID, eID, round, pID, targetID, hit, action_type, action, toolID)
             values (nextAID, encounter, round, pID, target_pID, )

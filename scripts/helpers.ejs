@@ -930,6 +930,9 @@
             let actionsRadio = document.createElement("input");
             actionsRadio.setAttribute("type", "radio");
             actionsRadio.setAttribute("value", action);
+            if (action == "action") {
+                actionsRadio.setAttribute("checked", "true")
+            }
             actionsRadio.setAttribute("id", action);
             actionsRadio.setAttribute("name", "actions");
             let label = document.createElement("label");
@@ -1046,13 +1049,11 @@
             let start = startHTML.getAttribute('data-nav')
             let endHTML = document.querySelector('[data-round="' + condition.end_round + '"] [data-section="1"] [data-participant="' + condition.end_pID + '"]') || "100";
             let end = endHTML instanceof Element ? endHTML.getAttribute('data-nav') : "1000";
-            console.log("start: " + start)
-            console.log("dataNavSelected: " + dataNavSelected)
-            console.log("end: " + end)
             if (dataNavSelected >= start && dataNavSelected <= end) {
                 let checkbox = document.createElement("input");
                 checkbox.setAttribute("type", "checkbox");
-                checkbox.setAttribute("name", condition.conditon_name)
+                checkbox.setAttribute("name", "conditions")
+                checkbox.setAttribute("value", condition.conditionID);
                 let label = document.createElement("label");
                 label.setAttribute("for", condition.condition_name);
                 let causer = ctApp.find((participant) => {
@@ -1125,21 +1126,41 @@
         let targets = document.getElementsByName("participants");
         let targetHits = ""
         let tID = ""
+        let damage = ""
         targets.forEach((target) => {
             if (parseInt(target.value) != NaN && target.value != 0) {
                 targetHits += "1"
                 tID += target.id + " "
+                damage += target.value + " "
             } else if (target.value == "0") {
                 targetHits += "0"
                 tID += target.id + " "
+                damage += target.value + " "
             }
         })
+        console.log(damage);
         if (targetHits == "") {
             targetHits = "null"
         }
-     
+        // get action type
+        let actionTypeElement = document.getElementsByName("actions")
+        let actionType = Array.from(actionTypeElement).find((item) => {
+            return item.checked == true
+        }).value
 
-        let data = "submitAction/" + nextAID + "/" + ctApp[0].eID + "/" + currentRound + "/" + weapon + "/" + action + "/" + pID + "/" + tID + "/" +  + "/It\'s got him good!/1/2"
+        let notesElement = document.querySelector(".notes_text");
+        let notes = notesElement.value;
+        notes = notes.replaceAll("'", "\'")
+
+        let disableConditionsEle = document.getElementsByName("conditions")
+        let disableConditionsString = ""
+        disableConditionsEle.forEach((condition) => {
+            if (condition.checked == true) {
+                disableConditionsString += condition.value
+            }
+        })
+
+        let data = "submitAction/" + nextAID + "/" + ctApp[0].eID + "/" + currentRound + "/" + weapon + "/" + action + "/" + pID + "/" + tID + "/" + targetHits + "/" + actionType + "/" + damage + "/" + notes + "/" + disableConditionsString + "/" + nextAID + "/" + nextToolID
         // await dbQuery("POST", data)
     }
 </script>
