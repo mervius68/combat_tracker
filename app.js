@@ -1,4 +1,6 @@
 const express = require("express");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 
 const sqlite3 = require("sqlite3").verbose();
 
@@ -21,6 +23,8 @@ app.set("view engine", "ejs");
 app.get("/", function (req, res) {
     res.render("index");
 });
+
+
 
 app.get("/selected_encounter/:eID", (req, res) => {
     eID = req.params.eID
@@ -123,9 +127,9 @@ app.get("/getNewAID", (req, res) => {
 });
 
 app.get("/getNextTargetID", (req, res) => {
-    let sql = `SELECT tID
+    let sql = `SELECT targetID
         FROM ct_tbl_target
-                ORDER by tID DESC limit 1
+                ORDER by targetID DESC limit 1
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -136,34 +140,162 @@ app.get("/getNextTargetID", (req, res) => {
     });
 });
 
-app.post("/submitAction/:encounter/:round/:tool/:action_type/:pID/:target_pID/:hit/:damage/:notes/:disable_condition/:nextAID/:nextTargetID", (req, res) => {
+app.get("/submitTargets/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextTargetID/:target_pID", (req, res) => {
     let encounter = req.params.encounter
     let round = req.params.round
-    let tool = req.params.tool
-    let action_type = req.params.action_type
+    let toolID = req.params.tool // may be toolID or descriptive string (e.g. disengage)
+    let actionString = req.params.action_type || ""
+    if (actionString == "-") {
+        actionString = ""
+    }
+    if (isNaN(parseInt(toolID))) {
+        actionString = toolID;
+        toolID = ""
+    }
     let pID = req.params.pID
-    let target_pID = req.params.target_pID
+    let nextTargetID = req.params.nextTargetID
     let hit = req.params.hit
+    let actionCategory = req.params.actionCategory
     let damage = req.params.damage
     let notes = req.params.notes
     let disable_condition = req.params.disable_condition
     let nextAID = req.params.nextAID
-    let nextTargetID = req.params.nextTargetID
-    let sql = `INSERT into ct_tbl_action
-            (aID, eID, round, pID, targetID, hit, action_type, action, toolID)
-            values (nextAID, encounter, round, pID, target_pID, )
+    let target_pID = req.params.target_pID;
+    console.log("bing")
+
+    // build multiple INSERTs if needed
+    let damageArray = damage.split(" ").map(Number);
+
+    let target_pIDArray = target_pID.split(" ").map
+
+    let sql = `INSERT into ct_tbl_target
+                    (eID, round, pID, target_pID, damage, new_hp, temp_hp)
+                    values (${encounter}, ${round}, ${pID}, ${target_pID[0]}, ${damageArray[0]}, 18, 0);
                 `;
+    let query = db.all(sql, (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log(sql)
+        res.send(results);
+    });
+});
+
+app.get("/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextTargetID/:target_pID", (req, res) => {
+    // example: /submitAction/1/1/
+    let encounter = req.params.encounter
+    let round = req.params.round
+    let toolID = req.params.tool // may be toolID or descriptive string (e.g. disengage)
+    let actionString = req.params.action_type || ""
+    if (actionString == "-") {
+        actionString = ""
+    }
+    if (isNaN(parseInt(toolID))) {
+        actionString = toolID;
+        toolID = ""
+    }
+    let pID = req.params.pID
+    let nextTargetID = req.params.nextTargetID
+    let hit = req.params.hit
+    let actionCategory = req.params.actionCategory.trim()
+    let damage = req.params.damage
+    let notes = req.params.notes
+    let disable_condition = req.params.disable_condition
+    let nextAID = req.params.nextAID
+    let target_pID = req.params.target_pID;
+    console.log("bing")
+
+    // build multiple INSERTs if needed
+    let damageArray = damage.split(" ").map(Number);
+
+    let target_pIDArray = target_pID.split(" ").map
+
+    let sql = `INSERT into ct_tbl_action
+                    (aID, eID, round, pID, targetID, hit, action_type, action, toolID)
+                    values (${nextAID}, ${encounter}, ${round}, ${pID}, ${nextTargetID}, ${hit}, '${actionCategory}', '${actionString}', '${toolID}');
+                `;
+    let query = db.all(sql, (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log(sql)
+        res.send(results);
+    });
+});
+
+app.get("/targetsHP/:targets_pIDs", (req, res) => {
+    let targets_pIDs = req.params.targets_pIDs;
+    let targetsArray = targets_pIDs.split(" ")
+    let sql = ""
+    targetsArray.forEach((target, index) => {
+        sql += `SELECT *
+        FROM ct_tbl_target
+        where pID = ${target[index]}
+                ORDER by targetID DESC limit 1;
+                `;
+    })
+    
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        console.log("results: " + results);
+        console.log("A: " + results);
         res.send(results);
     });
 });
 
+// app.get("/getResAndWeathInfo/:resDate", (req, res) => {
+//     let newDate = dateFormat(req.params.resDate, "yyyy-mm-dd");
+//     let sql = `SELECT * FROM tblresidence where '${newDate}' >= resBegin AND '${newDate}' <= resEnd;
+//                SELECT * FROM tblweatherloc order by wlID ASC;
+//                SELECT * FROM tblresidence where '${newDate}' > resEnd ORDER BY resEnd DESC limit 1;
+//                SELECT * FROM tblresidence where '${newDate}' < resBegin ORDER BY resBegin ASC limit 1;
+//                `;
+//     let query = db.query(sql, (err, results) => {
+//         if (err) {
+//             throw err;
+//         }
+//         console.log(results[0])
+//         res.send(
+//             JSON.stringify([
+//                 results[0], // or [...results[0]],
+//                 results[1],
+//                 results[2],
+//                 results[3],
+//             ])
+//         );
+//         console.log("BANG!")
+//     });
+// });
 
+// app.post("/submitAction/:encounter/:round/:tool/:action_type/:pID/:target_pID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextTargetID", upload.none(), function (req, res, next) {
+//     let encounter = req.params.encounter
+//     let round = req.params.round
+//     let tool = req.params.tool
+//     let action_type = req.params.action_type
+//     let pID = req.params.pID
+//     let target_pID = req.params.target_pID
+//     let hit = req.params.hit
+//     let actionCategory = req.params.actionCategory
+//     let damage = req.params.damage
+//     let notes = req.params.notes
+//     let disable_condition = req.params.disable_condition
+//     let nextAID = req.params.nextAID
+//     let nextTargetID = req.params.nextTargetID
+//     let sql = `INSERT into ct_tbl_action
+//     (aID, eID, round, pID, targetID, hit, action_type, action, toolID)
+//     values (nextAID, encounter, round, pID, target_pID, hit, action_type, actionCategory, toolID)
+//         `;
+//     let query = db.query(sql, (err, results) => {
+//         if (err) {
+//             throw err;
+//         }
+//     });
+//     res.status(201).json();
+// });
 
 
 
@@ -210,9 +342,9 @@ app.get("/turns/", (req, res) => {
                 FROM ct_tbl_encounter
                      JOIN ct_tbl_round       ON ct_tbl_round.eID       = ct_tbl_encounter.eID
                 LEFT JOIN ct_tbl_turn        ON ct_tbl_round.rID       = ct_tbl_turn.rID 
-                LEFT JOIN ct_tbl_action      ON ct_tbl_action.tID      = ct_tbl_turn.tID
+                LEFT JOIN ct_tbl_action      ON ct_tbl_action.targetID      = ct_tbl_turn.targetID
                      JOIN ct_tbl_participant ON ct_tbl_turn.pID        = ct_tbl_participant.pID
-                     JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
+                    LEFT JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
                     
                 WHERE ct_tbl_encounter.eID = 1 ORDER BY aID ASC;
     `;
@@ -294,7 +426,7 @@ app.get("/target/:targetID/", (req, res) => {
     let targetID = req.params.targetID
     let sql = `SELECT *
         FROM ct_tbl_target
-                WHERE tID = "${targetID}" ORDER BY round
+                WHERE targetID = "${targetID}" ORDER BY round
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -308,7 +440,8 @@ app.get("/target/:targetID/", (req, res) => {
 
 app.get("/targets/:targetID/", (req, res) => {
     let targetID = req.params.targetID
-    let sql = `SELECT *
+    if (targetID != 0) {
+        let sql = `SELECT *
         FROM ct_tbl_target
         JOIN ct_tbl_participant ON ct_tbl_target.target_pID = ct_tbl_participant.pID
                 WHERE targetID = "${targetID}" ORDER BY round
@@ -318,9 +451,13 @@ app.get("/targets/:targetID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log(results);
+        // console.log(results);
         res.send(results);
     });
+    } else {
+        res.send([null])
+    }
+    
 });
 
 app.listen(3000, console.log("App Listening to port 3000"));
