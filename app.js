@@ -1,7 +1,4 @@
 const express = require("express");
-const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
-
 const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
@@ -140,9 +137,10 @@ app.get("/getNextTargetID", (req, res) => {
     });
 });
 
-app.get("/submitTargets/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextTargetID/:target_pID", (req, res) => {
+app.get("/submitTargets/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID/:targetHP", (req, res) => {
     let encounter = req.params.encounter
     let round = req.params.round
+    let targetHP = req.params.targetHP;
     let toolID = req.params.tool // may be toolID or descriptive string (e.g. disengage)
     let actionString = req.params.action_type || ""
     if (actionString == "-") {
@@ -154,9 +152,11 @@ app.get("/submitTargets/:encounter/:round/:tool/:actionString/:pID/:nextTargetID
     }
     let pID = req.params.pID
     let nextTargetID = req.params.nextTargetID
+    let nextToolID = req.params.nextToolID
     let hit = req.params.hit
     let actionCategory = req.params.actionCategory
     let damage = req.params.damage
+    let newHP = targetHP - damage;
     let notes = req.params.notes
     let disable_condition = req.params.disable_condition
     let nextAID = req.params.nextAID
@@ -166,12 +166,14 @@ app.get("/submitTargets/:encounter/:round/:tool/:actionString/:pID/:nextTargetID
     // build multiple INSERTs if needed
     let damageArray = damage.split(" ").map(Number);
 
-    let target_pIDArray = target_pID.split(" ").map
+    let target_pIDArray = target_pID.split(" ").map(Number)
+    console.log(target_pIDArray)
 
+    // damageArray.forEach((damage, index) => {
     let sql = `INSERT into ct_tbl_target
-                    (eID, round, pID, target_pID, damage, new_hp, temp_hp)
-                    values (${encounter}, ${round}, ${pID}, ${target_pID[0]}, ${damageArray[0]}, 18, 0);
-                `;
+        (targetID, eID, round, pID, target_pID, damage, new_hp, temp_hp)
+        values (${nextTargetID}, ${encounter}, ${round}, ${pID}, ${target_pIDArray[0]}, ${damage}, ${newHP}, 0);
+    `;
     let query = db.all(sql, (err, results) => {
         if (err) {
             console.log(err);
@@ -180,10 +182,13 @@ app.get("/submitTargets/:encounter/:round/:tool/:actionString/:pID/:nextTargetID
         console.log(sql)
         res.send(results);
     });
+    // })
+
 });
 
-app.get("/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextTargetID/:target_pID", (req, res) => {
+app.get("/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID", (req, res) => {
     // example: /submitAction/1/1/
+    console.log("HERE")
     let encounter = req.params.encounter
     let round = req.params.round
     let toolID = req.params.tool // may be toolID or descriptive string (e.g. disengage)
@@ -198,13 +203,27 @@ app.get("/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/
     let pID = req.params.pID
     let nextTargetID = req.params.nextTargetID
     let hit = req.params.hit
-    let actionCategory = req.params.actionCategory.trim()
+    hit = hit.trim();
     let damage = req.params.damage
+    console.log(hit);
+    if (hit == "x") {
+        hit = 1;
+        damage = 0;
+    } else if (hit == "0") {
+        hit = 0;
+        damage = 0;
+    } else {
+        hit = 1;
+    }
+    console.log("hit it! " + hit[0].toString());
+    let actionCategory = req.params.actionCategory
+    actionCategory = actionCategory.trim();
+
     let notes = req.params.notes
     let disable_condition = req.params.disable_condition
     let nextAID = req.params.nextAID
     let target_pID = req.params.target_pID;
-    console.log("bing")
+    let nextToolID = req.params.nextToolID;
 
     // build multiple INSERTs if needed
     let damageArray = damage.split(" ").map(Number);
@@ -212,8 +231,8 @@ app.get("/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/
     let target_pIDArray = target_pID.split(" ").map
 
     let sql = `INSERT into ct_tbl_action
-                    (aID, eID, round, pID, targetID, hit, action_type, action, toolID)
-                    values (${nextAID}, ${encounter}, ${round}, ${pID}, ${nextTargetID}, ${hit}, '${actionCategory}', '${actionString}', '${toolID}');
+                    (eID, round, pID, targetID, hit, action_type, action, toolID)
+                    values (${encounter}, ${round}, ${pID}, ${nextTargetID}, '${hit}', '${actionCategory}', '${actionString}', '${toolID}');
                 `;
     let query = db.all(sql, (err, results) => {
         if (err) {
@@ -225,24 +244,18 @@ app.get("/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/
     });
 });
 
-app.get("/targetsHP/:targets_pIDs", (req, res) => {
-    let targets_pIDs = req.params.targets_pIDs;
-    let targetsArray = targets_pIDs.split(" ")
-    let sql = ""
-    targetsArray.forEach((target, index) => {
-        sql += `SELECT *
-        FROM ct_tbl_target
-        where pID = ${target[index]}
-                ORDER by targetID DESC limit 1;
-                `;
-    })
-    
+app.get("/targetsHP/:target_pID", (req, res) => {
+    let target_pID = req.params.target_pID;
+    let sql = `SELECT *
+    FROM ct_tbl_target
+    where pID = ${target_pID}
+            ORDER by targetID DESC limit 1;
+            `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        console.log("A: " + results);
         res.send(results);
     });
 });
@@ -446,18 +459,18 @@ app.get("/targets/:targetID/", (req, res) => {
         JOIN ct_tbl_participant ON ct_tbl_target.target_pID = ct_tbl_participant.pID
                 WHERE targetID = "${targetID}" ORDER BY round
                 `;
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        // console.log(results);
-        res.send(results);
-    });
+        let query = db.all(sql, [], (err, results) => {
+            if (err) {
+                console.log(err);
+                throw err;
+            }
+            // console.log(results);
+            res.send(results);
+        });
     } else {
         res.send([null])
     }
-    
+
 });
 
 app.listen(3000, console.log("App Listening to port 3000"));
