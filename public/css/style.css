@@ -88,6 +88,7 @@ body {
 
 .red {
   background-color: red;
+  color: white;
 }
 
 .selected {
@@ -321,6 +322,23 @@ h3 {
   text-align: center;
   margin: 30px 0;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.container {
+  width: 100%;
+  border: 0px 4px solid black;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.topLeftDiv {
+  flex: 1 0 50%;
+  width: 50%
+}
+.topRightDiv {
+  flex: 0 1 50%;
+  width: 50%
 }
 
 .modalContainer {
