@@ -502,49 +502,49 @@
                         i === 1 ? `<b>${participant.starting_hp}</b>` : "";
 
                     // if hit points drop below 50%, yellow background for character in question; if drop to zero, red.
-                    let carryForwardHP = "";
-                    damageObjects.forEach((item) => {
-                        try {
-                            let previousHP = mainContainer.querySelector(
-                                '[data-round="' +
-                                    (i - 1) +
-                                    '"] [data-section="1"] [data-participant="' +
-                                    participant.pID +
-                                    '"]'
-                            );
-                            const arr =
-                                previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
-                            console.log("got here");
-                            const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
-                            carryForwardHP = lastNum;
-                        } catch (err) {}
-                        // add hit points for this row
-                        console.log("A: " + turn.nextSibling.innerHTML);
-                        console.log("B: " + carryForwardHP);
-                        // if the number has changed
-                        let x =
-                            parseInt(carryForwardHP) == participant.starting_hp;
-                        console.log(i);
-                        turn.nextSibling.innerHTML =
-                            carryForwardHP +
-                            (carryForwardHP != "" ? ", " : "") +
-                            turn.nextSibling.innerHTML +
-                            (turn.nextSibling.innerText == "" ? "" : ", ") +
-                            item.new_hp;
-                    });
+                    // let carryForwardHP = "";
+                    // damageObjects.forEach((item) => {
+                    //     try {
+                    //         let previousHP = mainContainer.querySelector(
+                    //             '[data-round="' +
+                    //                 (i - 1) +
+                    //                 '"] [data-section="1"] [data-participant="' +
+                    //                 participant.pID +
+                    //                 '"]'
+                    //         );
+                    //         const arr =
+                    //             previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
+                    //         console.log("got here");
+                    //         const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
+                    //         carryForwardHP = lastNum;
+                    //     } catch (err) {}
+                    //     // add hit points for this row
+                    //     console.log("A: " + turn.nextSibling.innerHTML);
+                    //     console.log("B: " + carryForwardHP);
+                    //     // if the number has changed
+                    //     let x =
+                    //         parseInt(carryForwardHP) == participant.starting_hp;
+                    //     console.log(i);
+                    //     turn.nextSibling.innerHTML =
+                    //         carryForwardHP +
+                    //         (carryForwardHP != "" ? ", " : "") +
+                    //         turn.nextSibling.innerHTML +
+                    //         (turn.nextSibling.innerText == "" ? "" : ", ") +
+                    //         item.new_hp;
+                    // });
 
                     // check to see if participant pID is in roundDamages
-                    if (damageObjects.length == 0 && i !== 1) {
-                        let damageCheck = ct_damages.filter((item) => {
-                            return item.target_pID == participant.pID;
-                        });
-                        if (damageCheck.length > 0) {
-                            turn.nextSibling.innerText =
-                                damageCheck[damageCheck.length - 1].new_hp;
-                        } else {
-                            turn.nextSibling.innerHTML = `<b>${participant.starting_hp}</b>`;
-                        }
-                    }
+                    // if (damageObjects.length == 0 && i !== 1) {
+                    //     let damageCheck = ct_damages.filter((item) => {
+                    //         return item.target_pID == participant.pID;
+                    //     });
+                    //     if (damageCheck.length > 0) {
+                    //         turn.nextSibling.innerText =
+                    //             damageCheck[damageCheck.length - 1].new_hp;
+                    //     } else {
+                    //         turn.nextSibling.innerHTML = `<b>${participant.starting_hp}</b>`;
+                    //     }
+                    // }
                     turn.nextSibling.nextSibling.innerText =
                         participant.character_name +
                         (participant.numeric_value == null
