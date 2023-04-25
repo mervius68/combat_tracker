@@ -87,7 +87,6 @@ app.get("/hpsByRound/:encounter", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log("blah blah blah: " + results[0].new_hp);
         res.send(results);
     });
 });
