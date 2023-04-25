@@ -1,5 +1,6 @@
 <script>
     let cellCountVertical;
+    let participantsHpsByRound;
 
     async function dbQuery(httpReqType, httpReqString) {
         // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
@@ -190,6 +191,50 @@
                     return obj.round > max.round ? obj : max;
                 }).round || 1;
         } catch (err) {}
+
+        // get participants hps by round
+        participantsHpsByRound = await dbQuery(
+            "GET",
+            "hpsByRound/" + encounterID
+        );
+
+        ctApp.forEach((participant) => {
+            participant.damageArray = [];
+            let addedNum = [];
+            let result = [];
+            for (let i = 1; i <= damageRounds; i++) {
+                let filteredByRound = participantsHpsByRound.filter((item) => {
+                    return (
+                        item.round == i && item.target_pID == participant.pID
+                    );
+                });
+
+                filteredByRound.forEach((item) => {
+                    console.log("X: " + participant.starting_hp);
+                    console.log("Y: " + item.new_hp);
+                    if (
+                        parseInt(item.new_hp) ==
+                        parseInt(participant.starting_hp)
+                    ) {
+                        addedNum.push(participant.starting_hp);
+                    } else {
+                        addedNum.push(item.new_hp);
+                    }
+                });
+                
+                for (let j = 0; j < addedNum.length; j++) {
+                    if (addedNum[j] !== addedNum[j + 1]) {
+                        result.push(addedNum[j]);
+                    }
+                }
+                addedNum = result;
+            }
+            if (addedNum.length == 0) {
+                participant.damageArray.push([participant.starting_hp]);
+            } else {
+                participant.damageArray.push(addedNum);
+            }
+        });
 
         totalRounds = Math.max(totalRounds, damageRounds);
 
@@ -415,7 +460,7 @@
             });
 
             // populate participants
-            // let participantHTML;
+            let participantHTML;
             roundParticipants.forEach(async (participant) => {
                 // find latest damage report for this user;
                 // if no damages at all, apply participant's starting_hp;
@@ -469,10 +514,17 @@
                             );
                             const arr =
                                 previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
+                            console.log("got here");
                             const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
                             carryForwardHP = lastNum;
                         } catch (err) {}
                         // add hit points for this row
+                        console.log("A: " + turn.nextSibling.innerHTML);
+                        console.log("B: " + carryForwardHP);
+                        // if the number has changed
+                        let x =
+                            parseInt(carryForwardHP) == participant.starting_hp;
+                        console.log(i);
                         turn.nextSibling.innerHTML =
                             carryForwardHP +
                             (carryForwardHP != "" ? ", " : "") +
@@ -501,7 +553,7 @@
                     turn.nextSibling.nextSibling.nextSibling.innerText =
                         participant.init;
                 });
-                participantHTML.forEach(async(turn, index) => {
+                participantHTML.forEach(async (turn, index) => {
                     let newValue = turn.nextSibling.innerText.split(",");
                     // if newValue contains comma, get what's to the right of the last comma
                     // const arr = previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
@@ -522,7 +574,7 @@
                         turn.nextSibling.nextSibling.nextSibling.classList.add(
                             "red"
                         );
-                     }
+                    }
                 });
             });
         }
@@ -1053,27 +1105,27 @@
                     '"]'
             );
             let start = startHTML.getAttribute("data-nav");
-            
-            
 
-            let endHTML =
-                document.querySelector(
-                    '[data-round="' +
-                        condition.end_round +
-                        '"] [data-section="1"] [data-participant="' +
-                        condition.end_pID +
-                        '"]'
-                )
+            let endHTML = document.querySelector(
+                '[data-round="' +
+                    condition.end_round +
+                    '"] [data-section="1"] [data-participant="' +
+                    condition.end_pID +
+                    '"]'
+            );
             let end =
                 endHTML instanceof Element
                     ? endHTML.getAttribute("data-nav")
                     : "1000";
             // console.log("end = " + end)
             // console.log("current round = " + dataNavSelected)
-            if (parseInt(dataNavSelected) >= parseInt(start) && parseInt(dataNavSelected) <= parseInt(end)) {
-                console.log("start = " + typeof start)
-                console.log("dataNavSelected = " + typeof dataNavSelected)
-                console.log("end = " + typeof end)
+            if (
+                parseInt(dataNavSelected) >= parseInt(start) &&
+                parseInt(dataNavSelected) <= parseInt(end)
+            ) {
+                console.log("start = " + typeof start);
+                console.log("dataNavSelected = " + typeof dataNavSelected);
+                console.log("end = " + typeof end);
                 let checkbox = document.createElement("input");
                 checkbox.setAttribute("type", "checkbox");
                 checkbox.setAttribute("name", "conditions");
@@ -1262,9 +1314,17 @@
 
         let disableConditionsEle = document.getElementsByName("conditions");
         let disableConditionsString = "";
-        disableConditionsEle.forEach( async (condition) => {
+        disableConditionsEle.forEach(async (condition) => {
             if (condition.checked == true) {
-                await dbQuery("GET", "disableCondition/" + condition.value + "/" + currentRound + "/" + pID)
+                await dbQuery(
+                    "GET",
+                    "disableCondition/" +
+                        condition.value +
+                        "/" +
+                        currentRound +
+                        "/" +
+                        pID
+                );
                 disableConditionsString += condition.value;
             }
         });
@@ -1310,7 +1370,10 @@
             }/${targetHPsArray[index]}`;
             await dbQuery("GET", dataTarget);
             if (targetHPsArray[index] - damage[index] <= 0) {
-                await dbQuery ("GET", "terminate/" + target_pID[index] + "/" + round)
+                await dbQuery(
+                    "GET",
+                    "terminate/" + target_pID[index] + "/" + round
+                );
             }
         });
 
@@ -1364,7 +1427,7 @@
             launchActionModal("turn");
         }
         if (event.altKey && event.keyCode == 81) {
-            launchConditionsModal("turn")
+            launchConditionsModal("turn");
         }
         if (event.altKey && event.keyCode == 67) {
             alert("HUZZAH!");
@@ -1421,8 +1484,6 @@
             "conditionsInEffect/" + encounter + "/" + currentRound
         );
 
-
-
         // build the HTML
         let container = document.createElement("div");
         container.classList.add("container");
@@ -1430,60 +1491,63 @@
         let topLeftDiv = document.createElement("div");
         topLeftDiv.classList.add("topLeftDiv");
 
-
         let h2 = document.createElement("h2");
         h2.innerHTML = "Condition Causer";
-        topLeftDiv.appendChild(h2)
+        topLeftDiv.appendChild(h2);
 
         ctApp.forEach((participant) => {
-            let checkbox = document.createElement("input")
-            checkbox.setAttribute("type", "radio")
-            checkbox.setAttribute("name", "causers")
-            checkbox.setAttribute("id", participant.pID)
-            let label = document.createElement("label")
-            label.setAttribute("for", participant.pID)
-            label.innerHTML = participant.character_name + (participant.numeric_value ? " #" + participant.numeric_value : "")
-            let br = document.createElement("br")
+            let checkbox = document.createElement("input");
+            checkbox.setAttribute("type", "radio");
+            checkbox.setAttribute("name", "causers");
+            checkbox.setAttribute("id", participant.pID);
+            let label = document.createElement("label");
+            label.setAttribute("for", participant.pID);
+            label.innerHTML =
+                participant.character_name +
+                (participant.numeric_value
+                    ? " #" + participant.numeric_value
+                    : "");
+            let br = document.createElement("br");
 
-            topLeftDiv.appendChild(checkbox)
+            topLeftDiv.appendChild(checkbox);
             topLeftDiv.appendChild(label);
-            topLeftDiv.appendChild(br)
-        })
-       
+            topLeftDiv.appendChild(br);
+        });
 
         let topRightDiv = document.createElement("div");
-        topRightDiv.classList.add("topRightDiv")
+        topRightDiv.classList.add("topRightDiv");
 
         let h3 = document.createElement("h2");
         h3.innerHTML = "Whose Round It Ends On:";
-        topRightDiv.appendChild(h3)
+        topRightDiv.appendChild(h3);
 
         ctApp.forEach((participant) => {
-            let checkbox = document.createElement("input")
-            checkbox.setAttribute("type", "radio")
-            checkbox.setAttribute("name", "affected")
-            checkbox.setAttribute("id", "x" + participant.pID)
-            let label = document.createElement("label")
-            label.setAttribute("for", "x" + participant.pID)
-            label.innerHTML = participant.character_name + (participant.numeric_value ? " #" + participant.numeric_value : "")
-            let br = document.createElement("br")
+            let checkbox = document.createElement("input");
+            checkbox.setAttribute("type", "radio");
+            checkbox.setAttribute("name", "affected");
+            checkbox.setAttribute("id", "x" + participant.pID);
+            let label = document.createElement("label");
+            label.setAttribute("for", "x" + participant.pID);
+            label.innerHTML =
+                participant.character_name +
+                (participant.numeric_value
+                    ? " #" + participant.numeric_value
+                    : "");
+            let br = document.createElement("br");
 
-            topRightDiv.appendChild(checkbox)
+            topRightDiv.appendChild(checkbox);
             topRightDiv.appendChild(label);
-            topRightDiv.appendChild(br)
-        })
-
-       
-         
+            topRightDiv.appendChild(br);
+        });
 
         container.appendChild(topLeftDiv);
         container.appendChild(topRightDiv);
 
         let div17 = document.createElement("div");
-        div17.classList.add("topLeftDiv")
+        div17.classList.add("topLeftDiv");
 
         let textHeader = document.createElement("h2");
-        textHeader.innerHTML = "Describe the Condition"
+        textHeader.innerHTML = "Describe the Condition";
         let textInput = document.createElement("input");
         textInput.setAttribute("type", "text");
         textInput.classList.add("conditionsText");
@@ -1504,51 +1568,47 @@
         container.appendChild(buttonContainer);
         container.appendChild(submit);
 
-
         let bottomRightDiv = document.createElement("div");
         bottomRightDiv.classList.add("topRightDiv");
 
         let h4 = document.createElement("h2");
-        h4.innerHTML = "Beginning Round"
+        h4.innerHTML = "Beginning Round";
         let beginRound = document.createElement("select");
-        beginRound.classList.add("beginRound")
+        beginRound.classList.add("beginRound");
         beginRound.setAttribute("name", "beginRound");
         for (let i = 1; i <= 50; i++) {
             let option = document.createElement("option");
             option.setAttribute("value", i);
             option.innerHTML = i;
             if (currentRound == i) {
-                option.setAttribute("selected", "true")
+                option.setAttribute("selected", "true");
             }
             beginRound.appendChild(option);
         }
 
-        bottomRightDiv.appendChild(h4)
-        bottomRightDiv.appendChild(beginRound)
-
+        bottomRightDiv.appendChild(h4);
+        bottomRightDiv.appendChild(beginRound);
 
         let h5 = document.createElement("h2");
-        h5.innerHTML = "Ending Round"
-        let endRound = document.createElement("select")
-        endRound.classList.add("endRound")
+        h5.innerHTML = "Ending Round";
+        let endRound = document.createElement("select");
+        endRound.classList.add("endRound");
         endRound.setAttribute("name", "endRound");
         for (let i = 1; i <= 20; i++) {
             let option = document.createElement("option");
             option.setAttribute("value", i);
             option.innerHTML = i;
             if (currentRound == i - 10) {
-                option.setAttribute("selected", "true")
+                option.setAttribute("selected", "true");
             }
             endRound.appendChild(option);
         }
 
-        bottomRightDiv.appendChild(h5)
-        bottomRightDiv.appendChild(endRound)
+        bottomRightDiv.appendChild(h5);
+        bottomRightDiv.appendChild(endRound);
 
         container.appendChild(bottomRightDiv);
 
-        
-        
         modal.innerHTML = container.outerHTML;
     }
 
@@ -1557,36 +1617,42 @@
         let currentRound = html.getAttribute("data-round");
         let pID = html.getAttribute("data-participant");
         let dataNav = html.getAttribute("data-nav");
-        let causerHTML = document.getElementsByName("causers")
-        let affectedHTML = document.getElementsByName("affected")
-        let conditionDescription = document.querySelector(".conditionsText").value
-        let startRoundHTML = document.querySelector(".beginRound")
-        let endRoundHTML = document.querySelector(".endRound")
+        let causerHTML = document.getElementsByName("causers");
+        let affectedHTML = document.getElementsByName("affected");
+        let conditionDescription =
+            document.querySelector(".conditionsText").value;
+        let startRoundHTML = document.querySelector(".beginRound");
+        let endRoundHTML = document.querySelector(".endRound");
 
         let causerPID;
         causerPID = Array.from(causerHTML).find((causer) => {
             return causer.checked == true;
         }).id;
 
-        let affectedPID = Array.from(affectedHTML).find((item) => {
-            return item.checked == true;
-        }).id.substring(1)
+        let affectedPID = Array.from(affectedHTML)
+            .find((item) => {
+                return item.checked == true;
+            })
+            .id.substring(1);
 
         let startRound = Array.from(startRoundHTML).find((item) => {
             return item.selected == true;
-        }).value
+        }).value;
 
         let endRound = Array.from(endRoundHTML).find((item) => {
             return item.selected == true;
-        }).value
+        }).value;
 
         // get next cpID
         let latestConditionID = await dbQuery("GET", "getNextcpID");
-        let newCpID = parseInt(latestConditionID[0].cpID) + 1
+        let newCpID = parseInt(latestConditionID[0].cpID) + 1;
         console.log(newCpID);
 
         // send info to tbl_condition_pool
-        let dataPool = `newConditionPoolItem/${conditionDescription.substring(0, 15)}/${conditionDescription}`;
+        let dataPool = `newConditionPoolItem/${conditionDescription.substring(
+            0,
+            15
+        )}/${conditionDescription}`;
         await dbQuery("GET", dataPool);
 
         // send condition info

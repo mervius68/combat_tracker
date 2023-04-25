@@ -4,6 +4,7 @@ const sqlite3 = require("sqlite3").verbose();
 const app = express();
 let ctApp;
 
+
 const db = new sqlite3.Database(
     "./combat2.db",
     sqlite3.OPEN_READWRITE,
@@ -71,6 +72,22 @@ app.get("/participants/:encounter", (req, res) => {
             console.log(err);
             throw err;
         }
+        res.send(results);
+    });
+});
+
+app.get("/hpsByRound/:encounter", (req, res) => {
+    let encounter = req.params.encounter;
+    let sql = `SELECT *
+                FROM ct_tbl_target
+                WHERE eID = ${encounter} ORDER BY tID;
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log("blah blah blah: " + results[0].new_hp);
         res.send(results);
     });
 });
