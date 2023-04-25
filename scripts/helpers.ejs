@@ -198,6 +198,7 @@
             "hpsByRound/" + encounterID
         );
 
+        // add the damageArray / property to ctApp for each participant
         ctApp.forEach((participant) => {
             participant.damageArray = [];
             let addedNum = [];
@@ -210,8 +211,7 @@
 
                 let result = [];
                 filteredByRound.forEach((item) => {
-                    console.log("X: " + participant.starting_hp);
-                    console.log("Y: " + item.new_hp);
+                    
                     if (
                         parseInt(item.new_hp) ==
                         parseInt(participant.starting_hp)
@@ -228,9 +228,9 @@
                     }
                 }
                 result.push(addedNum[addedNum.length - 1]);
-                addedNum = result;
+                addedNum = result 
             }
-            if (addedNum.length == 0) {
+            if (addedNum[0] == undefined) {
                 participant.damageArray.push([participant.starting_hp]);
             } else {
                 participant.damageArray.push(addedNum);
@@ -486,8 +486,9 @@
                         '"]'
                 );
 
-                //     // for each HTML element that goes with this participant...
+                // for each HTML element that goes with this participant...
                 participantHTML.forEach((turn, index) => {
+                    // show AC on the combat tracker for this participant
                     turn.innerText =
                         participant.ac +
                         (participant.ac_secondary == null
@@ -498,41 +499,51 @@
                         return item.target_pID == participant.pID;
                     });
 
-                    // put starting hp on the board
-                    turn.nextSibling.innerHTML =
-                        i === 1 ? `<b>${participant.starting_hp}</b>` : "";
+                    // // put starting hp on the board
+                    // turn.nextSibling.innerHTML =
+                    //     i === 1 ? `<b>${participant.starting_hp}</b>` : "";
 
-                    // if hit points drop below 50%, yellow background for character in question; if drop to zero, red.
-                    let carryForwardHP = "";
-                    damageObjects.forEach((item) => {
-                        try {
-                            let previousHP = mainContainer.querySelector(
-                                '[data-round="' +
-                                    (i - 1) +
-                                    '"] [data-section="1"] [data-participant="' +
-                                    participant.pID +
-                                    '"]'
-                            );
-                            const arr =
-                                previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
-                            console.log("got here");
-                            const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
-                            carryForwardHP = lastNum;
-                        } catch (err) {}
-                        // add hit points for this row
-                        console.log("A: " + turn.nextSibling.innerHTML);
-                        console.log("B: " + carryForwardHP);
-                        // if the number has changed
-                        let x =
-                            parseInt(carryForwardHP) == participant.starting_hp;
-                        console.log(i);
-                        turn.nextSibling.innerHTML =
-                            carryForwardHP +
-                            (carryForwardHP != "" ? ", " : "") +
-                            turn.nextSibling.innerHTML +
-                            (turn.nextSibling.innerText == "" ? "" : ", ") +
-                            item.new_hp;
-                    });
+                    // put hit points on the combat tracker
+                    let x = ctApp.find((item) => {
+                        return item.round == i && item.pID == participant.pID;
+                    })
+                    
+
+                    // turn.nextSibling.innerText = ctApp.find((item) => {
+                    //     return item.round == i && item.pID == participant.pID;
+                    // });
+                    console.log(participant.damageArray);
+
+                    // let carryForwardHP = "";
+                    // damageObjects.forEach((item) => {
+                    //     try {
+                    //         let previousHP = mainContainer.querySelector(
+                    //             '[data-round="' +
+                    //                 (i - 1) +
+                    //                 '"] [data-section="1"] [data-participant="' +
+                    //                 participant.pID +
+                    //                 '"]'
+                    //         );
+                    //         const arr =
+                    //             previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
+                    //         console.log("got here");
+                    //         const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
+                    //         carryForwardHP = lastNum;
+                    //     } catch (err) {}
+                    //     // add hit points for this row
+                    //     console.log("A: " + turn.nextSibling.innerHTML);
+                    //     console.log("B: " + carryForwardHP);
+                    //     // if the number has changed
+                    //     let x =
+                    //         parseInt(carryForwardHP) == participant.starting_hp;
+                    //     console.log(i);
+                    //     turn.nextSibling.innerHTML =
+                    //         carryForwardHP +
+                    //         (carryForwardHP != "" ? ", " : "") +
+                    //         turn.nextSibling.innerHTML +
+                    //         (turn.nextSibling.innerText == "" ? "" : ", ") +
+                    //         item.new_hp;
+                    // });
 
                     // check to see if participant pID is in roundDamages
                     if (damageObjects.length == 0 && i !== 1) {
