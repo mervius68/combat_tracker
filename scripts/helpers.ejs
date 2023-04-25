@@ -201,7 +201,6 @@
         ctApp.forEach((participant) => {
             participant.damageArray = [];
             let addedNum = [];
-            let result = [];
             for (let i = 1; i <= damageRounds; i++) {
                 let filteredByRound = participantsHpsByRound.filter((item) => {
                     return (
@@ -209,6 +208,7 @@
                     );
                 });
 
+                let result = [];
                 filteredByRound.forEach((item) => {
                     console.log("X: " + participant.starting_hp);
                     console.log("Y: " + item.new_hp);
@@ -221,12 +221,13 @@
                         addedNum.push(item.new_hp);
                     }
                 });
-                
-                for (let j = 0; j < addedNum.length; j++) {
+
+                for (let j = 0; j < addedNum.length - 1; j++) {
                     if (addedNum[j] !== addedNum[j + 1]) {
                         result.push(addedNum[j]);
                     }
                 }
+                result.push(addedNum[addedNum.length - 1]);
                 addedNum = result;
             }
             if (addedNum.length == 0) {
@@ -502,49 +503,49 @@
                         i === 1 ? `<b>${participant.starting_hp}</b>` : "";
 
                     // if hit points drop below 50%, yellow background for character in question; if drop to zero, red.
-                    // let carryForwardHP = "";
-                    // damageObjects.forEach((item) => {
-                    //     try {
-                    //         let previousHP = mainContainer.querySelector(
-                    //             '[data-round="' +
-                    //                 (i - 1) +
-                    //                 '"] [data-section="1"] [data-participant="' +
-                    //                 participant.pID +
-                    //                 '"]'
-                    //         );
-                    //         const arr =
-                    //             previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
-                    //         console.log("got here");
-                    //         const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
-                    //         carryForwardHP = lastNum;
-                    //     } catch (err) {}
-                    //     // add hit points for this row
-                    //     console.log("A: " + turn.nextSibling.innerHTML);
-                    //     console.log("B: " + carryForwardHP);
-                    //     // if the number has changed
-                    //     let x =
-                    //         parseInt(carryForwardHP) == participant.starting_hp;
-                    //     console.log(i);
-                    //     turn.nextSibling.innerHTML =
-                    //         carryForwardHP +
-                    //         (carryForwardHP != "" ? ", " : "") +
-                    //         turn.nextSibling.innerHTML +
-                    //         (turn.nextSibling.innerText == "" ? "" : ", ") +
-                    //         item.new_hp;
-                    // });
+                    let carryForwardHP = "";
+                    damageObjects.forEach((item) => {
+                        try {
+                            let previousHP = mainContainer.querySelector(
+                                '[data-round="' +
+                                    (i - 1) +
+                                    '"] [data-section="1"] [data-participant="' +
+                                    participant.pID +
+                                    '"]'
+                            );
+                            const arr =
+                                previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
+                            console.log("got here");
+                            const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
+                            carryForwardHP = lastNum;
+                        } catch (err) {}
+                        // add hit points for this row
+                        console.log("A: " + turn.nextSibling.innerHTML);
+                        console.log("B: " + carryForwardHP);
+                        // if the number has changed
+                        let x =
+                            parseInt(carryForwardHP) == participant.starting_hp;
+                        console.log(i);
+                        turn.nextSibling.innerHTML =
+                            carryForwardHP +
+                            (carryForwardHP != "" ? ", " : "") +
+                            turn.nextSibling.innerHTML +
+                            (turn.nextSibling.innerText == "" ? "" : ", ") +
+                            item.new_hp;
+                    });
 
                     // check to see if participant pID is in roundDamages
-                    // if (damageObjects.length == 0 && i !== 1) {
-                    //     let damageCheck = ct_damages.filter((item) => {
-                    //         return item.target_pID == participant.pID;
-                    //     });
-                    //     if (damageCheck.length > 0) {
-                    //         turn.nextSibling.innerText =
-                    //             damageCheck[damageCheck.length - 1].new_hp;
-                    //     } else {
-                    //         turn.nextSibling.innerHTML = `<b>${participant.starting_hp}</b>`;
-                    //     }
-                    // }
+                    if (damageObjects.length == 0 && i !== 1) {
+                        let damageCheck = ct_damages.filter((item) => {
+                            return item.target_pID == participant.pID;
+                        });
+                        if (damageCheck.length > 0) {
+                            turn.nextSibling.innerText =
+                                damageCheck[damageCheck.length - 1].new_hp;
+                        } else {
+                            turn.nextSibling.innerHTML = `<b>${participant.starting_hp}</b>`;
+                        }
+                    }
                     turn.nextSibling.nextSibling.innerText =
                         participant.character_name +
                         (participant.numeric_value == null
