@@ -28,12 +28,19 @@ body {
   min-height: 1.5em;
 }
 
+
+
 .header {
   font-size: 1.4em;
 }
 
 .ct_round {
   display: flex;
+}
+
+.hidden {
+  display: none;
+  /* visibility: hidden; */
 }
 
 .attack {

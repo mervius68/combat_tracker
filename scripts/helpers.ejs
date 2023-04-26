@@ -471,8 +471,9 @@
                     '"]'
                 );
 
-                // for each HTML element that goes with this participant...
+                // populate row in section 1 (ac, hp, character name, and initiative value)
                 participantHTML.forEach((turn, index) => {
+
                     // show AC on the combat tracker for this participant
                     turn.innerText =
                         participant.ac +
@@ -480,76 +481,36 @@
                             ? ""
                             : " / " + participant.ac_secondary);
 
+                    // show hit points record for each character
                     let damageObjects = roundDamages.filter((item) => {
                         return item.target_pID == participant.pID;
                     });
-
-                    // // put starting hp on the board
-                    // turn.nextSibling.innerHTML =
-                    //     i === 1 ? `<b>${participant.starting_hp}</b>` : "";
-
-                    // put hit points on the combat tracker
-                    let x = ctApp.find((item) => {
-                        return item.round == i && item.pID == participant.pID;
-                    })
-
-
-                    // turn.nextSibling.innerText = ctApp.find((item) => {
-                    //     return item.round == i && item.pID == participant.pID;
-                    // });
-                    // console.log(participant.damageArray);
-
-                    // let carryForwardHP = "";
-                    // damageObjects.forEach((item) => {
-                    //     try {
-                    //         let previousHP = mainContainer.querySelector(
-                    //             '[data-round="' +
-                    //                 (i - 1) +
-                    //                 '"] [data-section="1"] [data-participant="' +
-                    //                 participant.pID +
-                    //                 '"]'
-                    //         );
-                    //         const arr =
-                    //             previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
-                    //         console.log("got here");
-                    //         const lastNum = arr.pop().trim(); // remove and return the last element of the array, and trim any whitespace
-                    //         carryForwardHP = lastNum;
-                    //     } catch (err) {}
-                    //     // add hit points for this row
-                    //     console.log("A: " + turn.nextSibling.innerHTML);
-                    //     console.log("B: " + carryForwardHP);
-                    //     // if the number has changed
-                    //     let x =
-                    //         parseInt(carryForwardHP) == participant.starting_hp;
-                    //     console.log(i);
-                    //     turn.nextSibling.innerHTML =
-                    //         carryForwardHP +
-                    //         (carryForwardHP != "" ? ", " : "") +
-                    //         turn.nextSibling.innerHTML +
-                    //         (turn.nextSibling.innerText == "" ? "" : ", ") +
-                    //         item.new_hp;
-                    // });
-
-                    // check to see if participant pID is in roundDamages
-                    if (damageObjects.length == 0 && i !== 1) {
-                        let damageCheck = ct_damages.filter((item) => {
-                            return item.target_pID == participant.pID;
-                        });
-                        if (damageCheck.length > 0) {
-                            turn.nextSibling.innerText =
-                                damageCheck[damageCheck.length - 1].new_hp;
-                        } else {
-                            turn.nextSibling.innerHTML = `<b>${participant.starting_hp}</b>`;
-                        }
+                    let hps = "";
+                    if (participant.damageArray[i - 1]) {
+                        participant.damageArray[i - 1].forEach((hp, index) => {
+                            hps += (hp == participant.starting_hp ? "<b>" + hp + "</b>" : hp) + (index < participant.damageArray[i - 1].length - 1 ? ", " : "")
+                        })
+                        turn.nextSibling.innerHTML = hps
+                    } else {
+                        participant.damageArray[i - 2].forEach((hp, index) => {
+                            hps = (hp == participant.starting_hp ? "<b>" + hp + "</b>" : hp) + (index < participant.damageArray[i - 2].length - 1 ? ", " : "")
+                        })
+                        turn.nextSibling.innerHTML = hps
                     }
+
+                    // show character name
                     turn.nextSibling.nextSibling.innerText =
                         participant.character_name +
                         (participant.numeric_value == null
                             ? ""
                             : " #" + participant.numeric_value);
+
+                    // show initiative value for this character
                     turn.nextSibling.nextSibling.nextSibling.innerText =
                         participant.init;
                 });
+
+                // does the row deserve a yellow or red highlight (e.g. 50% hp or 0 hp)
                 participantHTML.forEach(async (turn, index) => {
                     let newValue = turn.nextSibling.innerText.split(",");
                     // if newValue contains comma, get what's to the right of the last comma
@@ -578,7 +539,6 @@
 
         try {
             for (const action of ctActions) {
-                // console.log(action);
                 let tool = {};
                 if (action.toolID) {
                     tool = await dbQuery("GET", "tool/" + action.toolID);
@@ -590,7 +550,6 @@
                 if (action.targetID) {
                     target = await dbQuery("GET", "target/" + action.targetID);
                 }
-                // console.log("target bop: " + target);
                 let targets,
                     targetString = "",
                     damageString = "";
@@ -658,6 +617,13 @@
             x.nextSibling.nextSibling.innerHTML = actionArray[2];
             x.nextSibling.nextSibling.nextSibling.innerHTML = actionArray[3];
         }
+
+        let xyz = document.querySelectorAll(".ct_round");
+        xyz[xyz.length - 1].classList.add("hidden");
+        xyz[xyz.length - 1].classList.add("sometimes-hidden");
+        xyz[xyz.length - 1].previousSibling.classList.add("hidden");
+        xyz[xyz.length - 1].previousSibling.classList.add("sometimes-hidden");
+
         // fill values for dropdown
         fillDropdown(encounterCode);
     }
