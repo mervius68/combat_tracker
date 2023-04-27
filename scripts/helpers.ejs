@@ -620,9 +620,9 @@
 
         let xyz = document.querySelectorAll(".ct_round");
         xyz[xyz.length - 1].classList.add("hidden");
-        xyz[xyz.length - 1].classList.add("sometimes-hidden");
+        xyz[xyz.length - 1].classList.add("sometimes_hidden");
         xyz[xyz.length - 1].previousSibling.classList.add("hidden");
-        xyz[xyz.length - 1].previousSibling.classList.add("sometimes-hidden");
+        xyz[xyz.length - 1].previousSibling.classList.add("sometimes_hidden");
 
         // fill values for dropdown
         fillDropdown(encounterCode);
@@ -1241,10 +1241,7 @@
                 }
             })
         );
-        // console.log("targetHits: " + targetHits)
-        // if (targetHits[0] == "") {
-        //     targetHits[0] = "-"
-        // }
+
         if (damage == "") {
             damage = "-";
         }
@@ -1252,13 +1249,6 @@
             target_pID = "-";
         }
 
-        // the rest of the code that uses targetHits, target_pID, damage, and targetHPsArray should go here
-
-        // processTargets(); // Call the async function to start processing targets.
-
-        // if (targetHits == "") {
-        //     targetHits = "null";
-        // }
         // get action type
         let actionTypeElement = document.getElementsByName("actions");
         let actionCategory = Array.from(actionTypeElement).find((item) => {
@@ -1361,6 +1351,22 @@
                 newTarget.nextSibling.nextSibling.nextSibling.classList.add(
                     "selected"
                 );
+                if (newTarget.classList.contains("selected")) {
+                    if (newTarget.parentElement.parentElement.classList.contains("sometimes_hidden") && newTarget.classList.contains("selected")) {
+                        let p = document.querySelectorAll('.sometimes_hidden');
+                        p.forEach((element) => {
+                            element.classList.remove("hidden")
+                        })
+                    } else {
+                        let p = document.querySelectorAll('.sometimes_hidden');
+                        p.forEach((element) => {
+                            element.classList.add("hidden");
+                        })
+                    }
+                }
+                // newTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start'})
+                newTarget.scrollIntoViewIfNeeded(true)
+                
             }
         }
         if (event.key === "ArrowUp") {
@@ -1381,6 +1387,21 @@
                 newTarget.nextSibling.nextSibling.nextSibling.classList.add(
                     "selected"
                 );
+                if (newTarget.classList.contains("selected")) {
+                    if (newTarget.parentElement.parentElement.classList.contains("sometimes_hidden") && newTarget.classList.contains("selected")) {
+                        let p = document.querySelectorAll('.sometimes_hidden');
+                        p.forEach((element) => {
+                            element.classList.remove("hidden")
+                        })
+                    } else {
+                        let p = document.querySelectorAll('.sometimes_hidden');
+                        p.forEach((element) => {
+                            element.classList.add("hidden");
+                        })
+                    }
+                }
+                // newTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start'})
+                newTarget.scrollIntoViewIfNeeded(true)
             }
         }
         if (event.altKey && event.key == "Enter") {
@@ -1619,35 +1640,7 @@
         let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${affectedPID}/${startRound}/${endRound}/${newCpID}`;
         await dbQuery("GET", dataConditions);
 
-        // let round = currentRound;
-        // targetHits.forEach(async (target, index) => {
-        //     if (
-        //         ctApp.findIndex((participant) => {
-        //             return participant.pID == pID;
-        //         }) >
-        //         ctApp.findIndex((target) => {
-        //             return target.pID == target_pID[index];
-        //         })
-        //     ) {
-        //         round = parseInt(currentRound) + 1;
-        //     } else {
-        //         round = parseInt(currentRound);
-        //     }
-        //     console.log("HEY! " + targetHits[index]);
-        //     let dataTarget = `submitTargets/${
-        //         ctApp[0].eID
-        //     }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
-        //         index
-        //     ].trim()}/${actionCategory}/${
-        //         damage[index]
-        //     }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${
-        //         target_pID[index]
-        //     }/${targetHPsArray[index]}`;
-        //     await dbQuery("GET", dataTarget);
-        //     if (targetHPsArray[index] - damage[index] <= 0) {
-        //         await dbQuery ("GET", "terminate/" + target_pID[index] + "/" + round)
-        //     }
-        // });
+       
 
         load_encounter(0, dataNav);
         let modal = document.querySelector(".modal");
