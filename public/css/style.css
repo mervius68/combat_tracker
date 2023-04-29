@@ -130,6 +130,21 @@ hr {
   font-size: 1em;
 }
 
+.concentration {
+  background-color: yellow;
+  font-weight: bold;
+  outline: 3px;
+  margin-left: 5px;
+  border: 2px solid black;
+  padding-left: 2px;
+  padding-right: 3px;
+}
+
+.modal_text_inputs {
+  font-size: 1em;
+  margin-left: 5px;
+}
+
 textarea {
   overflow-wrap: break-word;
   font-size: 1em;

@@ -60,7 +60,7 @@
             div5.classList.add("header");
             div5.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div5.classList.add("center");
             div5.textContent =
@@ -72,7 +72,7 @@
             div6.classList.add("header");
             div6.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div6.classList.add("center");
             div6.textContent = "Hit?";
@@ -81,7 +81,7 @@
             div7.classList.add("header");
             div7.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div7.classList.add("center");
             div7.textContent = "Target(s)";
@@ -90,7 +90,7 @@
             div8.classList.add("header");
             div8.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div8.classList.add("center");
             div8.textContent = "hp";
@@ -103,7 +103,7 @@
                 div9.classList.add("section");
                 div9.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div9.classList.add("center");
                 div9.setAttribute("data-participant", participant.pID);
@@ -111,21 +111,21 @@
                 div10.classList.add("section");
                 div10.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div10.classList.add("center");
                 let div11 = document.createElement("div");
                 div11.classList.add("section");
                 div11.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div11.classList.add("center");
                 let div12 = document.createElement("div");
                 div12.classList.add("section");
                 div12.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div12.classList.add("center");
                 section2.appendChild(div9);
@@ -166,9 +166,11 @@
         );
         let header = document.querySelector(".main_header");
 
-        header.textContent = `${encounter[0]?.campaign || "No available encounters yet"
-            } - ${encounter[0]?.location || ""} (${encounter[0]?.description || ""
-            })`;
+        header.textContent = `${
+            encounter[0]?.campaign || "No available encounters yet"
+        } - ${encounter[0]?.location || ""} (${
+            encounter[0]?.description || ""
+        })`;
 
         ctApp = await dbQuery("GET", "participants/" + encounterID);
 
@@ -188,7 +190,7 @@
                 ct_damages?.reduce((max, obj) => {
                     return obj.round > max.round ? obj : max;
                 }).round || 1;
-        } catch (err) { }
+        } catch (err) {}
 
         // get participants hps by round
         participantsHpsByRound = await dbQuery(
@@ -202,25 +204,32 @@
             for (let i = 0; i < damageRounds; i++) {
                 participant.damageArray[i] = [];
                 if (Array.isArray(participant.damageArray[i - 1])) {
-                    participant.damageArray[i].push(participant.damageArray[i - 1][participant.damageArray[i - 1].length - 1])
+                    participant.damageArray[i].push(
+                        participant.damageArray[i - 1][
+                            participant.damageArray[i - 1].length - 1
+                        ]
+                    );
                 } else {
-                    participant.damageArray[i].push(participant.starting_hp)
+                    participant.damageArray[i].push(participant.starting_hp);
                 }
                 let x = participantsHpsByRound.filter((target) => {
-                    return target.round == i + 1 && target.target_pID == participant.pID
-                })
+                    return (
+                        target.round == i + 1 &&
+                        target.target_pID == participant.pID
+                    );
+                });
                 x.forEach((item) => {
                     if (item.target_pID == participant.pID) {
-                        participant.damageArray[i].push(item.new_hp)
+                        participant.damageArray[i].push(item.new_hp);
                     }
-                })
-                participant.damageArray = participant.damageArray.map(arr => {
+                });
+                participant.damageArray = participant.damageArray.map((arr) => {
                     return arr.filter((num, i) => {
                         return i === 0 || num !== arr[i - 1];
                     });
                 });
             }
-        })
+        });
 
         totalRounds = Math.max(totalRounds, damageRounds);
 
@@ -465,15 +474,14 @@
                 // locate the HTML elements for this participant
                 participantHTML = mainContainer.querySelectorAll(
                     '[data-round="' +
-                    i +
-                    '"] [data-section="1"] [data-participant="' +
-                    participant.pID +
-                    '"]'
+                        i +
+                        '"] [data-section="1"] [data-participant="' +
+                        participant.pID +
+                        '"]'
                 );
 
                 // populate row in section 1 (ac, hp, character name, and initiative value)
                 participantHTML.forEach((turn, index) => {
-
                     // show AC on the combat tracker for this participant
                     turn.innerText =
                         participant.ac +
@@ -488,14 +496,28 @@
                     let hps = "";
                     if (participant.damageArray[i - 1]) {
                         participant.damageArray[i - 1].forEach((hp, index) => {
-                            hps += (hp == participant.starting_hp ? "<b>" + hp + "</b>" : hp) + (index < participant.damageArray[i - 1].length - 1 ? ", " : "")
-                        })
-                        turn.nextSibling.innerHTML = hps
+                            hps +=
+                                (hp == participant.starting_hp
+                                    ? "<b>" + hp + "</b>"
+                                    : hp) +
+                                (index <
+                                participant.damageArray[i - 1].length - 1
+                                    ? ", "
+                                    : "");
+                        });
+                        turn.nextSibling.innerHTML = hps;
                     } else {
                         participant.damageArray[i - 2].forEach((hp, index) => {
-                            hps = (hp == participant.starting_hp ? "<b>" + hp + "</b>" : hp) + (index < participant.damageArray[i - 2].length - 1 ? ", " : "")
-                        })
-                        turn.nextSibling.innerHTML = hps
+                            hps =
+                                (hp == participant.starting_hp
+                                    ? "<b>" + hp + "</b>"
+                                    : hp) +
+                                (index <
+                                participant.damageArray[i - 2].length - 1
+                                    ? ", "
+                                    : "");
+                        });
+                        turn.nextSibling.innerHTML = hps;
                     }
 
                     // show character name
@@ -569,7 +591,7 @@
                                 : "");
                         damageString += (index > 0 ? " / " : "") + item.damage;
                     });
-                } catch (err) { }
+                } catch (err) {}
 
                 let actionArray = [];
 
@@ -585,7 +607,7 @@
                     actionArray
                 );
             }
-        } catch (err) { }
+        } catch (err) {}
 
         document.querySelector(".ct_round_container").innerHTML =
             mainContainer.innerHTML;
@@ -600,7 +622,7 @@
                 "selected"
             );
             navify();
-        } catch (err) { }
+        } catch (err) {}
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
             let actionHTML = "data-" + actionType;
@@ -878,20 +900,15 @@
 
         let weaponTextInput = document.createElement("input");
         weaponTextInput.setAttribute("type", "text");
-        // weaponTextInput.setAttribute("value", item.toolID);
-        // weaponTextInput.setAttribute("id", item.toolID);
         weaponTextInput.setAttribute("name", "weaponsText");
         weaponTextInput.classList.add("text_field");
         let label1 = document.createElement("label");
-
-        // label1.setAttribute("for", item.toolID);
         let br2 = document.createElement("br");
+
         div14.appendChild(weaponTextInput);
         div14.appendChild(label1);
         div14.appendChild(br2);
-
         divLeft.appendChild(div14);
-
         divModalTop.appendChild(divLeft);
 
         let divMiddleLeft = document.createElement("div");
@@ -929,7 +946,6 @@
         });
 
         divMiddleLeft.appendChild(anotherDiv);
-
         divModalTop.appendChild(divMiddleLeft);
 
         let divMiddleRight = document.createElement("div");
@@ -964,7 +980,6 @@
         });
 
         divMiddleRight.appendChild(anotherDiv2);
-
         divModalTop.appendChild(divMiddleRight);
 
         let divRight = document.createElement("div");
@@ -975,6 +990,7 @@
         divRight.appendChild(div15);
         let div16 = document.createElement("div");
 
+        // populate the targets of the modal
         allParticipants.forEach((participant) => {
             let target = document.createElement("input");
             target.setAttribute("type", "text");
@@ -985,7 +1001,8 @@
             target.setAttribute("id", participant.pID);
             let targetLabel = document.createElement("label");
             targetLabel.setAttribute("for", participant.pID);
-            targetLabel.classList.add("radio_buttons");
+            targetLabel.classList.add("p" + participant.pID)
+            targetLabel.classList.add("modal_text_inputs");
             targetLabel.innerHTML =
                 participant.character_name +
                 (participant.numeric_value
@@ -995,6 +1012,7 @@
             let br3 = document.createElement("br");
             div16.appendChild(target);
             div16.appendChild(targetLabel);
+            
             div16.appendChild(br3);
         });
 
@@ -1020,75 +1038,33 @@
         let hr = document.createElement("hr");
         container.appendChild(hr);
 
-        // let divNewConditions = document.createElement("div");
-
-        // let divNewConditionsArray = ["none selected", "concentration", "blinded", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "poisoned", "prone", "restrained", "stunned", "unconscious", "exhaustion", "ready", "death save"]
-        // divNewConditionsArray.forEach((condition) => {
-        //     let actionsRadio = document.createElement("input");
-        //     actionsRadio.setAttribute("type", "radio");
-        //     actionsRadio.setAttribute("value", condition);
-        //     actionsRadio.setAttribute("id", condition);
-        //     actionsRadio.setAttribute("name", "conditions");
-        //     let label = document.createElement("label");
-        //     label.setAttribute("for", condition);
-        //     label.classList.add("radio_buttons");
-        //     label.innerHTML = condition;
-        //     let br = document.createElement("br");
-        //     divNewConditions.appendChild(actionsRadio);
-        //     divNewConditions.appendChild(label);
-        //     divNewConditions.appendChild(br);
-        // })
-
-        // let conditionText = document.createElement("input");
-        // conditionText.setAttribute("type", "text");
-        // // weaponTextInput.setAttribute("value", item.toolID);
-        // // weaponTextInput.setAttribute("id", item.toolID);
-        // conditionText.setAttribute("name", "weapons");
-        // conditionText.classList.add("text_field");
-        // let label2 = document.createElement("label");
-
-        // // label1.setAttribute("for", item.toolID);
-        // let br5 = document.createElement("br");
-        // divBottomLeft.appendChild(conditionText);
-        // divBottomLeft.appendChild(label2);
-        // divBottomLeft.appendChild(br5);
-
-        // divBottomLeft.appendChild(divNewConditions);
-
-        // let divBottomRight = document.createElement("div");
-        // divBottomRight.classList.add("div_bottom_right")
-
         let condition = conditionsInEffect.forEach((condition) => {
             let conditionParticipant = condition.pID;
             let startHTML = document.querySelector(
                 '[data-round="' +
-                condition.start_round +
-                '"] [data-section="1"] [data-participant="' +
-                condition.pID +
-                '"]'
+                    condition.start_round +
+                    '"] [data-section="1"] [data-participant="' +
+                    condition.pID +
+                    '"]'
             );
             let start = startHTML.getAttribute("data-nav");
 
             let endHTML = document.querySelector(
                 '[data-round="' +
-                condition.end_round +
-                '"] [data-section="1"] [data-participant="' +
-                condition.end_pID +
-                '"]'
+                    condition.end_round +
+                    '"] [data-section="1"] [data-participant="' +
+                    condition.end_pID +
+                    '"]'
             );
             let end =
                 endHTML instanceof Element
                     ? endHTML.getAttribute("data-nav")
                     : "1000";
-            // console.log("end = " + end)
-            // console.log("current round = " + dataNavSelected)
+
             if (
                 parseInt(dataNavSelected) >= parseInt(start) &&
                 parseInt(dataNavSelected) <= parseInt(end)
             ) {
-                console.log("start = " + typeof start);
-                console.log("dataNavSelected = " + typeof dataNavSelected);
-                console.log("end = " + typeof end);
                 let checkbox = document.createElement("input");
                 checkbox.setAttribute("type", "checkbox");
                 checkbox.setAttribute("name", "conditions");
@@ -1117,9 +1093,20 @@
                 divModalBottom.appendChild(checkbox);
                 divModalBottom.appendChild(label);
                 divModalBottom.appendChild(br6);
+
+                // let concentrationInEffect = conditionsInEffect.find((condition) => {
+                if (
+                    condition.concentration == 1
+                ) {
+                    let concentrationSpan = document.createElement("span");
+                    concentrationSpan.textContent = "C";
+                    concentrationSpan.classList.add("concentration");
+                    let html = divRight.querySelector(".p" + condition.target_affected)
+                    console.log(html);
+                    html.innerHTML += concentrationSpan.outerHTML;
+                }
             }
         });
-        console.log(condition);
 
         container.appendChild(divModalBottom);
 
@@ -1272,11 +1259,11 @@
                 await dbQuery(
                     "GET",
                     "disableCondition/" +
-                    condition.value +
-                    "/" +
-                    currentRound +
-                    "/" +
-                    pID
+                        condition.value +
+                        "/" +
+                        currentRound +
+                        "/" +
+                        pID
                 );
                 disableConditionsString += condition.value;
             }
@@ -1312,12 +1299,15 @@
                 round = parseInt(currentRound);
             }
             console.log("HEY! " + targetHits[index]);
-            let dataTarget = `submitTargets/${ctApp[0].eID
-                }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
-                    index
-                ].trim()}/${actionCategory}/${damage[index]
-                }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
-                }/${targetHPsArray[index]}`;
+            let dataTarget = `submitTargets/${
+                ctApp[0].eID
+            }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
+                index
+            ].trim()}/${actionCategory}/${
+                damage[index]
+            }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${
+                target_pID[index]
+            }/${targetHPsArray[index]}`;
             await dbQuery("GET", dataTarget);
             if (targetHPsArray[index] - damage[index] <= 0) {
                 await dbQuery(
@@ -1352,21 +1342,25 @@
                     "selected"
                 );
                 if (newTarget.classList.contains("selected")) {
-                    if (newTarget.parentElement.parentElement.classList.contains("sometimes_hidden") && newTarget.classList.contains("selected")) {
-                        let p = document.querySelectorAll('.sometimes_hidden');
+                    if (
+                        newTarget.parentElement.parentElement.classList.contains(
+                            "sometimes_hidden"
+                        ) &&
+                        newTarget.classList.contains("selected")
+                    ) {
+                        let p = document.querySelectorAll(".sometimes_hidden");
                         p.forEach((element) => {
-                            element.classList.remove("hidden")
-                        })
+                            element.classList.remove("hidden");
+                        });
                     } else {
-                        let p = document.querySelectorAll('.sometimes_hidden');
+                        let p = document.querySelectorAll(".sometimes_hidden");
                         p.forEach((element) => {
                             element.classList.add("hidden");
-                        })
+                        });
                     }
                 }
                 // newTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start'})
-                newTarget.scrollIntoViewIfNeeded(true)
-                
+                newTarget.scrollIntoViewIfNeeded(true);
             }
         }
         if (event.key === "ArrowUp") {
@@ -1388,20 +1382,25 @@
                     "selected"
                 );
                 if (newTarget.classList.contains("selected")) {
-                    if (newTarget.parentElement.parentElement.classList.contains("sometimes_hidden") && newTarget.classList.contains("selected")) {
-                        let p = document.querySelectorAll('.sometimes_hidden');
+                    if (
+                        newTarget.parentElement.parentElement.classList.contains(
+                            "sometimes_hidden"
+                        ) &&
+                        newTarget.classList.contains("selected")
+                    ) {
+                        let p = document.querySelectorAll(".sometimes_hidden");
                         p.forEach((element) => {
-                            element.classList.remove("hidden")
-                        })
+                            element.classList.remove("hidden");
+                        });
                     } else {
-                        let p = document.querySelectorAll('.sometimes_hidden');
+                        let p = document.querySelectorAll(".sometimes_hidden");
                         p.forEach((element) => {
                             element.classList.add("hidden");
-                        })
+                        });
                     }
                 }
                 // newTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start'})
-                newTarget.scrollIntoViewIfNeeded(true)
+                newTarget.scrollIntoViewIfNeeded(true);
             }
         }
         if (event.altKey && event.key == "Enter") {
@@ -1639,8 +1638,6 @@
         // send condition info
         let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${affectedPID}/${startRound}/${endRound}/${newCpID}`;
         await dbQuery("GET", dataConditions);
-
-       
 
         load_encounter(0, dataNav);
         let modal = document.querySelector(".modal");
