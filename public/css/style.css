@@ -24,7 +24,7 @@ body {
   word-wrap: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: visible;
   min-height: 1.5em;
 }
 
@@ -147,6 +147,16 @@ hr {
   color: white;
   padding-left: 2px;
   padding-right: 3px;
+}
+
+.affected {
+  background-color: pink;
+  outline: 3px;
+  margin-left: 5px;
+  border: 2px solid black;
+  padding-left: 2px;
+  padding-right: 3px;
+  margin-right: 5px;
 }
 
 .modal_text_inputs {
@@ -385,4 +395,54 @@ h3 {
   100% {
     transform: translateY(0);
   }
+}
+
+
+/* Tooltip stuff */
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 2px solid black;
+}
+
+.tooltip:hover {
+  
+  cursor: pointer;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: max-content;
+  max-width: 200px;
+  
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: normal;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
 }

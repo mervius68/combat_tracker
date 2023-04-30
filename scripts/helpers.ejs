@@ -178,6 +178,12 @@
         // get all the actions of this encounter
         let ctActions = await dbQuery("GET", "actions/" + encounterID);
 
+        // get all the conditions of this encounter
+        let ctConditions = await dbQuery(
+            "GET",
+            "getConditionsForCtApp/" + encounterID
+        );
+
         // determine how many rounds are represented in the database
         let totalRounds = ctActions.reduce((max, obj) => {
             return obj.round > max ? obj.round : max;
@@ -230,6 +236,22 @@
                     });
                 });
             }
+        });
+
+        // build a conditionsArray and affectedArray properties for the participant
+        ctApp.forEach((participant) => {
+            participant.conditionsArray = [];
+            participant.affectedArray = [];
+            ctConditions.forEach((condition) => {
+                if (condition.pID == participant.pID) {
+                    participant.conditionsArray.push(condition);
+                }
+                const affectedArray = condition.targets_affected.split(" "); // Split the string into an array
+                if (affectedArray.includes(participant.pID.toString())) {
+                    // Check if the array includes the participant.pID value
+                    participant.affectedArray.push(condition);
+                }
+            });
         });
 
         totalRounds = Math.max(totalRounds, damageRounds);
@@ -528,6 +550,65 @@
                             ? ""
                             : " #" + participant.numeric_value);
 
+                    // if character has a condition/concentration, show icon with tooltip
+                    participant.conditionsArray.forEach((condition) => {
+                        if (
+                            parseInt(condition.concentration) == 1 &&
+                            parseInt(condition.start_round) <= i &&
+                            parseInt(condition.end_round) >= i
+                        ) {
+                            let toolTipHTML = document.createElement("span");
+                            toolTipHTML.classList.add("tooltip");
+                            toolTipHTML.classList.add("concentration");
+                            toolTipHTML.innerText = "C";
+                            let toolTipText = document.createElement("span");
+                            toolTipText.classList.add("tooltiptext");
+                            toolTipText.innerText = condition.description;
+                            toolTipHTML.appendChild(toolTipText);
+                            turn.nextSibling.nextSibling.innerHTML +=
+                                toolTipHTML.outerHTML;
+                        }
+                    });
+
+                    // if participant is affected by a condition, show icon with tooltip
+                    participant.affectedArray.forEach((affected) => {
+                        const affectedParticipant = ctApp.find(
+                            (participant) => participant.pID === affected.pID
+                        );
+                        const affectedInit = affectedParticipant?.init;
+                        let x = affected.targets_affected.split(", ");
+                        // console.log(affected);
+                        if (
+                            affected.concentration === 0
+                                ? !affected.targets_affected.includes(
+                                      affected.pID.toString()
+                                  )
+                                : affected.concentration === 1 &&
+                                  !affected.targets_affected.includes(
+                                      affected.pID.toString()
+                                  ) &&
+                                  parseInt(affected.start_round) <= i &&
+                                  parseInt(affected.end_round) >= i
+                        ) {
+                            if (
+                                (parseInt(affected.start_round) === i &&
+                                    participant.init > affectedInit) ||
+                                (parseInt(affected.end_round) === i &&
+                                    participant.init < affectedInit)
+                            ) {
+                                // ...
+                            } else {
+                                const toolTipHTML =
+                                    document.createElement("span");
+                                toolTipHTML.className = "tooltip affected";
+                                toolTipHTML.innerHTML = `A<span class="tooltiptext">${affected.description}</span>`;
+                                turn.nextSibling.nextSibling.appendChild(
+                                    toolTipHTML
+                                );
+                            }
+                        }
+                    });
+
                     // show initiative value for this character
                     turn.nextSibling.nextSibling.nextSibling.innerText =
                         participant.init;
@@ -728,41 +809,6 @@
             }
         });
     }
-
-    function move() {
-        let selected = document.querySelector(".selected");
-        selected.nextSibling.nextSibling.nextSibling.classList.add(".selected");
-    }
-
-    function findLatestDamage(roundDamages, currentRound, pID, totalRounds) {
-        let highestValueObj;
-        for (let i = totalRounds - 1; i > 0; i--) {
-            let p = roundDamages.filter((item) => {
-                return (
-                    item.round == currentRound && pID == roundDamages.target_pID
-                );
-            });
-
-            if (p.length > 0) {
-                highestValueObj = p.reduce((acc, cur) => {
-                    return cur.tID > acc.tID ? cur : acc;
-                });
-                return highestValueObj;
-            } else {
-                return "";
-            }
-        }
-    }
-
-    // async function selectRow() {
-    //     let row = document.querySelector(
-    //         '[data-round="1"] [data-section="1"] [data-participant="2"]'
-    //     );
-    //     row.classList.add("selected");
-    //     row.nextSibling.classList.add("selected");
-    //     row.nextSibling.nextSibling.classList.add("selected");
-    //     row.nextSibling.nextSibling.nextSibling.classList.add("selected");
-    // }
 
     function new_encounter(encounterID) {
         let modalContainer = document.createElement("div");
@@ -1085,16 +1131,24 @@
                 label.setAttribute("for", condition.condition_name);
                 let causer = ctApp.find((participant) => {
                     return condition.pID == participant.pID;
-                })
+                });
                 let causerName = causer.character_name;
-                if (condition.pID == causer.pID && condition.concentration == 1) {
-                    causerName = "<span class='concentration'>" + causerName + "</span>"
+                if (
+                    condition.pID == causer.pID &&
+                    condition.concentration == 1
+                ) {
+                    causerName =
+                        "<span class='concentration'>" + causerName + "</span>";
                 }
                 let affected = ctApp.find((participant) => {
-                    return condition.target_affected == participant.pID;
+                    return condition.targets_affected.includes(
+                        participant.pID.toString()
+                    );
                 }).character_name;
                 let numeric = ctApp.find((participant) => {
-                    return condition.target_affected == participant.pID;
+                    return condition.targets_affected.includes(
+                        participant.pID.toString()
+                    );
                 }).numeric_value;
 
                 label.innerHTML =
@@ -1117,9 +1171,7 @@
                     let concentrationSpan = document.createElement("span");
                     concentrationSpan.textContent = "C";
                     concentrationSpan.classList.add("concentration");
-                    let html = divRight.querySelector(
-                        ".p" + condition.target_affected
-                    );
+                    let html = divRight.querySelector(".p" + condition.pID);
                     html.innerHTML += concentrationSpan.outerHTML;
                 }
             }
@@ -1138,9 +1190,6 @@
 
         modal.innerHTML = container.outerHTML;
         modal.addEventListener("input", function (e) {
-            console.log("it's... " + e.target.nextSibling);
-            // console.log("it's... " + e.target.getAttribute("id"))
-            // console.log("it's... " + modal.querySelector("p" + e.target.getAttribute("id")))
             let x = e.target.nextSibling.parentElement.querySelectorAll(
                 ".conSavingThrowCheck"
             );
@@ -1458,23 +1507,13 @@
             alert("HUZZAH!");
         }
     };
+
     function launchConditionsModal(event) {
         modalConditions();
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";
         closeModalBox(closeModal);
-    }
-
-    function closeModalBox(closeModal) {
-        closeModal.addEventListener("click", function (e) {
-            modal.style.display = "none";
-        });
-        window.addEventListener("click", function (e) {
-            if (e.target == modal) {
-                modal.style.display = "none";
-            }
-        });
     }
 
     async function modalConditions() {

@@ -519,6 +519,23 @@ app.get("/conditionsInEffect/:eID/:round", (req, res) => {
     });
 });
 
+app.get("/getConditionsForCtApp/:eID/", (req, res) => {
+    let eID = req.params.eID;
+    let sql = `SELECT *
+        FROM ct_tbl_condition
+        LEFT JOIN tbl_condition_pool ON ct_tbl_condition.cpID = tbl_condition_pool.cpID
+                WHERE eID = "${eID}"
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        console.log(results);
+        res.send(results);
+    });
+});
+
 app.get("/getNextcpID/", (req, res) => {
     let sql = `SELECT *
         FROM tbl_condition_pool
