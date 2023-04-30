@@ -138,6 +138,15 @@ hr {
   border: 2px solid black;
   padding-left: 2px;
   padding-right: 3px;
+  margin-right: 5px;
+}
+
+.conSavingThrowCheck {
+  font-weight: bold;
+  background-color: red;
+  color: white;
+  padding-left: 2px;
+  padding-right: 3px;
 }
 
 .modal_text_inputs {

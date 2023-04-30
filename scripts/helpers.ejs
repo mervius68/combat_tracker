@@ -1,3 +1,4 @@
+"p
 <script>
     let cellCountVertical;
     let participantsHpsByRound;
@@ -901,6 +902,7 @@
         let weaponTextInput = document.createElement("input");
         weaponTextInput.setAttribute("type", "text");
         weaponTextInput.setAttribute("name", "weaponsText");
+        weaponTextInput.setAttribute("autocomplete", "off");
         weaponTextInput.classList.add("text_field");
         let label1 = document.createElement("label");
         let br2 = document.createElement("br");
@@ -999,20 +1001,24 @@
             target.classList.add("numeric");
             target.setAttribute("name", "participants");
             target.setAttribute("id", participant.pID);
+            target.setAttribute("autocomplete", "off");
             let targetLabel = document.createElement("label");
             targetLabel.setAttribute("for", participant.pID);
-            targetLabel.classList.add("p" + participant.pID)
+            targetLabel.classList.add("p" + participant.pID);
             targetLabel.classList.add("modal_text_inputs");
             targetLabel.innerHTML =
                 participant.character_name +
                 (participant.numeric_value
                     ? " #" + participant.numeric_value
                     : "");
+            // let span = document.createElement("span");
+            // span.classList.add("conSavingThrowCheck");
+            // targetLabel.appendChild(span);
 
             let br3 = document.createElement("br");
             div16.appendChild(target);
             div16.appendChild(targetLabel);
-            
+
             div16.appendChild(br3);
         });
 
@@ -1069,40 +1075,51 @@
                 checkbox.setAttribute("type", "checkbox");
                 checkbox.setAttribute("name", "conditions");
                 checkbox.setAttribute("value", condition.cpID);
+                let span = document.createElement("span");
+                if (condition.concentration == 1) {
+                    span.textContent = "C";
+                    span.classList.add("concentration");
+                }
                 let label = document.createElement("label");
+
                 label.setAttribute("for", condition.condition_name);
                 let causer = ctApp.find((participant) => {
                     return condition.pID == participant.pID;
-                }).character_name;
+                })
+                let causerName = causer.character_name;
+                if (condition.pID == causer.pID && condition.concentration == 1) {
+                    causerName = "<span class='concentration'>" + causerName + "</span>"
+                }
                 let affected = ctApp.find((participant) => {
                     return condition.target_affected == participant.pID;
                 }).character_name;
                 let numeric = ctApp.find((participant) => {
                     return condition.target_affected == participant.pID;
                 }).numeric_value;
+
                 label.innerHTML =
                     condition.condition_name +
                     ": " +
-                    causer +
+                    causerName +
                     " => <b>" +
                     affected +
                     (numeric ? " #" + numeric : "") +
                     "</b> / " +
                     condition.description;
+                label.prepend(span);
                 let br6 = document.createElement("br");
                 divModalBottom.appendChild(checkbox);
                 divModalBottom.appendChild(label);
                 divModalBottom.appendChild(br6);
 
-                // let concentrationInEffect = conditionsInEffect.find((condition) => {
-                if (
-                    condition.concentration == 1
-                ) {
+                // if target is concentrating, put a yellow-highlighted C next to their name
+                if (condition.concentration == 1) {
                     let concentrationSpan = document.createElement("span");
                     concentrationSpan.textContent = "C";
                     concentrationSpan.classList.add("concentration");
-                    let html = divRight.querySelector(".p" + condition.target_affected)
-                    console.log(html);
+                    let html = divRight.querySelector(
+                        ".p" + condition.target_affected
+                    );
                     html.innerHTML += concentrationSpan.outerHTML;
                 }
             }
@@ -1117,10 +1134,38 @@
         submit.setAttribute("onclick", "submitAction()");
 
         buttonContainer.appendChild(submit);
-
         container.appendChild(buttonContainer);
 
         modal.innerHTML = container.outerHTML;
+        modal.addEventListener("input", function (e) {
+            console.log("it's... " + e.target.nextSibling);
+            // console.log("it's... " + e.target.getAttribute("id"))
+            // console.log("it's... " + modal.querySelector("p" + e.target.getAttribute("id")))
+            let x = e.target.nextSibling.parentElement.querySelectorAll(
+                ".conSavingThrowCheck"
+            );
+            x.forEach((element) => {
+                element.parentElement.removeChild(element);
+            });
+            let input = e.target.value;
+            if (input / 2 <= 10) {
+                input = 10;
+            } else {
+                input = Math.floor(input / 2);
+            }
+            let concentrationCheck =
+                e.target.nextSibling.querySelector(".concentration");
+            if (
+                e.target.value != "" &&
+                concentrationCheck != null &&
+                e.target.value != 0 &&
+                e.target.value != "x"
+            ) {
+                e.target.nextSibling.innerHTML += ` <span class='conSavingThrowCheck'>DC CON ${input}</span>`;
+            }
+
+            // modal.querySelector("p" + e.target.getAttribute("id")).innerHTML += " BOOGA"
+        });
     }
 
     async function submitAction() {
