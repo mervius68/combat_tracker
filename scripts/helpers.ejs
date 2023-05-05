@@ -246,14 +246,21 @@
                 if (condition.pID == participant.pID) {
                     participant.conditionsArray.push(condition);
                 }
-                const affectedArray = condition.targets_affected.split(" "); // Split the string into an array
-                if (affectedArray.includes(participant.pID.toString())) {
-                    // Check if the array includes the participant.pID value
+                let affectedArray = [];
+                if (condition.affected_pID == participant.pID) {
                     participant.affectedArray.push(condition);
                 }
+                participant.conditionsArray =
+                    participant.conditionsArray.filter(
+                        (obj, index, self) =>
+                            index ===
+                            self.findIndex(
+                                (t) => t.conditionID === obj.conditionID
+                            )
+                    );
             });
         });
-
+        console.log(ctApp);
         totalRounds = Math.max(totalRounds, damageRounds);
 
         // start a loop, round.forEach()
@@ -576,17 +583,11 @@
                             (participant) => participant.pID === affected.pID
                         );
                         const affectedInit = affectedParticipant?.init;
-                        let x = affected.targets_affected.split(", ");
-                        // console.log(affected);
                         if (
                             affected.concentration === 0
-                                ? !affected.targets_affected.includes(
-                                      affected.pID.toString()
-                                  )
+                                ? affected.pID != parseInt(affected.affected_pID)
                                 : affected.concentration === 1 &&
-                                  !affected.targets_affected.includes(
-                                      affected.pID.toString()
-                                  ) &&
+                                  affected.pID != parseInt(affected.affected_pID) &&
                                   parseInt(affected.start_round) <= i &&
                                   parseInt(affected.end_round) >= i
                         ) {
@@ -1090,6 +1091,13 @@
         let hr = document.createElement("hr");
         container.appendChild(hr);
 
+        // TURN THIS BACK ON????
+        // conditionsInEffect = conditionsInEffect.filter(
+        //     (obj, index, self) =>
+        //         index ===
+        //         self.findIndex((t) => t.conditionID === obj.conditionID)
+        // );
+
         let condition = conditionsInEffect.forEach((condition) => {
             let conditionParticipant = condition.pID;
             let startHTML = document.querySelector(
@@ -1141,14 +1149,16 @@
                         "<span class='concentration'>" + causerName + "</span>";
                 }
                 let affected = ctApp.find((participant) => {
-                    return condition.targets_affected.includes(
-                        participant.pID.toString()
-                    );
+                    return parseInt(condition.affected_pID) == participant.pID
+                    // return condition.targets_affected.includes(
+                    //     participant.pID.toString()
+                    // );
                 }).character_name;
                 let numeric = ctApp.find((participant) => {
-                    return condition.targets_affected.includes(
-                        participant.pID.toString()
-                    );
+                    return parseInt(condition.affected_pID) == participant.pID
+                    // return condition.targets_affected.includes(
+                    //     participant.pID.toString()
+                    // );
                 }).numeric_value;
 
                 label.innerHTML =

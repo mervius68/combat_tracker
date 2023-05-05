@@ -507,7 +507,8 @@ app.get("/conditionsInEffect/:eID/:round", (req, res) => {
     let sql = `SELECT *
         FROM ct_tbl_condition
         LEFT JOIN tbl_condition_pool ON ct_tbl_condition.cpID = tbl_condition_pool.cpID
-                WHERE eID = "${eID}" AND start_round <= ${round} AND end_round >= ${round}
+        LEFT JOIN ct_tbl_condition_affectee ON ct_tbl_condition.taID = ct_tbl_condition_affectee.taID
+                WHERE ct_tbl_condition.eID = "${eID}" AND ct_tbl_condition_affectee.start_round <= ${round} AND ct_tbl_condition_affectee.end_round >= ${round}
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -524,6 +525,7 @@ app.get("/getConditionsForCtApp/:eID/", (req, res) => {
     let sql = `SELECT *
         FROM ct_tbl_condition
         LEFT JOIN tbl_condition_pool ON ct_tbl_condition.cpID = tbl_condition_pool.cpID
+        LEFT JOIN ct_tbl_condition_affectee ON ct_tbl_condition.taID = ct_tbl_condition_affectee.taID
                 WHERE eID = "${eID}"
                 `;
     let query = db.all(sql, [], (err, results) => {
