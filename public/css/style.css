@@ -157,6 +157,7 @@ hr {
   padding-left: 2px;
   padding-right: 3px;
   margin-right: 5px;
+  color: black;
 }
 
 .modal_text_inputs {
@@ -395,6 +396,10 @@ h3 {
   100% {
     transform: translateY(0);
   }
+}
+
+.pointer {
+  cursor: pointer;
 }
 
 
