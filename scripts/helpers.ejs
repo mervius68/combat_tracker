@@ -1567,11 +1567,15 @@
         h2.innerHTML = "Condition Causer";
         topLeftDiv.appendChild(h2);
 
+        // build the causers radio buttons
         ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.setAttribute("type", "radio");
             checkbox.setAttribute("name", "causers");
             checkbox.setAttribute("id", participant.pID);
+            if (participantID == participant.pID) {
+                checkbox.setAttribute("checked", "true")
+            }
             let label = document.createElement("label");
             label.setAttribute("for", participant.pID);
             label.innerHTML =
@@ -1593,6 +1597,7 @@
         h6.innerHTML = "Condition Affectee(s)";
         topMiddleDiv.appendChild(h6);
 
+        // build the affectees checkboxes
         ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.setAttribute("type", "checkbox");
@@ -1619,6 +1624,7 @@
         h3.innerHTML = "Whose Round It Ends On:";
         topRightDiv.appendChild(h3);
 
+        // build the radio buttons for whose turn an affect ends on
         ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.setAttribute("type", "radio");
