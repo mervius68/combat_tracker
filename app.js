@@ -311,7 +311,7 @@ app.get("/getNextTAID", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log(results);
+        // console.log(results);
         res.send(results[0] || {taID: 0});
     });
 });
@@ -344,8 +344,7 @@ app.get(
 
 app.get("/newConditionPoolItem/:conditionName/:description", (req, res) => {
     let conditionName = req.params.conditionName;
-    conditionName = conditionName.replace(/'/g, "\'")
-    let description = req.params.description.replace(/'/g, "\'")
+    let description = req.params.description
     let sql = `INSERT into tbl_condition_pool
                 (condition_name, description)
                 values ('${conditionName}', '${description}')
