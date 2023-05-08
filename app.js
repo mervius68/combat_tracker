@@ -4,9 +4,8 @@ const sqlite3 = require("sqlite3").verbose();
 const app = express();
 let ctApp;
 
-
 const db = new sqlite3.Database(
-    "./combat2.db",
+    "./combat.db",
     sqlite3.OPEN_READWRITE,
     (err) => {
         if (err) return console.error(err.message);
@@ -176,7 +175,7 @@ app.get(
             newHP = targetHP;
         }
         if (newHP <= 0) {
-            newHP = 0
+            newHP = 0;
         }
         let notes = req.params.notes;
         let disable_condition = req.params.disable_condition;
@@ -187,6 +186,8 @@ app.get(
         (targetID, eID, round, pID, target_pID, damage, new_hp, temp_hp)
         values ('${nextTargetID}', '${encounter}', '${round}', '${pID}', '${target_pID}', '${damage}', '${newHP}', 0);
     `;
+
+        // if target
         let query = db.all(sql, (err, results) => {
             if (err) {
                 console.log(err);
@@ -216,9 +217,9 @@ app.get(
         }
         let pID = req.params.pID;
         let nextTargetID = req.params.nextTargetID;
-        
+
         let hit = req.params.hit;
-       
+
         let damage = req.params.damage;
         console.log("HIT: " + hit);
         if (hit == "x") {
@@ -238,7 +239,7 @@ app.get(
         let nextAID = req.params.nextAID;
         let target_pID = req.params.target_pID;
         if (actionString != "" && target_pID == "-") {
-            nextTargetID = 'NULL'
+            nextTargetID = "NULL";
         }
         let nextToolID = req.params.nextToolID;
 
@@ -274,34 +275,77 @@ app.get("/targetsHP/:target_pID", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log(results);
+        // console.log(results);
         res.send(results);
     });
 });
 
-app.get("/addCondition/:eID/:creator/:affected/:startRound/:endRound/:newCpID", (req, res) => {
-    let eID = req.params.eID;
-    let creator = req.params.creator;
-    let affected = req.params.affected;
-    let startRound = req.params.startRound;
-    let endRound = req.params.endRound;
-    let newCpID = req.params.newCpID;
-    let sql = `INSERT into ct_tbl_condition
-                (eID, start_round, end_round, pID, target_affected, cpID, end_pID)
-                values ('${eID}', '${startRound}', '${endRound}', '${creator}', '${affected}', '${newCpID}', '${affected}')
+app.get(
+    "/addCondition/:eID/:creator/:taID/:end_pID/:newCpID/:concentration",
+    (req, res) => {
+        let eID = req.params.eID;
+        let creator = req.params.creator;
+        let taID = req.params.taID;
+        let end_pID = req.params.end_pID;
+        let newCpID = req.params.newCpID;
+        let concentration = req.params.concentration;
+
+        let sql = `INSERT into ct_tbl_condition
+                (eID, pID, taID, end_pID, cpID, concentration)
+                values ('${eID}', '${creator}', '${taID}', '${end_pID}', '${newCpID}', '${concentration}')
             `;
+        let query = db.run(sql, [], (err, results) => {
+            if (err) {
+                console.log(err);
+                throw err;
+            }
+            res.json({});
+        });
+    }
+);
+
+app.get("/getNextTAID", (req, res) => {
+    let sql = `SELECT * FROM ct_tbl_condition_affectee ORDER BY caID DESC limit 1`;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        res.send(results);
+        console.log(results);
+        res.send(results[0] || {taID: 0});
     });
 });
 
+app.get(
+    "/addConditionAffectees/:taID/:startRound/:endRound/:affecteesString",
+    (req, res) => {
+        let taID = req.params.taID;
+        let startRound = req.params.startRound;
+        let endRound = req.params.endRound;
+        let affecteesString = req.params.affecteesString;
+        let affecteesArray = affecteesString.split(", ");
+        affecteesArray.forEach((affectee) => {
+            let sql = `INSERT into ct_tbl_condition_affectee
+                (taID, start_round, end_round, affected_pID)
+                values ('${taID}', '${startRound}', '${endRound}', '${affectee}')
+            `;
+            db.all(sql, [], (err, results) => {
+                if (err) {
+                    console.log(err);
+                    throw err;
+                }
+            });
+        });
+        res.json({});
+    }
+);
+
+
+
 app.get("/newConditionPoolItem/:conditionName/:description", (req, res) => {
     let conditionName = req.params.conditionName;
-    let description = req.params.description;
+    conditionName = conditionName.replace(/'/g, "\'")
+    let description = req.params.description.replace(/'/g, "\'")
     let sql = `INSERT into tbl_condition_pool
                 (condition_name, description)
                 values ('${conditionName}', '${description}')
@@ -314,7 +358,6 @@ app.get("/newConditionPoolItem/:conditionName/:description", (req, res) => {
         res.send(results);
     });
 });
-
 
 app.get("/terminate/:pID/:round", (req, res) => {
     let pID = req.params.pID;
@@ -333,7 +376,7 @@ app.get("/terminate/:pID/:round", (req, res) => {
 });
 
 app.get("/disableCondition/:cpID/:currentRound/:pID", (req, res) => {
-    console.log("JOJO " + req.params.currentRound)
+    console.log("JOJO " + req.params.currentRound);
     let cpID = req.params.cpID;
     let pID = req.params.pID;
     let currentRound = req.params.currentRound;

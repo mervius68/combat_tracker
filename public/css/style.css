@@ -230,7 +230,8 @@ textarea {
 
 .button_container {
   display: flex;
-  justify-content: center;
+  justify-content: center !important;
+  align-items: center;
   margin-bottom: 15px;
 }
 
@@ -372,15 +373,21 @@ h3 {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  padding-bottom: 15px;
 }
 
 .topLeftDiv {
-  flex: 1 0 50%;
-  width: 50%
+  flex: 1 0 0 33%;
+  width: 33%
+  
+}
+.topMiddleDiv {
+  flex: 0 1 0 33%;
+  width: 33%
 }
 .topRightDiv {
-  flex: 0 1 50%;
-  width: 50%
+  flex: 0 0 1 33%;
+  width: 33%
 }
 
 .modalContainer {

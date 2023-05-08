@@ -1,4 +1,3 @@
-"p
 <script>
     let cellCountVertical;
     let participantsHpsByRound;
@@ -16,14 +15,10 @@
                 let xhr = new XMLHttpRequest();
                 xhr.open(httpReqType, "../" + httpReqString, true);
                 xhr.onload = () => {
-                    if (xhr.status === 200) {
-                        const text = xhr.responseText;
-                        resolve(text);
-                    } else {
-                        reject(xhr.statusText);
-                    }
+                    const text = xhr.responseText;
+                    resolve(text);
                 };
-                xhr.onerror = () => reject("Request Failed");
+                xhr.onerror = () => resolve("Request Failed");
                 xhr.send();
             });
             return request;
@@ -586,9 +581,11 @@
                         const affectedInit = affectedParticipant?.init;
                         if (
                             affected.concentration === 0
-                                ? affected.pID != parseInt(affected.affected_pID)
+                                ? affected.pID !=
+                                  parseInt(affected.affected_pID)
                                 : affected.concentration === 1 &&
-                                  affected.pID != parseInt(affected.affected_pID) &&
+                                  affected.pID !=
+                                      parseInt(affected.affected_pID) &&
                                   parseInt(affected.start_round) <= i &&
                                   parseInt(affected.end_round) >= i
                         ) {
@@ -1150,13 +1147,13 @@
                         "<span class='concentration'>" + causerName + "</span>";
                 }
                 let affected = ctApp.find((participant) => {
-                    return parseInt(condition.affected_pID) == participant.pID
+                    return parseInt(condition.affected_pID) == participant.pID;
                     // return condition.targets_affected.includes(
                     //     participant.pID.toString()
                     // );
                 }).character_name;
                 let numeric = ctApp.find((participant) => {
-                    return parseInt(condition.affected_pID) == participant.pID
+                    return parseInt(condition.affected_pID) == participant.pID;
                     // return condition.targets_affected.includes(
                     //     participant.pID.toString()
                     // );
@@ -1589,6 +1586,32 @@
             topLeftDiv.appendChild(br);
         });
 
+        let topMiddleDiv = document.createElement("div");
+        topMiddleDiv.classList.add("topMiddleDiv");
+
+        let h6 = document.createElement("h2");
+        h6.innerHTML = "Condition Affectee(s)";
+        topMiddleDiv.appendChild(h6);
+
+        ctApp.forEach((participant) => {
+            let checkbox = document.createElement("input");
+            checkbox.setAttribute("type", "checkbox");
+            checkbox.setAttribute("name", "affectees");
+            checkbox.setAttribute("id", "a" + participant.pID);
+            let label = document.createElement("label");
+            label.setAttribute("for", "a" + participant.pID);
+            label.innerHTML =
+                participant.character_name +
+                (participant.numeric_value
+                    ? " #" + participant.numeric_value
+                    : "");
+            let br = document.createElement("br");
+
+            topMiddleDiv.appendChild(checkbox);
+            topMiddleDiv.appendChild(label);
+            topMiddleDiv.appendChild(br);
+        });
+
         let topRightDiv = document.createElement("div");
         topRightDiv.classList.add("topRightDiv");
 
@@ -1599,7 +1622,7 @@
         ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.setAttribute("type", "radio");
-            checkbox.setAttribute("name", "affected");
+            checkbox.setAttribute("name", "condition_ends");
             checkbox.setAttribute("id", "x" + participant.pID);
             let label = document.createElement("label");
             label.setAttribute("for", "x" + participant.pID);
@@ -1616,6 +1639,7 @@
         });
 
         container.appendChild(topLeftDiv);
+        container.appendChild(topMiddleDiv);
         container.appendChild(topRightDiv);
 
         let div17 = document.createElement("div");
@@ -1633,6 +1657,35 @@
         div17.appendChild(textInput);
         div17.appendChild(br7);
 
+        let h7 = document.createElement("h2");
+        h7.innerHTML = "Concentration Begins?";
+        let br8 = document.createElement("br");
+        let radioButton1 = document.createElement("input");
+        radioButton1.setAttribute("type", "radio");
+        radioButton1.setAttribute("name", "concentration");
+        radioButton1.setAttribute("id", "concentration_yes");
+        radioButton1.setAttribute("value", 1);
+        let label2 = document.createElement("label");
+        label2.setAttribute("for", "concentration_yes");
+        label2.innerText = "YES";
+        let radioButton2 = document.createElement("input");
+        radioButton2.setAttribute("type", "radio");
+        radioButton2.setAttribute("name", "concentration");
+        radioButton2.setAttribute("id", "concentration_no");
+        radioButton2.setAttribute("value", 0);
+        radioButton2.setAttribute("checked", "true");
+        let label3 = document.createElement("label");
+        label3.setAttribute("for", "concentration_no");
+        label3.innerText = "NO";
+        let br9 = document.createElement("br");
+        div17.appendChild(h7);
+        div17.appendChild(br8);
+        div17.appendChild(radioButton1);
+        div17.appendChild(label2);
+        div17.appendChild(radioButton2);
+        div17.appendChild(label3);
+        div17.appendChild(br9);
+
         let buttonContainer = document.createElement("div");
         buttonContainer.classList.add("button_container");
         let submit = document.createElement("button");
@@ -1640,11 +1693,9 @@
         submit.setAttribute("onclick", "submitCondition()");
 
         container.appendChild(div17);
-        container.appendChild(buttonContainer);
-        container.appendChild(submit);
 
-        let bottomRightDiv = document.createElement("div");
-        bottomRightDiv.classList.add("topRightDiv");
+        let bottomMiddleDiv = document.createElement("div");
+        bottomMiddleDiv.classList.add("topRightDiv");
 
         let h4 = document.createElement("h2");
         h4.innerHTML = "Beginning Round";
@@ -1661,8 +1712,8 @@
             beginRound.appendChild(option);
         }
 
-        bottomRightDiv.appendChild(h4);
-        bottomRightDiv.appendChild(beginRound);
+        bottomMiddleDiv.appendChild(h4);
+        bottomMiddleDiv.appendChild(beginRound);
 
         let h5 = document.createElement("h2");
         h5.innerHTML = "Ending Round";
@@ -1679,10 +1730,20 @@
             endRound.appendChild(option);
         }
 
-        bottomRightDiv.appendChild(h5);
-        bottomRightDiv.appendChild(endRound);
+        bottomMiddleDiv.appendChild(h5);
+        bottomMiddleDiv.appendChild(endRound);
 
+        let bottomRightDiv = document.createElement("div");
+        let h8 = document.createElement("h2");
+        h8.innerHTML = "Submit";
+
+        bottomRightDiv.appendChild(h8);
+        bottomRightDiv.appendChild(submit);
+
+        container.appendChild(bottomMiddleDiv);
         container.appendChild(bottomRightDiv);
+        container.appendChild(buttonContainer);
+        // container.appendChild(submit);
 
         modal.innerHTML = container.outerHTML;
     }
@@ -1693,18 +1754,37 @@
         let pID = html.getAttribute("data-participant");
         let dataNav = html.getAttribute("data-nav");
         let causerHTML = document.getElementsByName("causers");
-        let affectedHTML = document.getElementsByName("affected");
+        let affecteesHTML = document.getElementsByName("affectees");
+        let conditionEndsHTML = document.getElementsByName("condition_ends");
         let conditionDescription =
             document.querySelector(".conditionsText").value;
+        conditionDescription = conditionDescription.replace("'","&apos;").replace("#","&num;")
         let startRoundHTML = document.querySelector(".beginRound");
         let endRoundHTML = document.querySelector(".endRound");
+        let concentrationHTML = document.getElementsByName("concentration");
 
         let causerPID;
         causerPID = Array.from(causerHTML).find((causer) => {
             return causer.checked == true;
         }).id;
+        let concentration;
+        concentration = Array.from(concentrationHTML).find(
+            (concentrationValue) => {
+                return concentrationValue.checked == true;
+            }
+        ).value;
 
-        let affectedPID = Array.from(affectedHTML)
+        let affecteesHTMLArray = [];
+        affecteesHTMLArray = Array.from(affecteesHTML).filter((affected) => {
+            return affected.checked == true;
+        });
+        let affecteesPID = [];
+        affecteesHTMLArray.forEach((affectee) => {
+            affecteesPID.push(affectee.getAttribute("id").substring(1));
+        });
+        let affecteesString = affecteesPID.join(", ");
+
+        let conditionEndsPID = Array.from(conditionEndsHTML)
             .find((item) => {
                 return item.checked == true;
             })
@@ -1721,7 +1801,6 @@
         // get next cpID
         let latestConditionID = await dbQuery("GET", "getNextcpID");
         let newCpID = parseInt(latestConditionID[0].cpID) + 1;
-        console.log(newCpID);
 
         // send info to tbl_condition_pool
         let dataPool = `newConditionPoolItem/${conditionDescription.substring(
@@ -1730,8 +1809,18 @@
         )}/${conditionDescription}`;
         await dbQuery("GET", dataPool);
 
+        // determine next available taID in ct_tbl_condition_affectee
+        let getNextTAID = await dbQuery("GET", "getNextTAID");
+        console.log(getNextTAID);
+        let taID = getNextTAID.taID + 1;
+
+        // send condition affectee info
+        let dataConditionsAffectees = `addConditionAffectees/${taID}/${startRound}/${endRound}/${affecteesString}`;
+        await dbQuery("GET", dataConditionsAffectees);
+
+
         // send condition info
-        let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${affectedPID}/${startRound}/${endRound}/${newCpID}`;
+        let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${taID}/${conditionEndsPID}/${newCpID}/${concentration}`;
         await dbQuery("GET", dataConditions);
 
         load_encounter(0, dataNav);
