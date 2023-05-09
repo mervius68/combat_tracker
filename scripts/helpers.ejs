@@ -1571,12 +1571,14 @@
         ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.setAttribute("type", "radio");
+            checkbox.classList.add("pointer")
             checkbox.setAttribute("name", "causers");
             checkbox.setAttribute("id", participant.pID);
             if (participantID == participant.pID) {
                 checkbox.setAttribute("checked", "true")
             }
             let label = document.createElement("label");
+            label.classList.add("pointer")
             label.setAttribute("for", participant.pID);
             label.innerHTML =
                 participant.character_name +
@@ -1600,10 +1602,12 @@
         // build the affectees checkboxes
         ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
+            checkbox.classList.add("pointer")
             checkbox.setAttribute("type", "checkbox");
             checkbox.setAttribute("name", "affectees");
             checkbox.setAttribute("id", "a" + participant.pID);
             let label = document.createElement("label");
+            label.classList.add("pointer")
             label.setAttribute("for", "a" + participant.pID);
             label.innerHTML =
                 participant.character_name +
@@ -1628,9 +1632,14 @@
         ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.setAttribute("type", "radio");
+            checkbox.classList.add("pointer")
             checkbox.setAttribute("name", "condition_ends");
             checkbox.setAttribute("id", "x" + participant.pID);
+            if (participantID == participant.pID) {
+                checkbox.setAttribute("checked", "true")
+            }
             let label = document.createElement("label");
+            label.classList.add("pointer")
             label.setAttribute("for", "x" + participant.pID);
             label.innerHTML =
                 participant.character_name +

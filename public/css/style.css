@@ -407,6 +407,7 @@ h3 {
 
 .pointer {
   cursor: pointer;
+  user-select: none;
 }
 
 
