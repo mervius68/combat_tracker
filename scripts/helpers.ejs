@@ -914,10 +914,12 @@
         defaultTool.setAttribute("value", 0);
         defaultTool.setAttribute("id", "default");
         defaultTool.setAttribute("name", "weapons");
+        defaultTool.classList.add("pointer")
         let defaultLabel = document.createElement("label");
         defaultLabel.setAttribute("for", "default");
         defaultLabel.classList.add("radio_buttons");
         defaultLabel.innerHTML = "NONE";
+        defaultLabel.classList.add("pointer")
         defaultLabel.setAttribute("default", "true");
         let br1 = document.createElement("br");
         div14.appendChild(defaultTool);
@@ -929,10 +931,12 @@
             tool.setAttribute("type", "radio");
             tool.setAttribute("value", item.toolID);
             tool.setAttribute("id", item.toolID);
+            tool.classList.add("pointer");
             tool.setAttribute("name", "weapons");
             let label = document.createElement("label");
             label.setAttribute("for", item.toolID);
             label.classList.add("radio_buttons");
+            label.classList.add("pointer")
             label.innerHTML =
                 item.toolName +
                 (item.damage_dice ? " (" + item.damage_dice + ")" : "");
@@ -981,9 +985,11 @@
             actionsRadio.setAttribute("type", "radio");
             actionsRadio.setAttribute("value", action);
             actionsRadio.setAttribute("id", action);
+            actionsRadio.classList.add("pointer");
             actionsRadio.setAttribute("name", "weapons");
             let label = document.createElement("label");
             label.setAttribute("for", action);
+            label.classList.add("pointer");
             label.classList.add("radio_buttons");
             label.innerHTML = action;
             let br = document.createElement("br");
@@ -1016,9 +1022,11 @@
                 action == "reaction" ? "react" : action
             );
             actionsRadio.setAttribute("name", "actions");
+            actionsRadio.classList.add("pointer");
             let label = document.createElement("label");
             label.setAttribute("for", action == "reaction" ? "react" : action);
             label.classList.add("radio_buttons");
+            label.classList.add("pointer");
             label.innerHTML = action;
             let br = document.createElement("br");
             anotherDiv2.appendChild(actionsRadio);
@@ -1126,7 +1134,10 @@
                 let checkbox = document.createElement("input");
                 checkbox.setAttribute("type", "checkbox");
                 checkbox.setAttribute("name", "conditions");
-                checkbox.setAttribute("value", condition.cpID);
+                checkbox.setAttribute("data-participant-affected", condition.affected_pID);
+                checkbox.setAttribute("data-cpid", condition.taID)
+                checkbox.classList.add("pointer")
+                checkbox.setAttribute("id", "b" + condition.affected_pID);
                 let span = document.createElement("span");
                 if (condition.concentration == 1) {
                     span.textContent = "C";
@@ -1134,7 +1145,8 @@
                 }
                 let label = document.createElement("label");
 
-                label.setAttribute("for", condition.condition_name);
+                label.setAttribute("for", "b" + condition.affected_pID);
+                label.classList.add("pointer")
                 let causer = ctApp.find((participant) => {
                     return condition.pID == participant.pID;
                 });
@@ -1173,7 +1185,7 @@
                 divModalBottom.appendChild(checkbox);
                 divModalBottom.appendChild(label);
                 divModalBottom.appendChild(br6);
-
+                console.log(divModalBottom);
                 // if target is concentrating, put a yellow-highlighted C next to their name
                 if (condition.concentration == 1) {
                     let concentrationSpan = document.createElement("span");
@@ -1679,18 +1691,22 @@
         radioButton1.setAttribute("type", "radio");
         radioButton1.setAttribute("name", "concentration");
         radioButton1.setAttribute("id", "concentration_yes");
+        radioButton1.classList.add("pointer")
         radioButton1.setAttribute("value", 1);
         let label2 = document.createElement("label");
         label2.setAttribute("for", "concentration_yes");
+        label2.classList.add("pointer")
         label2.innerText = "YES";
         let radioButton2 = document.createElement("input");
         radioButton2.setAttribute("type", "radio");
         radioButton2.setAttribute("name", "concentration");
         radioButton2.setAttribute("id", "concentration_no");
+        radioButton2.classList.add("pointer")
         radioButton2.setAttribute("value", 0);
         radioButton2.setAttribute("checked", "true");
         let label3 = document.createElement("label");
         label3.setAttribute("for", "concentration_no");
+        label3.classList.add("pointer")
         label3.innerText = "NO";
         let br9 = document.createElement("br");
         div17.appendChild(h7);
@@ -1704,6 +1720,7 @@
         let buttonContainer = document.createElement("div");
         buttonContainer.classList.add("button_container");
         let submit = document.createElement("button");
+        submit.classList.add("pointer");
         submit.innerText = "SUBMIT";
         submit.setAttribute("onclick", "submitCondition()");
 
@@ -1716,10 +1733,12 @@
         h4.innerHTML = "Beginning Round";
         let beginRound = document.createElement("select");
         beginRound.classList.add("beginRound");
+        beginRound.classList.add("pointer");
         beginRound.setAttribute("name", "beginRound");
         for (let i = 1; i <= 50; i++) {
             let option = document.createElement("option");
             option.setAttribute("value", i);
+            option.classList.add("pointer");
             option.innerHTML = i;
             if (currentRound == i) {
                 option.setAttribute("selected", "true");
@@ -1734,10 +1753,12 @@
         h5.innerHTML = "Ending Round";
         let endRound = document.createElement("select");
         endRound.classList.add("endRound");
+        endRound.classList.add("pointer")
         endRound.setAttribute("name", "endRound");
         for (let i = 1; i <= 20; i++) {
             let option = document.createElement("option");
             option.setAttribute("value", i);
+            option.classList.add("pointer")
             option.innerHTML = i;
             if (currentRound == i - 10) {
                 option.setAttribute("selected", "true");
