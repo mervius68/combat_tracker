@@ -617,7 +617,7 @@ app.get("/targets/:targetID/", (req, res) => {
         let sql = `SELECT *
         FROM ct_tbl_target
         JOIN ct_tbl_participant ON ct_tbl_target.target_pID = ct_tbl_participant.pID
-                WHERE targetID = "${targetID}" ORDER BY round
+                WHERE targetID = "${targetID}" ORDER BY numeric_value, round
                 `;
         let query = db.all(sql, [], (err, results) => {
             if (err) {
