@@ -374,6 +374,22 @@ app.get("/terminate/:pID/:round", (req, res) => {
     });
 });
 
+app.get("/endConditions/:pID/:round", (req, res) => {
+    let pID = req.params.pID;
+    let round = req.params.round;
+    let sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}'
+        where affected_pID = '${pID}'
+            `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        // console.log(results);
+        res.send(results);
+    });
+});
+
 app.get("/disableCondition/:cpID/:currentRound/:pID", (req, res) => {
     console.log("JOJO " + req.params.currentRound);
     let cpID = req.params.cpID;
@@ -617,7 +633,7 @@ app.get("/targets/:targetID/", (req, res) => {
         let sql = `SELECT *
         FROM ct_tbl_target
         JOIN ct_tbl_participant ON ct_tbl_target.target_pID = ct_tbl_participant.pID
-                WHERE targetID = "${targetID}" ORDER BY numeric_value, round
+                WHERE targetID = "${targetID}" ORDER BY numeric_value, round, pID
                 `;
         let query = db.all(sql, [], (err, results) => {
             if (err) {

@@ -56,7 +56,7 @@
             div5.classList.add("header");
             div5.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div5.classList.add("center");
             div5.textContent =
@@ -68,7 +68,7 @@
             div6.classList.add("header");
             div6.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div6.classList.add("center");
             div6.textContent = "Hit?";
@@ -77,7 +77,7 @@
             div7.classList.add("header");
             div7.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div7.classList.add("center");
             div7.textContent = "Target(s)";
@@ -86,7 +86,7 @@
             div8.classList.add("header");
             div8.classList.add(
                 actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div8.classList.add("center");
             div8.textContent = "hp";
@@ -99,7 +99,7 @@
                 div9.classList.add("section");
                 div9.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div9.classList.add("center");
                 div9.setAttribute("data-participant", participant.pID);
@@ -107,21 +107,21 @@
                 div10.classList.add("section");
                 div10.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div10.classList.add("center");
                 let div11 = document.createElement("div");
                 div11.classList.add("section");
                 div11.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div11.classList.add("center");
                 let div12 = document.createElement("div");
                 div12.classList.add("section");
                 div12.classList.add(
                     actionType +
-                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div12.classList.add("center");
                 section2.appendChild(div9);
@@ -162,11 +162,9 @@
         );
         let header = document.querySelector(".main_header");
 
-        header.textContent = `${
-            encounter[0]?.campaign || "No available encounters yet"
-        } - ${encounter[0]?.location || ""} (${
-            encounter[0]?.description || ""
-        })`;
+        header.textContent = `${encounter[0]?.campaign || "No available encounters yet"
+            } - ${encounter[0]?.location || ""} (${encounter[0]?.description || ""
+            })`;
 
         ctApp = await dbQuery("GET", "participants/" + encounterID);
 
@@ -192,7 +190,7 @@
                 ct_damages?.reduce((max, obj) => {
                     return obj.round > max.round ? obj : max;
                 }).round || 1;
-        } catch (err) {}
+        } catch (err) { }
 
         // get participants hps by round
         participantsHpsByRound = await dbQuery(
@@ -208,7 +206,7 @@
                 if (Array.isArray(participant.damageArray[i - 1])) {
                     participant.damageArray[i].push(
                         participant.damageArray[i - 1][
-                            participant.damageArray[i - 1].length - 1
+                        participant.damageArray[i - 1].length - 1
                         ]
                     );
                 } else {
@@ -258,7 +256,7 @@
         console.log(ctApp);
         totalRounds = Math.max(totalRounds, damageRounds);
 
-        // start a loop, round.forEach()
+        // start a loop
         let mainContainer = document.createElement("div");
         for (let i = 1; i <= totalRounds + 1; i++) {
             // determine which of the participants should be in this round
@@ -500,10 +498,10 @@
                 // locate the HTML elements for this participant
                 participantHTML = mainContainer.querySelectorAll(
                     '[data-round="' +
-                        i +
-                        '"] [data-section="1"] [data-participant="' +
-                        participant.pID +
-                        '"]'
+                    i +
+                    '"] [data-section="1"] [data-participant="' +
+                    participant.pID +
+                    '"]'
                 );
 
                 // populate row in section 1 (ac, hp, character name, and initiative value)
@@ -527,7 +525,7 @@
                                     ? "<b>" + hp + "</b>"
                                     : hp) +
                                 (index <
-                                participant.damageArray[i - 1].length - 1
+                                    participant.damageArray[i - 1].length - 1
                                     ? ", "
                                     : "");
                         });
@@ -539,7 +537,7 @@
                                     ? "<b>" + hp + "</b>"
                                     : hp) +
                                 (index <
-                                participant.damageArray[i - 2].length - 1
+                                    participant.damageArray[i - 2].length - 1
                                     ? ", "
                                     : "");
                         });
@@ -582,12 +580,12 @@
                         if (
                             affected.concentration === 0
                                 ? affected.pID !=
-                                  parseInt(affected.affected_pID)
+                                parseInt(affected.affected_pID)
                                 : affected.concentration === 1 &&
-                                  affected.pID !=
-                                      parseInt(affected.affected_pID) &&
-                                  parseInt(affected.start_round) <= i &&
-                                  parseInt(affected.end_round) >= i
+                                affected.pID !=
+                                parseInt(affected.affected_pID) &&
+                                parseInt(affected.start_round) <= i &&
+                                parseInt(affected.end_round) >= i
                         ) {
                             if (
                                 (parseInt(affected.start_round) === i &&
@@ -619,6 +617,8 @@
                     // if newValue contains comma, get what's to the right of the last comma
                     // const arr = previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
                     const lastNum = newValue.pop().trim(); // remove and return the last element of the array, and trim any whitespace
+                    let x = turn.nextSibling.nextSibling.querySelectorAll(".affected");
+                    // alert(x);
                     // compare that value to participant.starting_hp
                     if (lastNum <= participant.starting_hp / 2) {
                         turn.classList.add("yellow");
@@ -632,6 +632,9 @@
                         turn.classList.add("red");
                         turn.nextSibling.classList.add("red");
                         turn.nextSibling.nextSibling.classList.add("red");
+                        x.forEach((y) => {
+                            y.parentNode.removeChild(y);
+                        })
                         turn.nextSibling.nextSibling.nextSibling.classList.add(
                             "red"
                         );
@@ -672,7 +675,7 @@
                                 : "");
                         damageString += (index > 0 ? " / " : "") + item.damage;
                     });
-                } catch (err) {}
+                } catch (err) { }
 
                 let actionArray = [];
 
@@ -688,7 +691,7 @@
                     actionArray
                 );
             }
-        } catch (err) {}
+        } catch (err) { }
 
         document.querySelector(".ct_round_container").innerHTML =
             mainContainer.innerHTML;
@@ -703,7 +706,7 @@
                 "selected"
             );
             navify();
-        } catch (err) {}
+        } catch (err) { }
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
             let actionHTML = "data-" + actionType;
@@ -1108,19 +1111,19 @@
             let conditionParticipant = condition.pID;
             let startHTML = document.querySelector(
                 '[data-round="' +
-                    condition.start_round +
-                    '"] [data-section="1"] [data-participant="' +
-                    condition.pID +
-                    '"]'
+                condition.start_round +
+                '"] [data-section="1"] [data-participant="' +
+                condition.pID +
+                '"]'
             );
             let start = startHTML.getAttribute("data-nav");
 
             let endHTML = document.querySelector(
                 '[data-round="' +
-                    condition.end_round +
-                    '"] [data-section="1"] [data-participant="' +
-                    condition.end_pID +
-                    '"]'
+                condition.end_round +
+                '"] [data-section="1"] [data-participant="' +
+                condition.end_pID +
+                '"]'
             );
             let end =
                 endHTML instanceof Element
@@ -1373,11 +1376,11 @@
                 await dbQuery(
                     "GET",
                     "disableCondition/" +
-                        condition.value +
-                        "/" +
-                        currentRound +
-                        "/" +
-                        pID
+                    condition.value +
+                    "/" +
+                    currentRound +
+                    "/" +
+                    pID
                 );
                 disableConditionsString += condition.value;
             }
@@ -1412,22 +1415,37 @@
             } else {
                 round = parseInt(currentRound);
             }
-            console.log("HEY! " + targetHits[index]);
-            let dataTarget = `submitTargets/${
-                ctApp[0].eID
-            }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
-                index
-            ].trim()}/${actionCategory}/${
-                damage[index]
-            }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${
-                target_pID[index]
-            }/${targetHPsArray[index]}`;
+
+            let dataTarget = `submitTargets/${ctApp[0].eID
+                }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
+                    index
+                ].trim()}/${actionCategory}/${damage[index]
+                }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
+                }/${targetHPsArray[index]}`;
             await dbQuery("GET", dataTarget);
             if (targetHPsArray[index] - damage[index] <= 0) {
                 await dbQuery(
                     "GET",
                     "terminate/" + target_pID[index] + "/" + round
                 );
+                // let roundEnd;
+                // if (
+                //     ctApp.findIndex((participant) => {
+                //         return participant.pID == pID;
+                //     }) >
+                //     ctApp.findIndex((target) => {
+                //         return target.pID == target_pID[index];
+                //     })
+                // ) {
+                //     roundEnd = parseInt(currentRound);
+                // } else {
+                //     roundEnd = parseInt(currentRound) - 1;
+                // }
+
+                await dbQuery(
+                    "GET",
+                    "endConditions/" + target_pID[index] + "/" + round
+                )
             }
         });
 
@@ -1794,7 +1812,7 @@
         let conditionEndsHTML = document.getElementsByName("condition_ends");
         let conditionDescription =
             document.querySelector(".conditionsText").value;
-        conditionDescription = conditionDescription.replace("'","&apos;").replace("#","&num;")
+        conditionDescription = conditionDescription.replace("'", "&apos;").replace("#", "&num;")
         let startRoundHTML = document.querySelector(".beginRound");
         let endRoundHTML = document.querySelector(".endRound");
         let concentrationHTML = document.getElementsByName("concentration");
@@ -1836,7 +1854,7 @@
 
         // get next cpID
         let latestConditionID = await dbQuery("GET", "getNextcpID");
-        let newCpID = parseInt(latestConditionID[0].cpID) + 1;
+        let newCpID = parseInt(latestConditionID[0]?.cpID || 0) + 1;
 
         // send info to tbl_condition_pool
         let dataPool = `newConditionPoolItem/${conditionDescription.substring(
