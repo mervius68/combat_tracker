@@ -257,7 +257,7 @@ app.get(
                 throw err;
             }
             console.log(sql);
-            res.send(results);
+            res.send({});
         });
     }
 );
