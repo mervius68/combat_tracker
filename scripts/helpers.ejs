@@ -917,7 +917,8 @@
         defaultTool.setAttribute("value", 0);
         defaultTool.setAttribute("id", "default");
         defaultTool.setAttribute("name", "weapons");
-        defaultTool.classList.add("pointer")
+        defaultTool.classList.add("pointer");
+        defaultTool.setAttribute("data-concentration", 0)
         let defaultLabel = document.createElement("label");
         defaultLabel.setAttribute("for", "default");
         defaultLabel.classList.add("radio_buttons");
@@ -944,7 +945,7 @@
             label.innerHTML =
                 item.toolName +
                 (item.damage_dice ? " (" + item.damage_dice + ")" : "");
-                let span1;
+            let span1;
             if (item.concentration == "1") {
                 span1 = document.createElement("span");
                 span1.innerHTML = "C";
@@ -1281,6 +1282,7 @@
         // get weapon radio buttons
 
         let weaponsText = document.getElementsByName("weaponsText");
+        let concentrationNext = 0;
         let weapons,
             tool = [],
             actionString = "",
@@ -1291,8 +1293,9 @@
             tool = Array.from(weapons).find((weapon) => {
                 return weapon.checked == true;
             }).value;
-            // actionString = "";
-            // nextToolID = "";
+            concentrationNext = Array.from(weapons).find((weapon) => {
+                return weapon.checked == true;
+            }).getAttribute("data-concentration");
             if (isNaN(parseInt(tool))) {
                 actionString = tool;
                 nextToolID = "0";
@@ -1413,7 +1416,6 @@
             hit = 1;
         }
 
-        console.log(notes);
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID}`;
         await dbQuery("GET", dataAction);
 
@@ -1444,20 +1446,6 @@
                     "GET",
                     "terminate/" + target_pID[index] + "/" + round
                 );
-                // let roundEnd;
-                // if (
-                //     ctApp.findIndex((participant) => {
-                //         return participant.pID == pID;
-                //     }) >
-                //     ctApp.findIndex((target) => {
-                //         return target.pID == target_pID[index];
-                //     })
-                // ) {
-                //     roundEnd = parseInt(currentRound);
-                // } else {
-                //     roundEnd = parseInt(currentRound) - 1;
-                // }
-
                 await dbQuery(
                     "GET",
                     "endConditions/" + target_pID[index] + "/" + round
@@ -1468,6 +1456,9 @@
         load_encounter(0, dataNav);
         let modal = document.querySelector(".modal");
         modal.style.display = "none";
+        if (concentrationNext == 1) {
+            launchConditionsModal()
+        }
     }
 
     const keydownEventListener = function (event) {
