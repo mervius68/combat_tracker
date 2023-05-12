@@ -998,11 +998,19 @@
             actionsRadio.setAttribute("id", action);
             actionsRadio.classList.add("pointer");
             actionsRadio.setAttribute("name", "weapons");
+            actionsRadio.setAttribute("data-concentration", action == "grapple" || action == "help" || action == "ready" ? 1 : 0)
             let label = document.createElement("label");
             label.setAttribute("for", action);
             label.classList.add("pointer");
             label.classList.add("radio_buttons");
             label.innerHTML = action;
+            let span2;
+            if (action == "grapple" || action == "help" || action == "ready") {
+                span2 = document.createElement("span");
+                span2.innerHTML = "C";
+                span2.classList.add("concentration");
+                label.appendChild(span2);
+            }
             let br = document.createElement("br");
             anotherDiv.appendChild(actionsRadio);
             anotherDiv.appendChild(label);
