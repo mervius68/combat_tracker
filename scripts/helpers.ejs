@@ -1064,6 +1064,7 @@
         div15.innerHTML = "Targets / Damage/HP";
         divRight.appendChild(div15);
         let div16 = document.createElement("div");
+        div16.classList.add("conSaveParent")
 
         // populate the targets of the modal
         allParticipants.forEach((participant) => {
@@ -1162,6 +1163,7 @@
                 if (condition.concentration == 1) {
                     span.textContent = "C";
                     span.classList.add("concentration");
+                    span.classList.add("savingThrow");
                 }
                 let label = document.createElement("label");
 
@@ -1230,30 +1232,41 @@
 
         modal.innerHTML = container.outerHTML;
         modal.addEventListener("input", function (e) {
-            let x = e.target.nextSibling.parentElement.querySelectorAll(
-                ".conSavingThrowCheck"
-            );
-            x.forEach((element) => {
-                element.parentElement.removeChild(element);
-            });
-            let input = e.target.value;
-            if (input / 2 <= 10) {
-                input = 10;
-            } else {
-                input = Math.floor(input / 2);
+            if (e.target.parentElement.classList.contains("conSaveParent")) {
+                let concentrationStuff = e.target.parentNode.querySelectorAll(".concentration")
+            concentrationStuff.forEach((participant) => {
+                console.log(participant.parentElement);
+                let z = participant.parentElement;
+                if (participant.parentNode.previousSibling.value != "") {
+                    try {
+                        let x = z.querySelector(
+                            ".conSavingThrowCheck"
+                        );
+                        z.removeChild(x);
+                    }
+                    catch (err) { }
+                    let input = participant.parentNode.previousSibling.value;
+                    if (input / 2 <= 10) {
+                        input = 10;
+                    } else {
+                        input = Math.floor(input / 2);
+                    }
+                    let span3 = document.createElement("span");
+                    span3.classList.add("conSavingThrowCheck")
+                    span3.innerHTML = `DC CON ${input}`;
+                    participant.parentNode.appendChild(span3);
+                } else {
+                    try {
+                        let x = z.querySelector(
+                            ".conSavingThrowCheck"
+                        );
+                        z.removeChild(x);
+                    }
+                    catch (err) { }
+                }
+            })
             }
-            let concentrationCheck =
-                e.target.nextSibling.querySelector(".concentration");
-            if (
-                e.target.value != "" &&
-                concentrationCheck != null &&
-                e.target.value != 0 &&
-                e.target.value != "x"
-            ) {
-                e.target.nextSibling.innerHTML += ` <span class='conSavingThrowCheck'>DC CON ${input}</span>`;
-            }
-
-            // modal.querySelector("p" + e.target.getAttribute("id")).innerHTML += " BOOGA"
+            
         });
     }
 
@@ -1456,9 +1469,8 @@
         load_encounter(0, dataNav);
         let modal = document.querySelector(".modal");
         modal.style.display = "none";
-        if (concentrationNext == 1) {
-            launchConditionsModal()
-        }
+        alert(target_pID)
+        launchConditionsModal(target_pID, concentrationNext)
     }
 
     const keydownEventListener = function (event) {
@@ -1553,15 +1565,18 @@
         }
     };
 
-    function launchConditionsModal(event) {
-        modalConditions();
+    function launchConditionsModal(affected, concentration) {
+        if (affected == "turn") {
+            concentration == 0
+        }
+        modalConditions(affected, concentration);
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";
         closeModalBox(closeModal);
     }
 
-    async function modalConditions() {
+    async function modalConditions(affected, concentration) {
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -1637,12 +1652,17 @@
         topMiddleDiv.appendChild(h6);
 
         // build the affectees checkboxes
+        // let affectedArrayForCheckboxes = affected.split(",")
+        // alert(affectedArrayForCheckboxes[0])
         ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.classList.add("pointer")
             checkbox.setAttribute("type", "checkbox");
             checkbox.setAttribute("name", "affectees");
             checkbox.setAttribute("id", "a" + participant.pID);
+
+            // if participant.pID is in affected string, check the box
+
             let label = document.createElement("label");
             label.classList.add("pointer")
             label.setAttribute("for", "a" + participant.pID);
@@ -1718,6 +1738,9 @@
         radioButton1.setAttribute("id", "concentration_yes");
         radioButton1.classList.add("pointer")
         radioButton1.setAttribute("value", 1);
+        if (concentration == 1) {
+            radioButton1.setAttribute("checked", "true")
+        }
         let label2 = document.createElement("label");
         label2.setAttribute("for", "concentration_yes");
         label2.classList.add("pointer")
@@ -1728,7 +1751,10 @@
         radioButton2.setAttribute("id", "concentration_no");
         radioButton2.classList.add("pointer")
         radioButton2.setAttribute("value", 0);
-        radioButton2.setAttribute("checked", "true");
+        if (concentration == 0) {
+            radioButton2.setAttribute("checked", "true");
+        }
+        console.log(concentration);
         let label3 = document.createElement("label");
         label3.setAttribute("for", "concentration_no");
         label3.classList.add("pointer")
