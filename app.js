@@ -202,8 +202,6 @@ app.get(
 app.get(
     "/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID",
     (req, res) => {
-        // example: /submitAction/1/1/
-        console.log("HERE");
         let encounter = req.params.encounter;
         let round = req.params.round;
         let toolID = req.params.tool; // may be toolID or descriptive string (e.g. disengage)
@@ -248,8 +246,8 @@ app.get(
         let target_pIDArray = target_pID.split(" ").map;
 
         let sql = `INSERT into ct_tbl_action
-                    (eID, round, pID, targetID, hit, action_type, action, toolID)
-                    values (${encounter}, ${round}, ${pID}, ${nextTargetID}, '${hit}', '${actionCategory}', '${actionString}', '${toolID}');
+                    (eID, round, pID, targetID, hit, action_type, action, toolID, notes)
+                    values (${encounter}, ${round}, ${pID}, ${nextTargetID}, '${hit}', '${actionCategory}', '${actionString}', '${toolID}', '${notes}');
                 `;
         let query = db.all(sql, (err, results) => {
             if (err) {

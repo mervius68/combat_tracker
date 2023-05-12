@@ -936,6 +936,7 @@
             tool.setAttribute("id", item.toolID);
             tool.classList.add("pointer");
             tool.setAttribute("name", "weapons");
+            tool.setAttribute("data-concentration", item.concentration)
             let label = document.createElement("label");
             label.setAttribute("for", item.toolID);
             label.classList.add("radio_buttons");
@@ -943,6 +944,13 @@
             label.innerHTML =
                 item.toolName +
                 (item.damage_dice ? " (" + item.damage_dice + ")" : "");
+                let span1;
+            if (item.concentration == "1") {
+                span1 = document.createElement("span");
+                span1.innerHTML = "C";
+                span1.classList.add("concentration");
+                label.appendChild(span1);
+            }
             let br = document.createElement("br");
             div14.appendChild(tool);
             div14.appendChild(label);
@@ -1364,7 +1372,7 @@
 
         let notesElement = document.querySelector(".notes_text");
         let notes = notesElement.value || "-";
-        notes = notes.replaceAll("'", "'");
+        notes = notes.replace("'", "&apos;").replace("#", "&num;")
         if (notes == "") {
             notes = "-";
         }
@@ -1397,7 +1405,7 @@
             hit = 1;
         }
 
-        console.log("Hit points, yo!: " + targetHPsArray[0]);
+        console.log(notes);
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID}`;
         await dbQuery("GET", dataAction);
 
