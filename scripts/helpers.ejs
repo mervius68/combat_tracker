@@ -43,7 +43,6 @@
         numberActions,
         roundParticipants
     ) {
-        // console.log(numberActions);
         let round = ctRound;
         for (let j = 1; j <= numberActions; j++) {
             let section2 = document.createElement("div");
@@ -253,7 +252,6 @@
                     );
             });
         });
-        console.log(ctApp);
         totalRounds = Math.max(totalRounds, damageRounds);
 
         // start a loop
@@ -618,7 +616,6 @@
                     // const arr = previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
                     const lastNum = newValue.pop().trim(); // remove and return the last element of the array, and trim any whitespace
                     let x = turn.nextSibling.nextSibling.querySelectorAll(".affected");
-                    // alert(x);
                     // compare that value to participant.starting_hp
                     if (lastNum <= participant.starting_hp / 2) {
                         turn.classList.add("yellow");
@@ -861,7 +858,6 @@
         let characterID = ctApp.find((participant) => {
             return participant.pID == participantID;
         }).chID;
-        // console.log(characterID);
         let currentRound = html.getAttribute("data-round");
         let encounter = ctApp[0].eID;
 
@@ -884,7 +880,6 @@
             "GET",
             "conditionsInEffect/" + encounter + "/" + currentRound
         );
-        // console.log("conditions In effect: " + conditionsInEffect);
         // build the HTML
         let container = document.createElement("div");
         container.classList.add("modal-body");
@@ -1207,7 +1202,6 @@
                 divModalBottom.appendChild(checkbox);
                 divModalBottom.appendChild(label);
                 divModalBottom.appendChild(br6);
-                console.log(divModalBottom);
                 // if target is concentrating, put a yellow-highlighted C next to their name
                 if (condition.concentration == 1) {
                     let concentrationSpan = document.createElement("span");
@@ -1234,39 +1228,38 @@
         modal.addEventListener("input", function (e) {
             if (e.target.parentElement.classList.contains("conSaveParent")) {
                 let concentrationStuff = e.target.parentNode.querySelectorAll(".concentration")
-            concentrationStuff.forEach((participant) => {
-                console.log(participant.parentElement);
-                let z = participant.parentElement;
-                if (participant.parentNode.previousSibling.value != "") {
-                    try {
-                        let x = z.querySelector(
-                            ".conSavingThrowCheck"
-                        );
-                        z.removeChild(x);
-                    }
-                    catch (err) { }
-                    let input = participant.parentNode.previousSibling.value;
-                    if (input / 2 <= 10) {
-                        input = 10;
+                concentrationStuff.forEach((participant) => {
+                    let z = participant.parentElement;
+                    if (participant.parentNode.previousSibling.value != "") {
+                        try {
+                            let x = z.querySelector(
+                                ".conSavingThrowCheck"
+                            );
+                            z.removeChild(x);
+                        }
+                        catch (err) { }
+                        let input = participant.parentNode.previousSibling.value;
+                        if (input / 2 <= 10) {
+                            input = 10;
+                        } else {
+                            input = Math.floor(input / 2);
+                        }
+                        let span3 = document.createElement("span");
+                        span3.classList.add("conSavingThrowCheck")
+                        span3.innerHTML = `DC CON ${input}`;
+                        participant.parentNode.appendChild(span3);
                     } else {
-                        input = Math.floor(input / 2);
+                        try {
+                            let x = z.querySelector(
+                                ".conSavingThrowCheck"
+                            );
+                            z.removeChild(x);
+                        }
+                        catch (err) { }
                     }
-                    let span3 = document.createElement("span");
-                    span3.classList.add("conSavingThrowCheck")
-                    span3.innerHTML = `DC CON ${input}`;
-                    participant.parentNode.appendChild(span3);
-                } else {
-                    try {
-                        let x = z.querySelector(
-                            ".conSavingThrowCheck"
-                        );
-                        z.removeChild(x);
-                    }
-                    catch (err) { }
-                }
-            })
+                })
             }
-            
+
         });
     }
 
@@ -1301,7 +1294,6 @@
             actionString = "",
             nextToolID = "";
         if (weaponsText[0].value == "") {
-            console.log("weaponsText == ''");
             weapons = document.getElementsByName("weapons");
             tool = Array.from(weapons).find((weapon) => {
                 return weapon.checked == true;
@@ -1469,8 +1461,9 @@
         load_encounter(0, dataNav);
         let modal = document.querySelector(".modal");
         modal.style.display = "none";
-        alert(target_pID)
-        launchConditionsModal(target_pID, concentrationNext)
+        if (concentrationNext == 1) {
+            launchConditionsModal(target_pID, concentrationNext)
+        }
     }
 
     const keydownEventListener = function (event) {
@@ -1652,8 +1645,6 @@
         topMiddleDiv.appendChild(h6);
 
         // build the affectees checkboxes
-        // let affectedArrayForCheckboxes = affected.split(",")
-        // alert(affectedArrayForCheckboxes[0])
         ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.classList.add("pointer")
@@ -1754,7 +1745,6 @@
         if (concentration == 0) {
             radioButton2.setAttribute("checked", "true");
         }
-        console.log(concentration);
         let label3 = document.createElement("label");
         label3.setAttribute("for", "concentration_no");
         label3.classList.add("pointer")
@@ -1898,7 +1888,6 @@
 
         // determine next available taID in ct_tbl_condition_affectee
         let getNextTAID = await dbQuery("GET", "getNextTAID");
-        console.log(getNextTAID);
         let taID = getNextTAID.taID + 1;
 
         // send condition affectee info
