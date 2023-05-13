@@ -1,4 +1,4 @@
-<script>
+
     let cellCountVertical;
     let participantsHpsByRound;
 
@@ -1306,8 +1306,7 @@
         topLeftDiv.appendChild(h2);
 
         // build the causers radio buttons
-        let causerPosition;
-        ctApp.forEach((participant, index) => {
+        ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.setAttribute("type", "radio");
             checkbox.classList.add("pointer");
@@ -1315,7 +1314,6 @@
             checkbox.setAttribute("id", participant.pID);
             if (participantID == participant.pID) {
                 checkbox.setAttribute("checked", "true");
-                causerPosition = index;
             }
             let label = document.createElement("label");
             label.classList.add("pointer");
@@ -1340,8 +1338,7 @@
         topMiddleDiv.appendChild(h6);
 
         // build the affectees checkboxes
-        let affecteePosition;
-        ctApp.forEach((participant, index) => {
+        ctApp.forEach((participant) => {
             let checkbox = document.createElement("input");
             checkbox.classList.add("pointer");
             checkbox.setAttribute("type", "checkbox");
@@ -1349,7 +1346,6 @@
             checkbox.setAttribute("id", "a" + participant.pID);
             if (affected.includes(participant.pID.toString())) {
                 checkbox.setAttribute("checked", "true");
-                affecteePosition = index;
             }
             let label = document.createElement("label");
             label.classList.add("pointer");
@@ -1541,7 +1537,7 @@
         endRound.setAttribute("name", "endRound");
 
         // determine whose init is higher, causer or affectee
-        alert(causerPosition + " vs. " + affecteePosition);
+        
 
         for (let i = 1; i <= 20; i++) {
             let option = document.createElement("option");
@@ -1551,9 +1547,7 @@
             if (currentRound == i - 10 && holding == 0) {
                 option.setAttribute("selected", "true");
             } else {
-                if (currentRound == i && causerPosition < affecteePosition) {
-                    option.setAttribute("selected", "true");
-                } else if (currentRound == i - 1 && causerPosition >= affecteePosition) {
+                if (currentRound == i) {
                     option.setAttribute("selected", "true");
                 }
             }
@@ -2038,4 +2032,4 @@
             }
         }
     };
-</script>
+
