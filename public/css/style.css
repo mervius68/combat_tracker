@@ -1,461 +1,467 @@
 body {
-  box-sizing: border-box;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+    box-sizing: border-box;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 .ct_grid4columns {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  grid-template-rows: auto;
-  align-items: start;
-  grid-gap: 2px;
-  background-color: black;
-  border: solid black 2px;
-  grid-auto-columns: auto;
-  grid-auto-rows: minmax(2em, auto);
-  align-items: stretch;
-  max-width: 600px;
-  min-width: max-content;
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    grid-template-rows: auto;
+    align-items: start;
+    grid-gap: 2px;
+    background-color: black;
+    border: solid black 2px;
+    grid-auto-columns: auto;
+    grid-auto-rows: minmax(2em, auto);
+    align-items: stretch;
+    max-width: 600px;
+    min-width: max-content;
 }
 
 .section {
-  display: inline-block;
-  padding: 0.5em;
-  word-wrap: normal;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: visible;
-  min-height: 1.5em;
+    display: inline-block;
+    padding: 0.5em;
+    word-wrap: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: visible;
+    min-height: 1.5em;
 }
 
-
-
 .header {
-  font-size: 1.4em;
+    font-size: 1.4em;
 }
 
 .ct_round {
-  display: flex;
+    display: flex;
 }
 
 .hidden {
-  display: none;
-  /* visibility: hidden; */
+    display: none;
+    /* visibility: hidden; */
 }
 
 .attack {
-  background-color: lightcyan;
+    background-color: lightcyan;
 }
 
 .attack_alt {
-  background-color: pink;
+    background-color: pink;
 }
 
 .ct_turn_bookends {
-  background-color: white;
+    background-color: white;
 }
 
 .bonus {
-  background-color: rgb(176, 250, 154);
+    background-color: rgb(176, 250, 154);
 }
 
 .react {
-  background-color: rgb(247, 194, 96);
+    background-color: rgb(247, 194, 96);
 }
 
 .available {
-  background-color: yellow;
-  border: 0.2em solid black;
-  padding: 0px 0.2em;
+    background-color: yellow;
+    border: 0.2em solid black;
+    padding: 0px 0.2em;
 }
 
 .center {
-  text-align: center;
+    text-align: center;
 }
 
 .align_right {
-  text-align: right;
+    text-align: right;
 }
 
 .align_left {
-  text-align: left;
+    text-align: left;
 }
 
 .pink {
-  background-color: pink;
+    background-color: pink;
 }
 
 .white {
-  background-color: white;
+    background-color: white;
 }
 
 .yellow {
-  background-color: yellow;
+    background-color: yellow;
 }
 
 .red {
-  background-color: red;
-  color: white;
+    background-color: red;
+    color: white;
 }
 
 .selected {
-  background-color: orange;
+    background-color: orange;
 }
 
 .lightred {
-  background-color: red;
-  color: white;
-  padding: 2px;
+    background-color: red;
+    color: white;
+    padding: 2px;
 }
 
 .button {
-  margin-right: 30px;
-  font-size: 1em
+    margin-right: 30px;
+    font-size: 1em;
 }
 
 .dropdown {
-  font-size: 1em;
+    font-size: 1em;
 }
 
 .left {
-  text-align: left;
+    text-align: left;
 }
 
 hr {
-  height: 5px;
-  background-color: black;
+    height: 5px;
+    background-color: black;
 }
 
 .radio_buttons {
-  font-size: 1em;
+    font-size: 1em;
 }
 
 .concentration {
-  background-color: yellow;
-  font-weight: bold;
-  outline: 3px;
-  margin-left: 5px;
-  border: 2px solid black;
-  padding-left: 2px;
-  padding-right: 3px;
-  margin-right: 5px;
+    background-color: yellow;
+    font-weight: bold;
+    outline: 3px;
+    margin-left: 5px;
+    border: 2px solid black;
+    padding-left: 2px;
+    padding-right: 3px;
+    margin-right: 5px;
+}
+
+.holding {
+    background-color: darkgreen;
+    color: white;
+    /* font-weight: bold; */
+    outline: 3px;
+    margin-left: 5px;
+    border: 2px solid black;
+    padding-left: 2px;
+    padding-right: 3px;
+    margin-right: 5px;
 }
 
 .conSavingThrowCheck {
-  font-weight: bold;
-  background-color: red;
-  color: white;
-  padding-left: 2px;
-  padding-right: 3px;
+    font-weight: bold;
+    background-color: red;
+    color: white;
+    padding-left: 2px;
+    padding-right: 3px;
 }
 
 .affected {
-  background-color: pink;
-  outline: 3px;
-  margin-left: 5px;
-  border: 2px solid black;
-  padding-left: 2px;
-  padding-right: 3px;
-  margin-right: 5px;
-  color: black;
+    background-color: pink;
+    font-weight: bold;
+    outline: 3px;
+    margin-left: 5px;
+    border: 2px solid black;
+    padding-left: 2px;
+    padding-right: 3px;
+    margin-right: 5px;
+    color: black;
 }
 
 .modal_text_inputs {
-  font-size: 1em;
-  margin-left: 5px;
+    font-size: 1em;
+    margin-left: 5px;
 }
 
 textarea {
-  overflow-wrap: break-word;
-  font-size: 1em;
-  font-family: Verdana, Geneva, Tahoma, sans-serif
+    overflow-wrap: break-word;
+    font-size: 1em;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 .text_field {
-  height: 15px;
-  line-height: 12px;
-  padding: 5px;
-  font-size: 1em;
-  width: 50%
+    height: 15px;
+    line-height: 12px;
+    padding: 5px;
+    font-size: 1em;
+    width: 50%;
 }
 
 .numeric {
-  width: 40px;
+    width: 40px;
 }
 
 .flex_horizontal {
-  display: flex;
+    display: flex;
 }
 
 .horizontal_bottom {
-  min-height: 200px;
-  font-size: 1.2em;
+    min-height: 200px;
+    font-size: 1.2em;
 }
 
 .flex-left {
-  width: max-content;
+    width: max-content;
 }
 
 .flex-right {
-  width: max-content;
-  /* padding-left: 10%; */
+    width: max-content;
+    /* padding-left: 10%; */
 }
 
 .checkboxes {
-  display: flex;
-  text-align: right;
-  /* font-size: 1.5em; */
-  /* line-height: 1.2em; */
-  align-items: center;
-  cursor: pointer;
+    display: flex;
+    text-align: right;
+    /* font-size: 1.5em; */
+    /* line-height: 1.2em; */
+    align-items: center;
+    cursor: pointer;
 }
 
 .checkboxes input {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 .conditions_list_div {
-  max-height: 200px;
-  display: flex;
-  flex-direction: column;
-  /* flex-wrap: wrap; */
-  overflow: auto;
+    max-height: 200px;
+    display: flex;
+    flex-direction: column;
+    /* flex-wrap: wrap; */
+    overflow: auto;
 }
 
 .div_bottom_right {
-  max-width: 700px;
-  padding: 15px;
+    max-width: 700px;
+    padding: 15px;
 }
 
 .button_container {
-  display: flex;
-  justify-content: center !important;
-  align-items: center;
-  margin-bottom: 15px;
+    display: flex;
+    justify-content: center !important;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
 button {
-  height: 25px;
-  font-size: 1.2em;
-  width: max-content;
+    height: 25px;
+    font-size: 1.2em;
+    width: max-content;
 }
-
-
 
 /* Modal boxes */
 
 #modal-open {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  transition: background 1.3s;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background 1.3s;
 }
 
 #modal-open,
-input[type='submit'] {
-  font-size: 20px;
-  text-transform: uppercase;
-  color: #fff;
-  padding: 20px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #32a84e;
+input[type="submit"] {
+    font-size: 20px;
+    text-transform: uppercase;
+    color: #fff;
+    padding: 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #32a84e;
 }
 
 #modal-open,
-input[type='button'] {
-  font-size: 20px;
-  text-transform: uppercase;
-  color: #fff;
-  padding: 20px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #32a84e;
+input[type="button"] {
+    font-size: 20px;
+    text-transform: uppercase;
+    color: #fff;
+    padding: 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #32a84e;
 }
 
 #modal-open:hover {
-  background: #3e78c7;
+    background: #3e78c7;
 }
 
 .modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.05);
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.05);
 }
 
 /* MODAL */
 
 #modal-content {
-  background: #efefef;
-  margin: 55px auto;
-  width: max-content;
-  box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.25);
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  animation-name: modalSlideUp;
-  animation-duration: .72s;
-  max-width: 50%;
-  min-width: 900px;
+    background: #efefef;
+    margin: 55px auto;
+    width: max-content;
+    box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.25);
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    animation-name: modalSlideUp;
+    animation-duration: 0.72s;
+    max-width: 50%;
+    min-width: 900px;
 }
 
 .modal_column {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-left: 10px;
-  padding-right: 35px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-left: 10px;
+    padding-right: 35px;
 }
 
 .modal_column_int {
-  border: 2px solid lightgray;
-  padding: 5px;
+    border: 2px solid lightgray;
+    padding: 5px;
 }
 
 #modal-header {
-  background: gray;
-  color: white;
-  padding: 5px 10px;
-  text-align: center;
-  text-transform: uppercase;
-  font-size: 10px;
+    background: gray;
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 10px;
 }
 
 #modal-header .close-modal {
-  font-size: 40px;
-  float: right;
-  margin-top: -13px;
+    font-size: 40px;
+    float: right;
+    margin-top: -13px;
 }
 
 #modal-header .close-modal:hover {
-  color: #333;
-  cursor: pointer;
+    color: #333;
+    cursor: pointer;
 }
 
 #modal-footer {
-  background: gray;
-  color: white;
-  padding: 5px 5px;
-  text-align: center;
-  text-transform: uppercase;
-  font-size: 14px;
+    background: gray;
+    color: white;
+    padding: 5px 5px;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 14px;
 }
 
 h3 {
-  margin-top: 1px;
+    margin-top: 1px;
 }
 
 #modal-body {
-  padding: 1px 13px;
-  border-left: 15px solid gray;
-  border-right: 15px solid gray;
-  min-height: 200px;
+    padding: 1px 13px;
+    border-left: 15px solid gray;
+    border-right: 15px solid gray;
+    min-height: 200px;
 }
 
 #modal-body h3 {
-  color: black;
-  text-transform: uppercase;
-  font-size: 25px;
-  text-align: center;
-  margin: 30px 0;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: black;
+    text-transform: uppercase;
+    /* font-size: 25px; */
+    text-align: left;
+    margin: 30px 0;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 .container {
-  width: 100%;
-  border: 0px 4px solid black;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding-bottom: 15px;
+    width: 100%;
+    border: 0px 4px solid black;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-bottom: 15px;
 }
 
 .topLeftDiv {
-  flex: 1 0 0 33%;
-  width: 33%
-  
+    flex: 1 0 0 33%;
+    width: 33%;
 }
 .topMiddleDiv {
-  flex: 0 1 0 33%;
-  width: 33%
+    flex: 0 1 0 33%;
+    width: 33%;
 }
 .topRightDiv {
-  flex: 0 0 1 33%;
-  width: 33%
+    flex: 0 0 1 33%;
+    width: 33%;
 }
 
 .modalContainer {
-  width: 100%;
-  border: 0px 4px solid black;
+    width: 100%;
+    border: 0px 4px solid black;
 }
 
 @keyframes modalSlideUp {
-  0% {
-    transform: translateY(1500px);
-  }
+    0% {
+        transform: translateY(1500px);
+    }
 
-  100% {
-    transform: translateY(0);
-  }
+    100% {
+        transform: translateY(0);
+    }
 }
 
 .pointer {
-  cursor: pointer;
-  user-select: none;
+    cursor: pointer;
+    user-select: none;
 }
-
 
 /* Tooltip stuff */
 
 .tooltip {
-  position: relative;
-  display: inline-block;
-  border-bottom: 2px solid black;
+    position: relative;
+    display: inline-block;
+    border-bottom: 2px solid black;
 }
 
 .tooltip:hover {
-  
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .tooltip .tooltiptext {
-  visibility: hidden;
-  width: max-content;
-  max-width: 200px;
-  
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px 0;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%;
-  left: 50%;
-  margin-left: -60px;
-  opacity: 0;
-  transition: opacity 0.3s;
-  white-space: normal;
+    visibility: hidden;
+    width: max-content;
+    max-width: 200px;
+
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: normal;
 }
 
 .tooltip .tooltiptext::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #555 transparent transparent transparent;
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
 }
 
 .tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
+    visibility: visible;
+    opacity: 1;
 }
