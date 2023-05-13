@@ -1323,6 +1323,7 @@
         let target_pID = [];
         let damage = [];
         let targetHPsArray = [];
+        let conditionName = actionString;
         let targetsArray = Array.from(targets);
         // wrap the forEach loop in a Promise.all
         await Promise.all(
@@ -1373,8 +1374,8 @@
         if (damage == "") {
             damage = "-";
         }
-        if (target_pID == "") {
-            target_pID = "-";
+        if (target_pID == [""]) {
+            target_pID = ["-"];
         }
 
         // get action type
@@ -1462,7 +1463,7 @@
         let modal = document.querySelector(".modal");
         modal.style.display = "none";
         if (concentrationNext == 1) {
-            launchConditionsModal(target_pID, concentrationNext)
+            launchConditionsModal(target_pID, concentrationNext, conditionName)
         }
     }
 
@@ -1558,18 +1559,18 @@
         }
     };
 
-    function launchConditionsModal(affected, concentration) {
+    function launchConditionsModal(affected, concentration, conditionName) {
         if (affected == "turn") {
             concentration == 0
         }
-        modalConditions(affected, concentration);
+        modalConditions(affected, concentration, conditionName);
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";
         closeModalBox(closeModal);
     }
 
-    async function modalConditions(affected, concentration) {
+    async function modalConditions(affected, concentration, conditionName) {
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -1651,6 +1652,9 @@
             checkbox.setAttribute("type", "checkbox");
             checkbox.setAttribute("name", "affectees");
             checkbox.setAttribute("id", "a" + participant.pID);
+            if (affected.includes(participant.pID.toString())) {
+                checkbox.setAttribute("checked", "true")
+            }
 
             // if participant.pID is in affected string, check the box
 
@@ -1713,6 +1717,7 @@
         let textInput = document.createElement("input");
         textInput.setAttribute("type", "text");
         textInput.classList.add("conditionsText");
+        textInput.setAttribute("value", conditionName)
         textInput.setAttribute("name", "conditionsText");
         textInput.classList.add("text_field");
         let br7 = document.createElement("br");
