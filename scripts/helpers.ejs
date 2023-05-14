@@ -466,46 +466,31 @@
                                   parseInt(affected.start_round) <= i &&
                                   parseInt(affected.end_round) >= i
                         ) {
-                            console.log("affected.start_round " + affected.start_round)
-                            console.log("affected.end_round " + affected.end_round)
-                            console.log("causerPosition: " + causerPosition)
-                            console.log("affectedPosition " + affectedPosition) 
-                            console.log("affected.pID " + affected.pID)
-                            console.log("i " + i) 
-                            console.log("affected.affected_pID " + affected.affected_pID)
-                            console.log("affected.description " + affected.description);
+                            console.log(
+                                "affected.start_round " + affected.start_round
+                            );
+                            console.log(
+                                "affected.end_round " + affected.end_round
+                            );
+                            console.log("causerPosition: " + causerPosition);
+                            console.log("affectedPosition " + affectedPosition);
+                            console.log("affected.pID " + affected.pID);
+                            console.log("i " + i);
+                            console.log(
+                                "affected.affected_pID " + affected.affected_pID
+                            );
+                            console.log(
+                                "affected.description " + affected.description
+                            );
                             let starter = parseInt(affected.start_round);
                             let stopper = parseInt(affected.end_round);
-                            if ((causerPosition < affectedPosition && starter == i)) {
-                                doIt()
-                            }
-                            // if (causerPosition < affectedPosition && starter < i ) {
-                            //     doIt()
-                            // }
-                            if (causerPosition > affectedPosition && starter == i) {
-                                // don't do it
-                            }
-                            // if (causerPosition > affectedPosition && starter < i) {
-                            //     doIt()
-                            // }
-                            if (causerPosition > affectedPosition && stopper == i) {
-                                doIt()
-                            }
-                            // if (causerPosition < affectedPosition && stopper > i ) {
-                            //     doIt()
-                            // }
-                            if (causerPosition < affectedPosition && stopper == i) {
-                                // don't do it
-                            }
-                            // if (causerPosition > affectedPosition && stopper > i) {
-                            //     doIt()
-                            // }
-                            if (i > starter && i < stopper) {
-                                doIt()
-                            }
-
-
-                            function doIt() {
+                            if (
+                                (causerPosition < affectedPosition &&
+                                    starter === i) ||
+                                (causerPosition > affectedPosition &&
+                                    stopper === i) ||
+                                (i > starter && i < stopper)
+                            ) {
                                 const toolTipHTML =
                                     document.createElement("span");
                                 toolTipHTML.className = "tooltip affected";
@@ -514,7 +499,6 @@
                                     toolTipHTML
                                 );
                             }
-
 
                             // if (
                             //     (parseInt(affected.start_round) <= i &&
@@ -816,12 +800,10 @@
                     ? 1
                     : 0
             );
-            actionsRadio.setAttribute("data-holding-one-round", 
-                action == "help" ||
-                action == "ready" 
-                ? 1
-                : 0
-            )
+            actionsRadio.setAttribute(
+                "data-holding-one-round",
+                action == "help" || action == "ready" ? 1 : 0
+            );
             let label = document.createElement("label");
             label.setAttribute("for", action);
             label.classList.add("pointer");
@@ -1225,7 +1207,13 @@
         if (target_pID == [""]) {
             target_pID = ["-"];
         }
-
+        let target_pIDString = target_pID.join(",")
+        
+        if (target_pIDString == "") {
+            target_pIDString = "-"
+        }
+        console.log("chacha: " + target_pIDString);
+       
         // get action type
         let actionTypeElement = document.getElementsByName("actions");
         let actionCategory = Array.from(actionTypeElement).find((item) => {
@@ -1269,10 +1257,11 @@
         ) {
             hit = 1;
         }
-
-        let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID}`;
+        
+        let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
+        console.log(dataAction);
         await dbQuery("GET", dataAction);
-
+        console.log("after")
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
             if (
@@ -1306,7 +1295,7 @@
                 await dbQuery(
                     "GET",
                     "endConditions/" + target_pID[index] + "/" + round
-                )
+                );
             }
         });
 
@@ -1318,7 +1307,7 @@
                 target_pID,
                 concentrationNext,
                 conditionName,
-                holding, 
+                holding,
                 holdingOneRound
             );
         }
@@ -1328,7 +1317,7 @@
         affected,
         concentration,
         conditionName,
-        holding, 
+        holding,
         holdingOneRound
     ) {
         let modal = document.querySelector("#modal-body");
@@ -1601,7 +1590,6 @@
                 option.setAttribute("selected", "true");
             }
 
-
             if (currentRound == i && holding == 0) {
                 option.setAttribute("selected", "true");
             } else {
@@ -1614,10 +1602,6 @@
                     option.setAttribute("selected", "true");
                 }
             }
-
-
-
-
 
             beginRound.appendChild(option);
         }
@@ -2099,13 +2083,19 @@
         affected,
         concentration,
         conditionName,
-        holding, 
+        holding,
         holdingOneRound
     ) {
         if (affected == "turn") {
             concentration == 0;
         }
-        modalConditions(affected, concentration, conditionName, holding, holdingOneRound);
+        modalConditions(
+            affected,
+            concentration,
+            conditionName,
+            holding,
+            holdingOneRound
+        );
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";

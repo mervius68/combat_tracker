@@ -202,6 +202,7 @@ app.get(
 app.get(
     "/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID",
     (req, res) => {
+        console.log("JOJO")
         let encounter = req.params.encounter;
         let round = req.params.round;
         let toolID = req.params.tool; // may be toolID or descriptive string (e.g. disengage)
@@ -217,7 +218,7 @@ app.get(
         let nextTargetID = req.params.nextTargetID;
 
         let hit = req.params.hit;
-
+        
         let damage = req.params.damage;
         console.log("HIT: " + hit);
         if (hit == "x") {
@@ -242,7 +243,7 @@ app.get(
         let nextToolID = req.params.nextToolID;
 
         // build multiple INSERTs if needed
-
+        
         let target_pIDArray = target_pID.split(" ").map;
 
         let sql = `INSERT into ct_tbl_action
