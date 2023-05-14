@@ -445,6 +445,16 @@
                         const affectedParticipant = ctApp.find(
                             (participant) => participant.pID === affected.pID
                         );
+                        let affectedPosition = ctApp.findIndex((item) => {
+                            return item.pID == affected.affected_pID;
+                        });
+                        let causerPosition = ctApp.findIndex((item) => {
+                            return item.pID == affected.pID;
+                        });
+                        console.log(affected);
+                        console.log(
+                            affectedPosition + " vs. " + causerPosition
+                        );
                         const affectedInit = affectedParticipant?.init;
                         if (
                             affected.concentration === 0
@@ -456,14 +466,46 @@
                                   parseInt(affected.start_round) <= i &&
                                   parseInt(affected.end_round) >= i
                         ) {
-                            if (
-                                (parseInt(affected.start_round) === i &&
-                                    participant.init > affectedInit) ||
-                                (parseInt(affected.end_round) === i &&
-                                    participant.init < affectedInit)
-                            ) {
-                                // ...
-                            } else {
+                            console.log("affected.start_round " + affected.start_round)
+                            console.log("affected.end_round " + affected.end_round)
+                            console.log("causerPosition: " + causerPosition)
+                            console.log("affectedPosition " + affectedPosition) 
+                            console.log("affected.pID " + affected.pID)
+                            console.log("i " + i) 
+                            console.log("affected.affected_pID " + affected.affected_pID)
+                            console.log("affected.description " + affected.description);
+                            let starter = parseInt(affected.start_round);
+                            let stopper = parseInt(affected.end_round);
+                            if ((causerPosition < affectedPosition && starter == i)) {
+                                doIt()
+                            }
+                            // if (causerPosition < affectedPosition && starter < i ) {
+                            //     doIt()
+                            // }
+                            if (causerPosition > affectedPosition && starter == i) {
+                                // don't do it
+                            }
+                            // if (causerPosition > affectedPosition && starter < i) {
+                            //     doIt()
+                            // }
+                            if (causerPosition > affectedPosition && stopper == i) {
+                                doIt()
+                            }
+                            // if (causerPosition < affectedPosition && stopper > i ) {
+                            //     doIt()
+                            // }
+                            if (causerPosition < affectedPosition && stopper == i) {
+                                // don't do it
+                            }
+                            // if (causerPosition > affectedPosition && stopper > i) {
+                            //     doIt()
+                            // }
+                            if (i > starter && i < stopper) {
+                                doIt()
+                            }
+
+
+                            function doIt() {
                                 const toolTipHTML =
                                     document.createElement("span");
                                 toolTipHTML.className = "tooltip affected";
@@ -472,6 +514,22 @@
                                     toolTipHTML
                                 );
                             }
+
+
+                            // if (
+                            //     (parseInt(affected.start_round) <= i &&
+                            //         causerPosition < affectedPosition) ||
+                            //     (parseInt(affected.end_round) >= i &&
+                            //         causerPosition > affectedPosition)
+                            // ) {
+                            //     const toolTipHTML =
+                            //         document.createElement("span");
+                            //     toolTipHTML.className = "tooltip affected";
+                            //     toolTipHTML.innerHTML = `A<span class="tooltiptext">${affected.description}</span>`;
+                            //     turn.nextSibling.nextSibling.appendChild(
+                            //         toolTipHTML
+                            //     );
+                            // }
                         }
                     });
 
@@ -758,6 +816,12 @@
                     ? 1
                     : 0
             );
+            actionsRadio.setAttribute("data-holding-one-round", 
+                action == "help" ||
+                action == "ready" 
+                ? 1
+                : 0
+            )
             let label = document.createElement("label");
             label.setAttribute("for", action);
             label.classList.add("pointer");
@@ -1035,6 +1099,7 @@
         let currentRound = html.getAttribute("data-round");
         let pID = html.getAttribute("data-participant");
         let dataNav = html.getAttribute("data-nav");
+        let holdingOneRound = 0;
         // determine next available action number
         let nextAID = await dbQuery("GET", "getNewAID");
         if (nextAID.length > 0 && nextAID[0].aID != undefined) {
@@ -1077,6 +1142,12 @@
                         return weapon.checked == true;
                     })
                     .getAttribute("data-holding") || 0;
+            holdingOneRound =
+                Array.from(weapons)
+                    .find((weapon) => {
+                        return weapon.checked == true;
+                    })
+                    .getAttribute("data-holding-one-round") || 0;
 
             if (isNaN(parseInt(tool))) {
                 actionString = tool;
@@ -1227,16 +1298,16 @@
                 target_pID[index]
             }/${targetHPsArray[index]}`;
             await dbQuery("GET", dataTarget);
-            // if (targetHPsArray[index] - damage[index] <= 0) {
-            //     await dbQuery(
-            //         "GET",
-            //         "terminate/" + target_pID[index] + "/" + round
-            //     );
-            //     await dbQuery(
-            //         "GET",
-            //         "endConditions/" + target_pID[index] + "/" + round
-            //     )
-            // }
+            if (targetHPsArray[index] - damage[index] <= 0) {
+                await dbQuery(
+                    "GET",
+                    "terminate/" + target_pID[index] + "/" + round
+                );
+                await dbQuery(
+                    "GET",
+                    "endConditions/" + target_pID[index] + "/" + round
+                )
+            }
         });
 
         load_encounter(0, dataNav);
@@ -1247,7 +1318,8 @@
                 target_pID,
                 concentrationNext,
                 conditionName,
-                holding
+                holding, 
+                holdingOneRound
             );
         }
     }
@@ -1256,7 +1328,8 @@
         affected,
         concentration,
         conditionName,
-        holding
+        holding, 
+        holdingOneRound
     ) {
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
@@ -1266,7 +1339,7 @@
         //     return participantID == participant.pID
         // })
         // let affecteeObject = ctApp.find((participant) => {
-        //     return participant.pID == 
+        //     return participant.pID ==
         // })
         let characterID = ctApp.find((participant) => {
             return participant.pID == participantID;
@@ -1527,6 +1600,25 @@
             if (currentRound == i) {
                 option.setAttribute("selected", "true");
             }
+
+
+            if (currentRound == i && holding == 0) {
+                option.setAttribute("selected", "true");
+            } else {
+                if (currentRound == i && causerPosition < affecteePosition) {
+                    option.setAttribute("selected", "true");
+                } else if (
+                    currentRound == i - 1 &&
+                    causerPosition >= affecteePosition
+                ) {
+                    option.setAttribute("selected", "true");
+                }
+            }
+
+
+
+
+
             beginRound.appendChild(option);
         }
 
@@ -1548,12 +1640,15 @@
             option.setAttribute("value", i);
             option.classList.add("pointer");
             option.innerHTML = i;
-            if (currentRound == i - 10 && holding == 0) {
+            if (currentRound == i - 10 && holdingOneRound == 0) {
                 option.setAttribute("selected", "true");
             } else {
                 if (currentRound == i && causerPosition < affecteePosition) {
                     option.setAttribute("selected", "true");
-                } else if (currentRound == i - 1 && causerPosition >= affecteePosition) {
+                } else if (
+                    currentRound == i - 1 &&
+                    causerPosition >= affecteePosition
+                ) {
                     option.setAttribute("selected", "true");
                 }
             }
@@ -2004,12 +2099,13 @@
         affected,
         concentration,
         conditionName,
-        holding
+        holding, 
+        holdingOneRound
     ) {
         if (affected == "turn") {
             concentration == 0;
         }
-        modalConditions(affected, concentration, conditionName, holding);
+        modalConditions(affected, concentration, conditionName, holding, holdingOneRound);
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";
