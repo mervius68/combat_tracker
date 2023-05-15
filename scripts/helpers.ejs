@@ -1499,6 +1499,7 @@
 
         // build the affectees checkboxes
         let affecteePosition;
+        let affecteesCount = 0;
         ctApp.forEach((participant, index) => {
             let checkbox = document.createElement("input");
             checkbox.classList.add("pointer");
@@ -1508,6 +1509,7 @@
             if (affected.includes(participant.pID.toString())) {
                 checkbox.setAttribute("checked", "true");
                 affecteePosition = index;
+                affecteesCount += 1;
             }
             let label = document.createElement("label");
             label.classList.add("pointer");
@@ -1538,7 +1540,7 @@
             checkbox.classList.add("pointer");
             checkbox.setAttribute("name", "condition_ends");
             checkbox.setAttribute("id", "x" + participant.pID);
-            if (affected.includes(participant.pID.toString()) && holding == 1) {
+            if (affected.includes(participant.pID.toString()) && holding == 1 && affecteesCount == 1) {
                 checkbox.setAttribute("checked", "true");
             } else {
                 if (participantID == participant.pID) {
@@ -1790,6 +1792,10 @@
             affecteesPID.push(affectee.getAttribute("id").substring(1));
         });
         let affecteesString = affecteesPID.join(", ");
+        let end_pID = Array.from(conditionEndsHTML).find((participant) => {
+            return participant.checked == true;
+        }).id;
+        end_pID = end_pID.substring(1);
 
         let conditionEndsPID = Array.from(conditionEndsHTML)
             .find((item) => {
@@ -1821,7 +1827,7 @@
         let taID = getNextTAID.taID + 1;
 
         // send condition affectee info
-        let dataConditionsAffectees = `addConditionAffectees/${taID}/${startRound}/${endRound}/${affecteesString}`;
+        let dataConditionsAffectees = `addConditionAffectees/${taID}/${startRound}/${endRound}/${affecteesString}/${end_pID}`;
         await dbQuery("GET", dataConditionsAffectees);
 
         // send condition info

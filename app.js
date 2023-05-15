@@ -315,17 +315,18 @@ app.get("/getNextTAID", (req, res) => {
 });
 
 app.get(
-    "/addConditionAffectees/:taID/:startRound/:endRound/:affecteesString",
+    "/addConditionAffectees/:taID/:startRound/:endRound/:affecteesString/:end_pID",
     (req, res) => {
         let taID = req.params.taID;
         let startRound = req.params.startRound;
         let endRound = req.params.endRound;
         let affecteesString = req.params.affecteesString;
         let affecteesArray = affecteesString.split(", ");
+        let end_pID = req.params.end_pID;
         affecteesArray.forEach((affectee) => {
             let sql = `INSERT into ct_tbl_condition_affectee
-                (taID, start_round, end_round, affected_pID)
-                values ('${taID}', '${startRound}', '${endRound}', '${affectee}')
+                (taID, start_round, end_round, affected_pID, end_pID)
+                values ('${taID}', '${startRound}', '${endRound}', '${affectee}', '${end_pID}')
             `;
             db.all(sql, [], (err, results) => {
                 if (err) {
