@@ -202,7 +202,6 @@ app.get(
 app.get(
     "/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID",
     (req, res) => {
-        console.log("JOJO")
         let encounter = req.params.encounter;
         let round = req.params.round;
         let toolID = req.params.tool; // may be toolID or descriptive string (e.g. disengage)
@@ -290,8 +289,8 @@ app.get(
         let concentration = req.params.concentration;
 
         let sql = `INSERT into ct_tbl_condition
-                (eID, pID, taID, end_pID, cpID, concentration)
-                values ('${eID}', '${creator}', '${taID}', '${end_pID}', '${newCpID}', '${concentration}')
+                (eID, pID, taID, cpID, concentration)
+                values ('${eID}', '${creator}', '${taID}', '${newCpID}', '${concentration}')
             `;
         let query = db.run(sql, [], (err, results) => {
             if (err) {
@@ -373,11 +372,12 @@ app.get("/terminate/:pID/:round", (req, res) => {
     });
 });
 
-app.get("/endConditions/:pID/:round", (req, res) => {
+app.get("/endConditions/:pID/:round/:taID", (req, res) => {
     let pID = req.params.pID;
     let round = req.params.round;
-    let sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}'
-        where affected_pID = '${pID}'
+    let taID = req.params.taID;
+    let sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${pID}'
+        where affected_pID = '${pID}' AND taID = '${taID}'
             `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -389,23 +389,18 @@ app.get("/endConditions/:pID/:round", (req, res) => {
     });
 });
 
-app.get("/disableCondition/:cpID/:currentRound/:pID", (req, res) => {
-    console.log("JOJO " + req.params.currentRound);
+app.get("/disableCondition/:cpID/", (req, res) => {
     let cpID = req.params.cpID;
-    let pID = req.params.pID;
-    let currentRound = req.params.currentRound;
-    let sql = `UPDATE ct_tbl_condition SET end_round = ${currentRound}, end_pID = '${pID}'
-        where cpID = '${cpID}'
-            `;
+    let sql = `SELECT * FROM ct_tbl_condition WHERE cpID = '${cpID}'`;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        console.log(sql);
         res.send(results);
     });
-});
+  });
+  
 
 // app.get("/getResAndWeathInfo/:resDate", (req, res) => {
 //     let newDate = dateFormat(req.params.resDate, "yyyy-mm-dd");

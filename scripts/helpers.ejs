@@ -445,16 +445,18 @@
                         const affectedParticipant = ctApp.find(
                             (participant) => participant.pID === affected.pID
                         );
-                        let affectedPosition = ctApp.findIndex((item) => {
-                            return item.pID == affected.affected_pID;
+                        let endPosition = ctApp.findIndex((item) => {
+                            return item.pID == affected.end_pID;
                         });
                         let causerPosition = ctApp.findIndex((item) => {
                             return item.pID == affected.pID;
                         });
+                        let affectedPosition = ctApp.findIndex((item) => {
+                            return item.pID == affected.affected_pID;
+                        });
+
                         console.log(affected);
-                        console.log(
-                            affectedPosition + " vs. " + causerPosition
-                        );
+                        console.log(endPosition + " vs. " + causerPosition);
                         const affectedInit = affectedParticipant?.init;
                         if (
                             affected.concentration === 0
@@ -466,31 +468,79 @@
                                   parseInt(affected.start_round) <= i &&
                                   parseInt(affected.end_round) >= i
                         ) {
-                            console.log(
-                                "affected.start_round " + affected.start_round
-                            );
-                            console.log(
-                                "affected.end_round " + affected.end_round
-                            );
-                            console.log("causerPosition: " + causerPosition);
-                            console.log("affectedPosition " + affectedPosition);
-                            console.log("affected.pID " + affected.pID);
-                            console.log("i " + i);
-                            console.log(
-                                "affected.affected_pID " + affected.affected_pID
-                            );
-                            console.log(
-                                "affected.description " + affected.description
-                            );
                             let starter = parseInt(affected.start_round);
                             let stopper = parseInt(affected.end_round);
+                            console.log("A");
+                            console.log(causerPosition);
+                            console.log(affectedPosition);
+                            console.log(endPosition);
+
+                            if (endPosition <= affectedPosition) {
+                                if (starter == i && stopper > i) {
+                                    populateAffected();
+                                }
+                            }
                             if (
-                                (causerPosition < affectedPosition &&
-                                    starter === i) ||
-                                (causerPosition > affectedPosition &&
-                                    stopper === i) ||
-                                (i > starter && i < stopper)
+                                causerPosition <= affectedPosition &&
+                                affectedPosition <= endPosition
                             ) {
+                                if (starter == i && stopper == i) {
+                                    populateAffected();
+                                }
+                                if (starter < i && stopper == i) {
+                                    populateAffected();
+                                }
+                                if (starter == i && stopper > i) {
+                                    populateAffected();
+                                }
+                            }
+                            if (affectedPosition <= causerPosition) {
+                                if (starter < i && stopper == i) {
+                                    populateAffected();
+                                }
+                            }
+                            
+                            // if (endPosition <= affectedPosition) {
+                            //     if (starter == i && stopper == i) {
+                            //         // don't do it
+                            //     }
+                            //     if (starter < i && stopper == i) {
+                            //         // don't do it
+                            //     }
+                            //     if (starter == i && stopper > i) {
+                            //         populateAffected();
+                            //     }
+                            // }
+                            // if (
+                            //     causerPosition <= affectedPosition &&
+                            //     affectedPosition <= endPosition
+                            // ) {
+                            //     if (starter == i && stopper == i) {
+                            //         populateAffected();
+                            //     }
+                            //     if (starter < i && stopper == i) {
+                            //         populateAffected();
+                            //     }
+                            //     if (starter == i && stopper > i) {
+                            //         populateAffected();
+                            //     }
+                            // }
+                            // if (affectedPosition <= causerPosition) {
+                            //     if (starter == i && stopper == i) {
+                            //         // don't do it
+                            //     }
+                            //     if (starter < i && stopper == i) {
+                            //         populateAffected();
+                            //     }
+                            //     if (starter == i && stopper > i) {
+                            //         // don't do it
+                            //     }
+                            // }
+                            if (starter < i && stopper > i) {
+                                populateAffected();
+                            }
+
+                            function populateAffected() {
                                 const toolTipHTML =
                                     document.createElement("span");
                                 toolTipHTML.className = "tooltip affected";
@@ -501,10 +551,11 @@
                             }
 
                             // if (
-                            //     (parseInt(affected.start_round) <= i &&
-                            //         causerPosition < affectedPosition) ||
-                            //     (parseInt(affected.end_round) >= i &&
-                            //         causerPosition > affectedPosition)
+                            //     (causerPosition >= endPosition && endPosition >= affectedPosition &&
+                            //         stopper === i) ||
+                            //     (causerPosition <= endPosition && endPosition <= affectedPosition &&
+                            //         starter === i) ||
+                            //     (i > starter && i < stopper)
                             // ) {
                             //     const toolTipHTML =
                             //         document.createElement("span");
@@ -555,7 +606,6 @@
                 });
             });
         }
-
         try {
             for (const action of ctActions) {
                 let tool = {};
@@ -569,6 +619,7 @@
                 if (action.targetID) {
                     target = await dbQuery("GET", "target/" + action.targetID);
                 }
+
                 let targets,
                     targetString = "",
                     damageString = "";
@@ -592,15 +643,16 @@
 
                 let actionArray = [];
 
-                actionArray[0] = tool;
+                actionArray[0] = tool || "";
                 actionArray[1] =
                     action.hit == 1 ? "<b class='lightred'>X</b>" : "";
-                actionArray[2] = targetString;
-                actionArray[3] = damageString;
+                actionArray[2] = targetString || "";
+                actionArray[3] = damageString || "";
+                actionArray[4] = action.notes || "";
                 await sendToCoordinate(
                     action.round,
                     action.pID,
-                    action.action_type || action.action,
+                    action.action_type || "",
                     actionArray
                 );
             }
@@ -622,19 +674,40 @@
         } catch (err) {}
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
+            try {
+                if (
+                    (actionArray[4] != "-" && actionType == "other") ||
+                    (actionArray[4] != "-" && actionType != "other")
+                ) {
+                    let y = mainContainer.querySelector(
+                        `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
+                    );
+                    y.nextSibling.nextSibling.nextSibling.innerHTML =
+                        y.nextSibling.nextSibling.nextSibling.innerHTML +
+                        (y.nextSibling.nextSibling.nextSibling.innerHTML == ""
+                            ? ""
+                            : " | ") +
+                        actionArray[4] +
+                        " ";
+                }
+            } catch (err) {}
+
             let actionHTML = "data-" + actionType;
             let action = 1;
             let x;
-            do {
-                x = mainContainer.querySelector(
-                    `[data-round="${round}"] [${actionHTML}="${action}"] [data-participant="${participant}"]`
-                );
-                action += 1;
-            } while (x.innerHTML !== "");
-            x.innerHTML = actionArray[0];
-            x.nextSibling.innerHTML = actionArray[1];
-            x.nextSibling.nextSibling.innerHTML = actionArray[2];
-            x.nextSibling.nextSibling.nextSibling.innerHTML = actionArray[3];
+            try {
+                do {
+                    x = mainContainer.querySelector(
+                        `[data-round="${round}"] [${actionHTML}="${action}"] [data-participant="${participant}"]`
+                    );
+                    action += 1;
+                } while (x.innerHTML !== "");
+                x.innerHTML = actionArray[0];
+                x.nextSibling.innerHTML = actionArray[1];
+                x.nextSibling.nextSibling.innerHTML = actionArray[2];
+                x.nextSibling.nextSibling.nextSibling.innerHTML =
+                    actionArray[3];
+            } catch (err) {}
         }
 
         let xyz = document.querySelectorAll(".ct_round");
@@ -723,6 +796,7 @@
         div14.appendChild(br1);
 
         participantTools.forEach((item) => {
+            console.log(item);
             let tool = document.createElement("input");
             tool.setAttribute("type", "radio");
             tool.setAttribute("value", item.toolID);
@@ -730,6 +804,9 @@
             tool.classList.add("pointer");
             tool.setAttribute("name", "weapons");
             tool.setAttribute("data-concentration", item.concentration);
+            tool.setAttribute("data-holding", item.holding);
+            tool.setAttribute("data-holding-one-round", item.holding_one_round);
+
             let label = document.createElement("label");
             label.setAttribute("for", item.toolID);
             label.classList.add("radio_buttons");
@@ -737,6 +814,13 @@
             label.innerHTML =
                 item.toolName +
                 (item.damage_dice ? " (" + item.damage_dice + ")" : "");
+            let span4;
+            if (item.holding == 1) {
+                span4 = document.createElement("span");
+                span4.innerHTML = "H";
+                span4.classList.add("holding");
+                label.appendChild(span4);
+            }
             let span1;
             if (item.concentration == "1") {
                 span1 = document.createElement("span");
@@ -977,14 +1061,23 @@
                     span.classList.add("concentration");
                     span.classList.add("savingThrow");
                 }
+                if (condition.holding == 1) {
+                    span.textContent = "H";
+                    span.classList.add("holding");
+                    // span.classList.add("savingThrow");
+                }
                 let label = document.createElement("label");
-
                 label.setAttribute("for", "b" + condition.affected_pID);
                 label.classList.add("pointer");
+
                 let causer = ctApp.find((participant) => {
                     return condition.pID == participant.pID;
                 });
-                let causerName = causer.character_name;
+                let causerName =
+                    causer.character_name +
+                    (causer.numeric_value != null
+                        ? " #" + causer.numeric_value
+                        : "");
                 if (
                     condition.pID == causer.pID &&
                     condition.concentration == 1
@@ -1207,13 +1300,13 @@
         if (target_pID == [""]) {
             target_pID = ["-"];
         }
-        let target_pIDString = target_pID.join(",")
-        
+        let target_pIDString = target_pID.join(",");
+
         if (target_pIDString == "") {
-            target_pIDString = "-"
+            target_pIDString = "-";
         }
         console.log("chacha: " + target_pIDString);
-       
+
         // get action type
         let actionTypeElement = document.getElementsByName("actions");
         let actionCategory = Array.from(actionTypeElement).find((item) => {
@@ -1232,20 +1325,23 @@
 
         let disableConditionsEle = document.getElementsByName("conditions");
         let disableConditionsString = "";
+        let disabledConditionsArray = [];
         disableConditionsEle.forEach(async (condition) => {
             if (condition.checked == true) {
-                await dbQuery(
-                    "GET",
-                    "disableCondition/" +
-                        condition.value +
-                        "/" +
-                        currentRound +
-                        "/" +
-                        pID
+                disabledConditionsArray.push(
+                    await dbQuery(
+                        "GET",
+                        "disableCondition/" + condition.value // +
+                        // "/" +
+                        // currentRound +
+                        // "/" +
+                        // pID
+                    )
                 );
                 disableConditionsString += condition.value;
             }
         });
+        console.log(disabledConditionsArray);
         if (disableConditionsString == "") {
             disableConditionsString = "-";
         }
@@ -1257,11 +1353,11 @@
         ) {
             hit = 1;
         }
-        
+
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
         console.log(dataAction);
         await dbQuery("GET", dataAction);
-        console.log("after")
+        console.log("after");
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
             if (
