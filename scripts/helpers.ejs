@@ -715,7 +715,7 @@
         fillDropdown(encounterCode);
     }
 
-    async function modalTurn() {
+    async function modalActions() {
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -973,9 +973,6 @@
                 (participant.numeric_value
                     ? " #" + participant.numeric_value
                     : "");
-            // let span = document.createElement("span");
-            // span.classList.add("conSavingThrowCheck");
-            // targetLabel.appendChild(span);
 
             let br3 = document.createElement("br");
             div16.appendChild(target);
@@ -988,7 +985,6 @@
 
         let notesLabel = document.createElement("h3");
         notesLabel.innerText = "Notes";
-        // let br4 = document.createElement("br");
         let notes = document.createElement("textarea");
         notes.setAttribute("rows", "5");
         notes.setAttribute("cols", "30");
@@ -1012,7 +1008,7 @@
         //         index ===
         //         self.findIndex((t) => t.conditionID === obj.conditionID)
         // );
-        console.log(conditionsInEffect);
+
         conditionsInEffect.forEach((condition) => {
             let conditionParticipant = condition.pID;
             let startHTML = document.querySelector(
@@ -1085,9 +1081,6 @@
                 }).character_name;
                 let numeric = ctApp.find((participant) => {
                     return parseInt(condition.affected_pID) == participant.pID;
-                    // return condition.targets_affected.includes(
-                    //     participant.pID.toString()
-                    // );
                 }).numeric_value;
 
                 label.innerHTML =
@@ -1122,8 +1115,16 @@
         let submit = document.createElement("button");
         submit.innerText = "SUBMIT";
         submit.setAttribute("onclick", "submitAction()");
+        submit.classList.add("button")
+        let submitGoToCondition = document.createElement("button");
+        submitGoToCondition.innerText = "SUBMIT + go to CONDITIONS";
+        submitGoToCondition.classList.add("button")
+        submitGoToCondition.setAttribute("onclick", "submitAction('1')");
+
+
 
         buttonContainer.appendChild(submit);
+        buttonContainer.appendChild(submitGoToCondition);
         container.appendChild(buttonContainer);
 
         modal.innerHTML = container.outerHTML;
@@ -1160,7 +1161,7 @@
         });
     }
 
-    async function submitAction() {
+    async function submitAction(forceCondition = 0) {
         // get current round
         let html = document.querySelector(".selected");
         let currentRound = html.getAttribute("data-round");
@@ -1390,7 +1391,7 @@
         load_encounter(0, dataNav);
         let modal = document.querySelector(".modal");
         modal.style.display = "none";
-        if (concentrationNext == 1 || holding == 1) {
+        if (concentrationNext == 1 || holding == 1 || forceCondition == 1) {
             launchConditionsModal(
                 target_pID,
                 concentrationNext,
@@ -2062,7 +2063,7 @@
     }
 
     function launchActionModal(event) {
-        modalTurn();
+        modalActions();
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";

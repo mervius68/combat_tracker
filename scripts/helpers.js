@@ -605,7 +605,7 @@
         fillDropdown(encounterCode);
     }
 
-    async function modalTurn() {
+    async function modalActions() {
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -1884,7 +1884,7 @@
     }
 
     function launchActionModal(event) {
-        modalTurn();
+        modalActions();
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";
