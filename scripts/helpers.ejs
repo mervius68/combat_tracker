@@ -455,8 +455,6 @@
                             return item.pID == affected.affected_pID;
                         });
 
-                        console.log(affected);
-                        console.log(endPosition + " vs. " + causerPosition);
                         const affectedInit = affectedParticipant?.init;
                         if (
                             affected.concentration === 0
@@ -781,6 +779,7 @@
         defaultTool.setAttribute("name", "weapons");
         defaultTool.classList.add("pointer");
         defaultTool.setAttribute("data-concentration", 0);
+        defaultTool.setAttribute("checked", "true")
         let defaultLabel = document.createElement("label");
         defaultLabel.setAttribute("for", "default");
         defaultLabel.classList.add("radio_buttons");
@@ -793,7 +792,6 @@
         div14.appendChild(br1);
 
         participantTools.forEach((item) => {
-            console.log(item);
             let tool = document.createElement("input");
             tool.setAttribute("type", "radio");
             tool.setAttribute("value", item.toolName);
@@ -1014,8 +1012,8 @@
         //         index ===
         //         self.findIndex((t) => t.conditionID === obj.conditionID)
         // );
-
-        let condition = conditionsInEffect.forEach((condition) => {
+        console.log(conditionsInEffect);
+        conditionsInEffect.forEach((condition) => {
             let conditionParticipant = condition.pID;
             let startHTML = document.querySelector(
                 '[data-round="' +
@@ -1084,9 +1082,6 @@
                 }
                 let affected = ctApp.find((participant) => {
                     return parseInt(condition.affected_pID) == participant.pID;
-                    // return condition.targets_affected.includes(
-                    //     participant.pID.toString()
-                    // );
                 }).character_name;
                 let numeric = ctApp.find((participant) => {
                     return parseInt(condition.affected_pID) == participant.pID;
@@ -1110,7 +1105,7 @@
                 divModalBottom.appendChild(label);
                 divModalBottom.appendChild(br6);
                 // if target is concentrating, put a yellow-highlighted C next to their name
-                if (condition.concentration == 1) {
+                if (condition.concentration == 1 && !divRight.querySelector(".p" + condition.pID + " .concentration" )) {
                     let concentrationSpan = document.createElement("span");
                     concentrationSpan.textContent = "C";
                     concentrationSpan.classList.add("concentration");
@@ -1302,7 +1297,6 @@
         if (target_pIDString == "") {
             target_pIDString = "-";
         }
-        console.log("chacha: " + target_pIDString);
 
         // get action type
         let actionTypeElement = document.getElementsByName("actions");
@@ -1342,7 +1336,6 @@
                 disableConditionsString += condition.value;
             }
         });
-        console.log(disabledConditionsArray);
         if (disableConditionsString == "") {
             disableConditionsString = "-";
         }
@@ -1356,9 +1349,7 @@
         }
 
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
-        console.log(dataAction);
         await dbQuery("GET", dataAction);
-        console.log("after");
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
             if (

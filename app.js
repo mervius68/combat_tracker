@@ -193,7 +193,7 @@ app.get(
                 console.log(err);
                 throw err;
             }
-            console.log(sql);
+            // console.log(sql);
             res.send(results);
         });
     }
@@ -219,7 +219,6 @@ app.get(
         let hit = req.params.hit;
         
         let damage = req.params.damage;
-        console.log("HIT: " + hit);
         if (hit == "x") {
             hit = 1;
             damage = 0;
@@ -254,14 +253,13 @@ app.get(
                 console.log(err);
                 throw err;
             }
-            console.log(sql);
+            // console.log(sql);
             res.send({});
         });
     }
 );
 
 app.get("/targetsHP/:target_pID", (req, res) => {
-    console.log(req.params.target_pID);
     let target_pID = req.params.target_pID;
     let sql = `SELECT *
     FROM ct_tbl_target
@@ -368,7 +366,7 @@ app.get("/terminate/:pID/:round", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log(results);
+        // console.log(results);
         res.send(results);
     });
 });
@@ -538,7 +536,7 @@ app.get("/getConditionsForCtApp/:eID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        console.log(results);
+        // console.log(results);
         res.send(results);
     });
 });
