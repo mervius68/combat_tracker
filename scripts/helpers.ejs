@@ -470,34 +470,33 @@
                         ) {
                             let starter = parseInt(affected.start_round);
                             let stopper = parseInt(affected.end_round);
-                            console.log("A");
-                            console.log(causerPosition);
-                            console.log(affectedPosition);
-                            console.log(endPosition);
+                            // console.log("A");
+                            // console.log(causerPosition);
+                            // console.log(affectedPosition);
+                            // console.log(endPosition);
 
                             if (endPosition <= affectedPosition) {
                                 if (starter == i && stopper > i) {
                                     populateAffected();
                                 }
-                            }
-                            if (
+                            } else if (
                                 causerPosition <= affectedPosition &&
                                 affectedPosition <= endPosition
                             ) {
                                 if (starter == i && stopper == i) {
                                     populateAffected();
+                                } else if (starter < i && stopper == i) {
+                                    populateAffected();
+                                } else if (starter == i && stopper > i) {
+                                    populateAffected();
                                 }
+                            } else if (affectedPosition <= causerPosition) {
                                 if (starter < i && stopper == i) {
                                     populateAffected();
                                 }
-                                if (starter == i && stopper > i) {
-                                    populateAffected();
-                                }
-                            }
-                            if (affectedPosition <= causerPosition) {
-                                if (starter < i && stopper == i) {
-                                    populateAffected();
-                                }
+                            } 
+                            if (starter < i && stopper > i) {
+                                populateAffected();
                             }
                             
                             // if (endPosition <= affectedPosition) {
@@ -536,9 +535,7 @@
                             //         // don't do it
                             //     }
                             // }
-                            if (starter < i && stopper > i) {
-                                populateAffected();
-                            }
+                           
 
                             function populateAffected() {
                                 const toolTipHTML =
@@ -799,7 +796,7 @@
             console.log(item);
             let tool = document.createElement("input");
             tool.setAttribute("type", "radio");
-            tool.setAttribute("value", item.toolID);
+            tool.setAttribute("value", item.toolName);
             tool.setAttribute("id", item.toolID);
             tool.classList.add("pointer");
             tool.setAttribute("name", "weapons");
@@ -1327,15 +1324,19 @@
         let disableConditionsString = "";
         let disabledConditionsArray = [];
         disableConditionsEle.forEach(async (condition) => {
+        
+            // get value of taID by sending data-cpid to ct_tbl_condition
+
             if (condition.checked == true) {
                 disabledConditionsArray.push(
                     await dbQuery(
                         "GET",
-                        "disableCondition/" + condition.value // +
-                        // "/" +
-                        // currentRound +
-                        // "/" +
-                        // pID
+                        "disableCondition/" + condition.getAttribute("data-cpid") +
+                        "/" +
+                        currentRound +
+                        "/" +
+                        condition.getAttribute("data-participant-affected") + "/" +
+                        pID
                     )
                 );
                 disableConditionsString += condition.value;
@@ -1715,7 +1716,6 @@
         endRound.setAttribute("name", "endRound");
 
         // determine whose init is higher, causer or affectee
-        alert(causerPosition + " vs. " + affecteePosition);
 
         for (let i = 1; i <= 20; i++) {
             let option = document.createElement("option");

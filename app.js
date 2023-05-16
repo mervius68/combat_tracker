@@ -390,9 +390,12 @@ app.get("/endConditions/:pID/:round/:taID", (req, res) => {
     });
 });
 
-app.get("/disableCondition/:cpID/", (req, res) => {
+app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
     let cpID = req.params.cpID;
-    let sql = `SELECT * FROM ct_tbl_condition WHERE cpID = '${cpID}'`;
+    let round = req.params.round;
+    let affected_pID = req.params.affected_pID;
+    let pID = req.params.pID
+    let sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${pID}' WHERE taID IN (select taID from ct_tbl_condition where ct_tbl_condition.cpID = '${cpID}') AND affected_pID = '${affected_pID}'`;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
@@ -401,57 +404,6 @@ app.get("/disableCondition/:cpID/", (req, res) => {
         res.send(results);
     });
   });
-  
-
-// app.get("/getResAndWeathInfo/:resDate", (req, res) => {
-//     let newDate = dateFormat(req.params.resDate, "yyyy-mm-dd");
-//     let sql = `SELECT * FROM tblresidence where '${newDate}' >= resBegin AND '${newDate}' <= resEnd;
-//                SELECT * FROM tblweatherloc order by wlID ASC;
-//                SELECT * FROM tblresidence where '${newDate}' > resEnd ORDER BY resEnd DESC limit 1;
-//                SELECT * FROM tblresidence where '${newDate}' < resBegin ORDER BY resBegin ASC limit 1;
-//                `;
-//     let query = db.query(sql, (err, results) => {
-//         if (err) {
-//             throw err;
-//         }
-//         console.log(results[0])
-//         res.send(
-//             JSON.stringify([
-//                 results[0], // or [...results[0]],
-//                 results[1],
-//                 results[2],
-//                 results[3],
-//             ])
-//         );
-//         console.log("BANG!")
-//     });
-// });
-
-// app.post("/submitAction/:encounter/:round/:tool/:action_type/:pID/:target_pID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextTargetID", upload.none(), function (req, res, next) {
-//     let encounter = req.params.encounter
-//     let round = req.params.round
-//     let tool = req.params.tool
-//     let action_type = req.params.action_type
-//     let pID = req.params.pID
-//     let target_pID = req.params.target_pID
-//     let hit = req.params.hit
-//     let actionCategory = req.params.actionCategory
-//     let damage = req.params.damage
-//     let notes = req.params.notes
-//     let disable_condition = req.params.disable_condition
-//     let nextAID = req.params.nextAID
-//     let nextTargetID = req.params.nextTargetID
-//     let sql = `INSERT into ct_tbl_action
-//     (aID, eID, round, pID, targetID, hit, action_type, action, toolID)
-//     values (nextAID, encounter, round, pID, target_pID, hit, action_type, actionCategory, toolID)
-//         `;
-//     let query = db.query(sql, (err, results) => {
-//         if (err) {
-//             throw err;
-//         }
-//     });
-//     res.status(201).json();
-// });
 
 app.get("/participantActions/:encounter/:round", (req, res) => {
     let encounter = req.params.encounter;
