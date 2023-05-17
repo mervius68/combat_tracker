@@ -962,10 +962,10 @@
             target.classList.add("text_field");
             target.classList.add("numeric");
             target.setAttribute("name", "participants");
-            target.setAttribute("id", participant.pID);
+            target.setAttribute("id", "p" + participant.pID);
             target.setAttribute("autocomplete", "off");
             let targetLabel = document.createElement("label");
-            targetLabel.setAttribute("for", participant.pID);
+            targetLabel.setAttribute("for", "p" + participant.pID);
             targetLabel.classList.add("p" + participant.pID);
             targetLabel.classList.add("modal_text_inputs");
             targetLabel.classList.add("pointer")
@@ -1249,40 +1249,40 @@
             targetsArray.map(async (target) => {
                 if (parseInt(target.value) && target.value != "0") {
                     targetHits.push("1 ");
-                    target_pID.push(target.id);
+                    target_pID.push(target.id.substring(1));
                     damage.push(target.value);
-                    let x = await dbQuery("GET", "targetsHP/" + target.id);
+                    let x = await dbQuery("GET", "targetsHP/" + target.id.substring(1));
                     if (x.length > 0 && x[0].new_hp != undefined) {
                         x = x[0].new_hp;
                     } else {
                         x = ctApp.find((participant) => {
-                            return participant.pID == target.id;
+                            return participant.pID == target.id.substring(1);
                         }).starting_hp;
                     }
                     targetHPsArray.push(x);
                 } else if (target.value == "0") {
                     targetHits.push("0 ");
-                    target_pID.push(target.id);
+                    target_pID.push(target.id.substring(1));
                     damage.push(target.value);
-                    let x = await dbQuery("GET", "targetsHP/" + target.id);
+                    let x = await dbQuery("GET", "targetsHP/" + target.id.substring(1));
                     if (x.length > 0 && x[0].new_hp != undefined) {
                         x = x[0].new_hp;
                     } else {
                         x = ctApp.find((participant) => {
-                            return participant.pID == target.id;
+                            return participant.pID == target.id.substring(1);
                         }).starting_hp;
                     }
                     targetHPsArray.push(x);
                 } else if (target.value == "x") {
                     targetHits.push("1 ");
-                    target_pID.push(target.id);
+                    target_pID.push(target.id.substring(1));
                     damage.push("0");
-                    let x = await dbQuery("GET", "targetsHP/" + target.id);
+                    let x = await dbQuery("GET", "targetsHP/" + target.id.substring(1));
                     if (x.length > 0 && x[0].new_hp != undefined) {
                         x = x[0].new_hp;
                     } else {
                         x = ctApp.find((participant) => {
-                            return participant.pID == target.id;
+                            return participant.pID == target.id.substring(1);
                         }).starting_hp;
                     }
                     targetHPsArray.push(x);
