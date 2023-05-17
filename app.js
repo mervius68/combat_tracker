@@ -355,11 +355,11 @@ app.get("/newConditionPoolItem/:conditionName/:description", (req, res) => {
     });
 });
 
-app.get("/terminate/:pID/:round", (req, res) => {
-    let pID = req.params.pID;
+app.get("/terminate/:targeted_pID/:round", (req, res) => {
+    let targeted_pID = req.params.targeted_pID;
     let round = req.params.round;
     let sql = `UPDATE ct_tbl_participant SET dead_round = '${round}'
-        where pID = '${pID}'
+        where pID = '${targeted_pID}'
             `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {

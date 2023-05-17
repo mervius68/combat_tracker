@@ -478,7 +478,7 @@
                                     populateAffected();
                                 }
                             } else if (
-                                causerPosition <= affectedPosition &&
+                                causerPosition < affectedPosition &&
                                 affectedPosition <= endPosition
                             ) {
                                 if (starter == i && stopper == i) {
@@ -968,6 +968,7 @@
             targetLabel.setAttribute("for", participant.pID);
             targetLabel.classList.add("p" + participant.pID);
             targetLabel.classList.add("modal_text_inputs");
+            targetLabel.classList.add("pointer")
             targetLabel.innerHTML =
                 participant.character_name +
                 (participant.numeric_value
@@ -1147,8 +1148,10 @@
                             input = Math.floor(input / 2);
                         }
                         let span3 = document.createElement("span");
-                        span3.classList.add("conSavingThrowCheck");
-                        span3.innerHTML = `DC CON ${input}`;
+                        if (parseInt(input)) {
+                            span3.classList.add("conSavingThrowCheck");
+                            span3.innerHTML = `DC CON ${input}`;
+                        }
                         participant.parentNode.appendChild(span3);
                     } else {
                         try {
@@ -1244,7 +1247,7 @@
         // wrap the forEach loop in a Promise.all
         await Promise.all(
             targetsArray.map(async (target) => {
-                if (parseInt(target.value) && target.value != 0) {
+                if (parseInt(target.value) && target.value != "0") {
                     targetHits.push("1 ");
                     target_pID.push(target.id);
                     damage.push(target.value);
@@ -1684,12 +1687,7 @@
             if (currentRound == i && holding == 0) {
                 option.setAttribute("selected", "true");
             } else {
-                if (currentRound == i && causerPosition < affecteePosition) {
-                    option.setAttribute("selected", "true");
-                } else if (
-                    currentRound == i - 1 &&
-                    causerPosition >= affecteePosition
-                ) {
+                if (currentRound == i && causerPosition <= affecteePosition) {
                     option.setAttribute("selected", "true");
                 }
             }
@@ -2035,6 +2033,13 @@
                     event.target.nextSibling.nextSibling.nextSibling.classList.add(
                         "selected"
                     );
+                }
+            }
+            if (event.target.classList.contains("modal_text_inputs")) {
+                if (event.target.previousSibling.value == "") {
+                    event.target.previousSibling.value = "x"
+                } else if (event.target.previousSibling.value == "x") {
+                    event.target.previousSibling.value = ""
                 }
             }
         });
