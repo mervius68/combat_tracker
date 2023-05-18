@@ -468,13 +468,9 @@
                         ) {
                             let starter = parseInt(affected.start_round);
                             let stopper = parseInt(affected.end_round);
-                            // console.log("A");
-                            // console.log(causerPosition);
-                            // console.log(affectedPosition);
-                            // console.log(endPosition);
 
                             if (endPosition <= affectedPosition) {
-                                if (starter == i && stopper > i) {
+                                if (starter == i && stopper > i || endPosition == affectedPosition && stopper == i) {
                                     populateAffected();
                                 }
                             } else if (
@@ -1129,6 +1125,20 @@
         container.appendChild(buttonContainer);
 
         modal.innerHTML = container.outerHTML;
+
+
+        await document.removeEventListener("click", clickEventListener);
+        document.addEventListener("click", clickEventListener);
+        modal.addEventListener("click", function (event) {
+            alert(event.target.outerHTML)
+            if (event.target.classList.contains("modal_text_inputs")) {
+                if (event.target.previousSibling.value == "") {
+                    event.target.previousSibling.value = "x"
+                } else if (event.target.previousSibling.value == "x") {
+                    event.target.previousSibling.value = ""
+                }
+            }
+        })
         modal.addEventListener("input", function (e) {
             if (e.target.parentElement.classList.contains("conSaveParent")) {
                 let concentrationStuff =
@@ -2013,6 +2023,16 @@
         document.addEventListener("click", clickEventListener);
 
         document.addEventListener("click", function (event) {
+            if (event.target.classList.contains("modal_text_inputs")) {
+                if (event.target.previousSibling.value == "") {
+                    event.target.previousSibling.value = "x"
+                } else if (event.target.previousSibling.value == "x") {
+                    event.target.previousSibling.value = ""
+                }
+            }
+        })
+
+        document.addEventListener("click", function (event) {
             if (event.target.getAttribute("data-nav")) {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
@@ -2033,13 +2053,6 @@
                     event.target.nextSibling.nextSibling.nextSibling.classList.add(
                         "selected"
                     );
-                }
-            }
-            if (event.target.classList.contains("modal_text_inputs")) {
-                if (event.target.previousSibling.value == "") {
-                    event.target.previousSibling.value = "x"
-                } else if (event.target.previousSibling.value == "x") {
-                    event.target.previousSibling.value = ""
                 }
             }
         });
@@ -2202,6 +2215,13 @@
     }
 
     const clickEventListener = function (event) {
+            if (event.target.classList.contains("modal_text_inputs")) {
+                if (event.target.previousSibling.innerHTML == "") {
+                    event.target.previousSibling.innerHTML = "x"
+                } else if (event.target.previousSibling.innerHTML == "x") {
+                    event.target.previousSibling.innerHTML = ""
+                }
+            }
         if (event.target.getAttribute("data-nav")) {
             let myElement = document.querySelectorAll(".selected");
             let nav = myElement[0].getAttribute("data-nav");
