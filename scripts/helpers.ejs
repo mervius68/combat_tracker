@@ -3,14 +3,14 @@
     let participantsHpsByRound;
     // Define the event listener function separately
     const modalClickListener = function (event) {
-            if (event.target.classList.contains("modal_text_inputs")) {
-                if (event.target.previousSibling.value === "") {
-                    event.target.previousSibling.value = "x";
-                } else if (event.target.previousSibling.value === "x") {
-                    event.target.previousSibling.value = "";
-                }
+        if (event.target.classList.contains("modal_text_inputs")) {
+            if (event.target.previousSibling.value === "") {
+                event.target.previousSibling.value = "x";
+            } else if (event.target.previousSibling.value === "x") {
+                event.target.previousSibling.value = "";
             }
-        };
+        }
+    };
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
         document.removeEventListener("keydown", keydownEventListener);
@@ -479,14 +479,43 @@
                             let starter = parseInt(affected.start_round);
                             let stopper = parseInt(affected.end_round);
 
-                            if (endPosition <= affectedPosition) {
-                                if (
-                                    (starter == i && stopper > i) ||
+                            // if (endPosition <= affectedPosition) {
+                            //     if (
+                            //         (starter == i && stopper > i && causerPosition) ||
+                            //         (endPosition == affectedPosition &&
+                            //             stopper == i)
+                            //     ) {
+                            //         populateAffected();
+                            //     }
+                            // } else if (
+                            //     causerPosition < affectedPosition &&
+                            //     affectedPosition <= endPosition
+                            // ) {
+                            //     if (starter == i && stopper == i) {
+                            //         populateAffected();
+                            //     } else if (starter < i && stopper == i) {
+                            //         populateAffected();
+                            //     } else if (starter == i && stopper > i) {
+                            //         populateAffected();
+                            //     }
+                            // } else if (affectedPosition <= causerPosition) {
+                            //     if (starter < i && stopper == i) {
+                            //         populateAffected();
+                            //     }
+                            // }
+                            // if (starter < i && stopper > i) {
+                            //     populateAffected();
+                            // }
+
+                            if (
+                                endPosition <= affectedPosition &&
+                                ((starter == i &&
+                                    stopper > i &&
+                                    causerPosition) ||
                                     (endPosition == affectedPosition &&
-                                        stopper == i)
-                                ) {
-                                    populateAffected();
-                                }
+                                        stopper == i))
+                            ) {
+                                populateAffected();
                             } else if (
                                 causerPosition < affectedPosition &&
                                 affectedPosition <= endPosition
@@ -498,12 +527,13 @@
                                 } else if (starter == i && stopper > i) {
                                     populateAffected();
                                 }
-                            } else if (affectedPosition <= causerPosition) {
-                                if (starter < i && stopper == i) {
-                                    populateAffected();
-                                }
-                            }
-                            if (starter < i && stopper > i) {
+                            } else if (
+                                affectedPosition <= causerPosition &&
+                                starter < i &&
+                                stopper == i
+                            ) {
+                                populateAffected();
+                            } else if (starter < i && stopper > i) {
                                 populateAffected();
                             }
 
@@ -1091,7 +1121,6 @@
 
         await document.removeEventListener("click", clickEventListener);
         document.addEventListener("click", clickEventListener);
-      
 
         // Attach the event listener to the modal
         modal.addEventListener("click", modalClickListener);
@@ -1372,8 +1401,6 @@
 
         load_encounter(0, dataNav);
         let modal = document.querySelector(".modal");
-
-        
 
         // Remove the event listener
         modal.removeEventListener("click", modalClickListener);
