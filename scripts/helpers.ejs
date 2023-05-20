@@ -429,19 +429,28 @@
                             : " #" + participant.numeric_value);
 
                     // if character has a condition/concentration, show icon with tooltip
-                    participant.conditionsArray.forEach((condition) => {
+                    participant.conditionsArray.forEach(async (condition) => {
+                        console.log(condition);
                         if (
                             parseInt(condition.concentration) == 1 &&
                             parseInt(condition.start_round) <= i &&
                             parseInt(condition.end_round) >= i
                         ) {
+
+                            // get the participants who are affected by this condition.taID
+                            let affectees = await dbQuery("GET", "getAffectees/" + condition.taID)
+                            let affecteesString = "";
+                            affectees.forEach((affectee, index) => {
+                                affecteesString += affectee.character_name + (index != affectees.length -1 ? ", ": "")
+                            })
+
                             let toolTipHTML = document.createElement("span");
                             toolTipHTML.classList.add("tooltip");
                             toolTipHTML.classList.add("concentration");
                             toolTipHTML.innerText = "C";
                             let toolTipText = document.createElement("span");
                             toolTipText.classList.add("tooltiptext");
-                            toolTipText.innerText = condition.description + "\n\n" + participant.character_name + "  ---->  " + participant.character_name;
+                            toolTipText.innerText = condition.description + "\n\n" + participant.character_name + "  ---->  " + affecteesString;
                             toolTipHTML.appendChild(toolTipText);
                             turn.nextSibling.nextSibling.innerHTML +=
                                 toolTipHTML.outerHTML;

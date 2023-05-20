@@ -149,6 +149,23 @@ app.get("/getNextTargetID", (req, res) => {
     });
 });
 
+app.get("/getAffectees/:taID", (req, res) => {
+    let taID = req.params.taID;
+    let sql = `SELECT *
+        FROM ct_tbl_condition_affectee
+        JOIN ct_tbl_participant ON ct_tbl_condition_affectee.affected_pID = ct_tbl_participant.pID
+        WHERE ct_tbl_condition_affectee.taID = ${taID}
+                ORDER by caID ASC
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
 app.get(
     "/submitTargets/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID/:targetHP",
     (req, res) => {
