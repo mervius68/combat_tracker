@@ -645,12 +645,19 @@
                             // if (starter < i && stopper > i) {
                             //     populateAffected();
                             // }
-
-                            if (
+                            console.log("-- " + causerPosition)
+                            console.log(affectedPosition)
+                            console.log(endPosition)
+                            console.log(starter)
+                            console.log(stopper)
+                            if 
+                                (starter < i && stopper > i) {
+                                populateAffected();
+                            }
+                            else if (
                                 endPosition <= affectedPosition &&
                                 ((starter == i &&
-                                    stopper > i &&
-                                    causerPosition) ||
+                                    stopper > i)  ||
                                     (endPosition == affectedPosition &&
                                         stopper == i))
                             ) {
@@ -659,6 +666,7 @@
                                 causerPosition < affectedPosition &&
                                 affectedPosition <= endPosition
                             ) {
+                                alert("pie")
                                 if (starter == i && stopper == i) {
                                     populateAffected();
                                 } else if (starter < i && stopper == i) {
@@ -671,8 +679,6 @@
                                 starter < i &&
                                 stopper == i
                             ) {
-                                populateAffected();
-                            } else if (starter < i && stopper > i) {
                                 populateAffected();
                             }
 
