@@ -504,7 +504,7 @@
                                 "/" +
                                 i
                         );
-                        console.log(affecteesStill);
+                        // console.log(affecteesStill);
 
                         const maxValue = Math.max(
                             ...affecteesStill.map((obj) => obj.end_round)
@@ -516,7 +516,7 @@
                         let affectedThisRound = ctApp.filter(item => affecteesStill.some(obj => obj.affected_pID === item.pID))
                         let endRound = maxObjects[0]?.end_round;
 
-                        console.log(affectedThisRound);
+                        // console.log(affectedThisRound);
                         let affectedInitLower = false;
                         if (affectedThisRound.some(item => item.init < participant.init)) {
                             affectedInitLower = true;
@@ -645,14 +645,12 @@
                             // if (starter < i && stopper > i) {
                             //     populateAffected();
                             // }
-                            console.log("-- " + causerPosition)
-                            console.log(affectedPosition)
-                            console.log(endPosition)
-                            console.log(starter)
-                            console.log(stopper)
+                            
                             if 
                                 (starter < i && stopper > i) {
                                 populateAffected();
+                            } else if (affectedPosition == endPosition && affectedPosition < causerPosition && starter == i) {
+
                             }
                             else if (
                                 endPosition <= affectedPosition &&
@@ -661,12 +659,22 @@
                                     (endPosition == affectedPosition &&
                                         stopper == i))
                             ) {
+                            //     console.log("-- " + causerPosition)
+                            // console.log(affectedPosition)
+                            // console.log(endPosition)
+                            // console.log(starter)
+                            // console.log(stopper)
+                                populateAffected();
+                            }  else if (
+                                affectedPosition <= causerPosition &&
+                                starter < i &&
+                                stopper == i
+                            ) {
                                 populateAffected();
                             } else if (
                                 causerPosition < affectedPosition &&
                                 affectedPosition <= endPosition
                             ) {
-                                alert("pie")
                                 if (starter == i && stopper == i) {
                                     populateAffected();
                                 } else if (starter < i && stopper == i) {
@@ -674,12 +682,6 @@
                                 } else if (starter == i && stopper > i) {
                                     populateAffected();
                                 }
-                            } else if (
-                                affectedPosition <= causerPosition &&
-                                starter < i &&
-                                stopper == i
-                            ) {
-                                populateAffected();
                             }
 
                             function populateAffected() {
@@ -1459,7 +1461,7 @@
                     targetHits.push("1 ");
                     target_pID.push(target.id.substring(1));
                     damage.push(target.value);
-                    let x = dbQuery(
+                    let x = await dbQuery(
                         "GET",
                         "targetsHP/" + target.id.substring(1)
                     );
@@ -1474,8 +1476,8 @@
                 } else if (target.value == "0") {
                     targetHits.push("0 ");
                     target_pID.push(target.id.substring(1));
-                    damage.push(target.value);
-                    let x = dbQuery(
+                    damage.push("0");
+                    let x = await dbQuery(
                         "GET",
                         "targetsHP/" + target.id.substring(1)
                     );
@@ -1491,7 +1493,7 @@
                     targetHits.push("1 ");
                     target_pID.push(target.id.substring(1));
                     damage.push("0");
-                    let x = dbQuery(
+                    let x = await dbQuery(
                         "GET",
                         "targetsHP/" + target.id.substring(1)
                     );
@@ -1510,8 +1512,7 @@
                 // console.log("targetHPsArray: " + targetHPsArray);
             })
         );
-        console.log("A: " + targetsArray)
-        console.log("B: " + targetHPsArray);
+        // alert("targetHPsArray: " + targetHPsArray)
 
         targetHPsArray.sort((a, b) => {
             const indexA = targetsArray.findIndex(
@@ -1604,6 +1605,9 @@
             } else {
                 round = parseInt(currentRound);
             }
+
+            // alert(damage[index])
+            // alert(targetHPsArray[index])
 
             let dataTarget = `submitTargets/${
                 ctApp[0].eID
