@@ -414,14 +414,17 @@ app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState", (req, r
     
     if (conditionState == "affected") {
         sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${affecteeID}'
-        where affected_pID = '${affecteeID}' AND taID IN (SELECT * FROM ct_tbl_condition WHERE ct_tbl_condition.taID = ct_tbl_condition_affectee.taID)
+        where affected_pID = '${affecteeID}' AND taID IN (SELECT conditionID FROM ct_tbl_condition WHERE ct_tbl_condition.taID = ct_tbl_condition_affectee.taID)
             `;
     } else {
         sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${affecteeID}'
-        where taID IN (SELECT taID FROM ct_tbl_condition WHERE ct_tbl_condition.taID = ct_tbl_condition_affectee.taID)
+        where taID IN (SELECT conditionID FROM ct_tbl_condition WHERE ct_tbl_condition.taID = ct_tbl_condition_affectee.taID)
             `;
     }
-    console.log(sql);
+    // console.log(sql);
+    // console.log(round);
+    // console.log(affecteeID);
+    // console.log(conditionState);
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);

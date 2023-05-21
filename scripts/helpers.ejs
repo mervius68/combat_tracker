@@ -28,8 +28,14 @@
         let affecteeID = endThisCondition.getAttribute("data-cm-affected-id")
         let round = endThisCondition.getAttribute("data-cm-round");
         let conditionState = endThisCondition.getAttribute("data-cm-concentration-or-affected")
-        console.log(endThisCondition);
+        console.log("THIS: " + endThisCondition.outerHTML);
+
         await dbQuery("GET", "endCondition/" + conditionID + "/" + affecteeID + "/" + round + "/" + conditionState)
+        let html = document.querySelector(".selected");
+        let dataNav = html.getAttribute("data-nav");
+        load_encounter(0, dataNav);
+        
+        
         // console.log(endThisCondition)
         // console.log(conditionID + " & " + affecteeID + " & " + round + " & " + conditionState)
     }
@@ -37,7 +43,7 @@
     async function load_encounter(encounterCode = 0, dataNav = 1) {
         // document.removeEventListener("click", clickEventListener);
         try {
-            window.removeEventListener("contextmenu", contextMenuListener);
+            document.removeEventListener("contextmenu", contextMenuListener);
         } catch (err) {}
         document.removeEventListener("keydown", keydownEventListener);
         document.removeEventListener("keydown", clickEventListener);
@@ -377,6 +383,7 @@
             headerText.textContent =
                 i == totalRounds + 1 ? "" : "Round " + (i + 1);
             mainContainer.appendChild(headerText);
+            console.log(i + " " + totalRounds)
 
             let divCM = document.createElement("div");
             divCM.classList.add("custom-cm");
@@ -480,7 +487,7 @@
 
                     // if character has a condition/concentration, show icon with tooltip
                     participant.conditionsArray.forEach(async (condition) => {
-                        console.log(condition);
+                        // console.log(condition);
                         if (
                             parseInt(condition.concentration) == 1 &&
                             parseInt(condition.start_round) <= i &&
@@ -795,11 +802,12 @@
 
         const contextMenuListener = function (e) {
             e.preventDefault();
-            console.log(e.target);
+            // console.log(e.target);
             showContextMenu();
             cm.style.top = (e.y + cm.offsetHeight > window.innerHeight ? window.innerHeight - cm.offsetHeight : e.y) + "px";
             cm.style.left = (e.x + cm.offsetWidth > window.innerWidth ? window.innerWidth - cm.offsetWidth : e.x) + "px";
             let cmEnd = document.querySelector(".cmEnd");
+            // alert(e.target.getAttribute("data-condition-id"))
             cmEnd.setAttribute("data-cm-condition-id", e.target.getAttribute("data-condition-id"))
             cmEnd.setAttribute("data-cm-affected-id", e.target.getAttribute("data-affected-id"))
             cmEnd.setAttribute("data-cm-round", e.target.getAttribute("data-this-round"))
@@ -1413,7 +1421,7 @@
                 // targetsArray.forEach((target) => {
                 //     console.log(target);
                 // })
-                console.log("targetHPsArray: " + targetHPsArray);
+                // console.log("targetHPsArray: " + targetHPsArray);
             })
         );
 
