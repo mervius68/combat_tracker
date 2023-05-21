@@ -22,6 +22,18 @@
     //     }
     // };
 
+    async function endCondition() {
+        let endThisCondition = document.querySelector("[data-cm-condition-id]")
+        let conditionID = endThisCondition.getAttribute("data-cm-condition-id");
+        let affecteeID = endThisCondition.getAttribute("data-cm-affected-id")
+        let round = endThisCondition.getAttribute("data-cm-round");
+        let conditionState = endThisCondition.getAttribute("data-cm-concentration-or-affected")
+        console.log(endThisCondition);
+        await dbQuery("GET", "endCondition/" + conditionID + "/" + affecteeID + "/" + round + "/" + conditionState)
+        // console.log(endThisCondition)
+        // console.log(conditionID + " & " + affecteeID + " & " + round + " & " + conditionState)
+    }
+
     async function load_encounter(encounterCode = 0, dataNav = 1) {
         // document.removeEventListener("click", clickEventListener);
         try {
@@ -370,20 +382,22 @@
             divCM.classList.add("custom-cm");
             let divCM2 = document.createElement("div");
             divCM2.classList.add("custom-cm__item");
-            divCM2.innerHTML = "Item #1";
-            let divCM3 = document.createElement("div");
-            divCM3.classList.add("custom-cm__item");
-            divCM3.innerHTML = "Item #2";
-            let divCMDivider = document.createElement("div");
-            divCMDivider.classList.add("custom-cm__divider");
-            let divCM4 = document.createElement("div");
-            divCM4.classList.add("custom-cm__item");
-            divCM4.innerHTML = "Item #3";
+            divCM2.classList.add("cmEnd");
+            divCM2.innerHTML = "End This Condition";
+            divCM2.setAttribute("onclick", "endCondition()")
+            // let divCM3 = document.createElement("div");
+            // divCM3.classList.add("custom-cm__item");
+            // divCM3.innerHTML = "Item #2";
+            // let divCMDivider = document.createElement("div");
+            // divCMDivider.classList.add("custom-cm__divider");
+            // let divCM4 = document.createElement("div");
+            // divCM4.classList.add("custom-cm__item");
+            // divCM4.innerHTML = "Item #3";
 
             divCM.appendChild(divCM2);
-            divCM.appendChild(divCM3);
-            divCM.appendChild(divCMDivider);
-            divCM.appendChild(divCM4);
+            // divCM.appendChild(divCM3);
+            // divCM.appendChild(divCMDivider);
+            // divCM.appendChild(divCM4);
             mainContainer.appendChild(divCM);
 
             // populate the sections
@@ -480,7 +494,7 @@
                             let affecteesString = "";
                             affectees.forEach((affectee, index) => {
                                 affecteesString +=
-                                    affectee.character_name +
+                                    affectee.character_name + (affectee.numeric_value ? affectee.numeric_value : "") +
                                     (index != affectees.length - 1 ? ", " : "");
                             });
 
@@ -490,6 +504,14 @@
                             toolTipHTML.setAttribute(
                                 "data-condition-id",
                                 condition.conditionID
+                            );
+                            toolTipHTML.setAttribute(
+                                "data-affected-id",
+                                condition.affected_pID
+                            );
+                            toolTipHTML.setAttribute(
+                                "data-this-round",
+                                i
                             );
                             toolTipHTML.innerText = "C";
                             let toolTipText = document.createElement("span");
@@ -601,6 +623,7 @@
                                 toolTipHTML.classList.add ("affected");
                                 toolTipHTML.setAttribute("data-condition-id", affected.conditionID);
                                 toolTipHTML.setAttribute("data-affected-id", affected.affected_pID)
+                                toolTipHTML.setAttribute("data-this-round", i)
                                 toolTipHTML.innerHTML = "A";
                                 let span5 = document.createElement("span");
                                 span5.classList.add("tooltiptext");
@@ -776,6 +799,11 @@
             showContextMenu();
             cm.style.top = (e.y + cm.offsetHeight > window.innerHeight ? window.innerHeight - cm.offsetHeight : e.y) + "px";
             cm.style.left = (e.x + cm.offsetWidth > window.innerWidth ? window.innerWidth - cm.offsetWidth : e.x) + "px";
+            let cmEnd = document.querySelector(".cmEnd");
+            cmEnd.setAttribute("data-cm-condition-id", e.target.getAttribute("data-condition-id"))
+            cmEnd.setAttribute("data-cm-affected-id", e.target.getAttribute("data-affected-id"))
+            cmEnd.setAttribute("data-cm-round", e.target.getAttribute("data-this-round"))
+            cmEnd.setAttribute("data-cm-concentration-or-affected", e.target.classList.contains("affected") ? "affected" : "concentration")
         };
 
         function showContextMenu(show = true) {
