@@ -23,19 +23,30 @@
     // };
 
     async function endCondition() {
-        let endThisCondition = document.querySelector("[data-cm-condition-id]")
+        let endThisCondition = document.querySelector("[data-cm-condition-id]");
         let conditionID = endThisCondition.getAttribute("data-cm-condition-id");
-        let affecteeID = endThisCondition.getAttribute("data-cm-affected-id")
+        let affecteeID = endThisCondition.getAttribute("data-cm-affected-id");
         let round = endThisCondition.getAttribute("data-cm-round");
-        let conditionState = endThisCondition.getAttribute("data-cm-concentration-or-affected")
-        console.log("THIS: " + endThisCondition.outerHTML);
+        let conditionState = endThisCondition.getAttribute(
+            "data-cm-concentration-or-affected"
+        );
+        // console.log("THIS: " + endThisCondition.outerHTML);
 
-        await dbQuery("GET", "endCondition/" + conditionID + "/" + affecteeID + "/" + round + "/" + conditionState)
+        await dbQuery(
+            "GET",
+            "endCondition/" +
+                conditionID +
+                "/" +
+                affecteeID +
+                "/" +
+                round +
+                "/" +
+                conditionState
+        );
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
         load_encounter(0, dataNav);
-        
-        
+
         // console.log(endThisCondition)
         // console.log(conditionID + " & " + affecteeID + " & " + round + " & " + conditionState)
     }
@@ -383,7 +394,6 @@
             headerText.textContent =
                 i == totalRounds + 1 ? "" : "Round " + (i + 1);
             mainContainer.appendChild(headerText);
-            console.log(i + " " + totalRounds)
 
             let divCM = document.createElement("div");
             divCM.classList.add("custom-cm");
@@ -391,7 +401,7 @@
             divCM2.classList.add("custom-cm__item");
             divCM2.classList.add("cmEnd");
             divCM2.innerHTML = "End This Condition";
-            divCM2.setAttribute("onclick", "endCondition()")
+            divCM2.setAttribute("onclick", "endCondition()");
             // let divCM3 = document.createElement("div");
             // divCM3.classList.add("custom-cm__item");
             // divCM3.innerHTML = "Item #2";
@@ -487,11 +497,55 @@
 
                     // if character has a condition/concentration, show icon with tooltip
                     participant.conditionsArray.forEach(async (condition) => {
-                        // console.log(condition);
+                        let affecteesStill = await dbQuery(
+                            "GET",
+                            "anyoneStillAffected/" +
+                                condition.conditionID +
+                                "/" +
+                                i
+                        );
+                        console.log(affecteesStill);
+
+                        const maxValue = Math.max(
+                            ...affecteesStill.map((obj) => obj.end_round)
+                        );
+                        const maxObjects = affecteesStill.filter(
+                            (obj) => obj.end_round === maxValue
+                        );
+
+                        let affectedThisRound = ctApp.filter(item => affecteesStill.some(obj => obj.affected_pID === item.pID))
+                        let endRound = maxObjects[0]?.end_round;
+
+                        console.log(affectedThisRound);
+                        let affectedInitLower = false;
+                        if (affectedThisRound.some(item => item.init < participant.init)) {
+                            affectedInitLower = true;
+                        }
+
+                        let matchingObject = null;
+                        
+                        // Iterate over the values array in reverse order
+                        for (let i = ctApp.length - 1; i >= 0; i--) {
+                            const value = ctApp[i].pID;
+
+                            // Find the first object that matches the current value
+                            matchingObject = ctApp.find(
+                                (obj) => obj.pID === value
+                            );
+
+                            // If a matching object is found, exit the loop
+                            if (matchingObject) {
+                                break;
+                            }
+                        }
+
                         if (
                             parseInt(condition.concentration) == 1 &&
                             parseInt(condition.start_round) <= i &&
-                            parseInt(condition.end_round) >= i
+                            parseInt(endRound) >= i && 
+                            affectedInitLower == true
+                            // parseInt(endRound) >= i // && 
+                            // participant.init > 
                         ) {
                             // get the participants who are affected by this condition.taID
                             let affectees = await dbQuery(
@@ -501,7 +555,10 @@
                             let affecteesString = "";
                             affectees.forEach((affectee, index) => {
                                 affecteesString +=
-                                    affectee.character_name + (affectee.numeric_value ? affectee.numeric_value : "") +
+                                    affectee.character_name +
+                                    (affectee.numeric_value
+                                        ? affectee.numeric_value
+                                        : "") +
                                     (index != affectees.length - 1 ? ", " : "");
                             });
 
@@ -516,10 +573,7 @@
                                 "data-affected-id",
                                 condition.affected_pID
                             );
-                            toolTipHTML.setAttribute(
-                                "data-this-round",
-                                i
-                            );
+                            toolTipHTML.setAttribute("data-this-round", i);
                             toolTipHTML.innerText = "C";
                             let toolTipText = document.createElement("span");
                             toolTipText.classList.add("tooltiptext");
@@ -626,11 +680,17 @@
                                 const toolTipHTML =
                                     document.createElement("span");
                                 // toolTipHTML.className = "tooltip affected";
-                                toolTipHTML.classList.add ("tooltip")
-                                toolTipHTML.classList.add ("affected");
-                                toolTipHTML.setAttribute("data-condition-id", affected.conditionID);
-                                toolTipHTML.setAttribute("data-affected-id", affected.affected_pID)
-                                toolTipHTML.setAttribute("data-this-round", i)
+                                toolTipHTML.classList.add("tooltip");
+                                toolTipHTML.classList.add("affected");
+                                toolTipHTML.setAttribute(
+                                    "data-condition-id",
+                                    affected.conditionID
+                                );
+                                toolTipHTML.setAttribute(
+                                    "data-affected-id",
+                                    affected.affected_pID
+                                );
+                                toolTipHTML.setAttribute("data-this-round", i);
                                 toolTipHTML.innerHTML = "A";
                                 let span5 = document.createElement("span");
                                 span5.classList.add("tooltiptext");
@@ -804,14 +864,34 @@
             e.preventDefault();
             // console.log(e.target);
             showContextMenu();
-            cm.style.top = (e.y + cm.offsetHeight > window.innerHeight ? window.innerHeight - cm.offsetHeight : e.y) + "px";
-            cm.style.left = (e.x + cm.offsetWidth > window.innerWidth ? window.innerWidth - cm.offsetWidth : e.x) + "px";
+            cm.style.top =
+                (e.y + cm.offsetHeight > window.innerHeight
+                    ? window.innerHeight - cm.offsetHeight
+                    : e.y) + "px";
+            cm.style.left =
+                (e.x + cm.offsetWidth > window.innerWidth
+                    ? window.innerWidth - cm.offsetWidth
+                    : e.x) + "px";
             let cmEnd = document.querySelector(".cmEnd");
             // alert(e.target.getAttribute("data-condition-id"))
-            cmEnd.setAttribute("data-cm-condition-id", e.target.getAttribute("data-condition-id"))
-            cmEnd.setAttribute("data-cm-affected-id", e.target.getAttribute("data-affected-id"))
-            cmEnd.setAttribute("data-cm-round", e.target.getAttribute("data-this-round"))
-            cmEnd.setAttribute("data-cm-concentration-or-affected", e.target.classList.contains("affected") ? "affected" : "concentration")
+            cmEnd.setAttribute(
+                "data-cm-condition-id",
+                e.target.getAttribute("data-condition-id")
+            );
+            cmEnd.setAttribute(
+                "data-cm-affected-id",
+                e.target.getAttribute("data-affected-id")
+            );
+            cmEnd.setAttribute(
+                "data-cm-round",
+                e.target.getAttribute("data-this-round")
+            );
+            cmEnd.setAttribute(
+                "data-cm-concentration-or-affected",
+                e.target.classList.contains("affected")
+                    ? "affected"
+                    : "concentration"
+            );
         };
 
         function showContextMenu(show = true) {
@@ -819,7 +899,7 @@
         }
         window.addEventListener("click", () => {
             showContextMenu(false);
-        })
+        });
         document.addEventListener("contextmenu", contextMenuListener);
 
         // fill values for dropdown
@@ -1373,7 +1453,7 @@
                     targetHits.push("1 ");
                     target_pID.push(target.id.substring(1));
                     damage.push(target.value);
-                    let x = await dbQuery(
+                    let x = dbQuery(
                         "GET",
                         "targetsHP/" + target.id.substring(1)
                     );
@@ -1389,7 +1469,7 @@
                     targetHits.push("0 ");
                     target_pID.push(target.id.substring(1));
                     damage.push(target.value);
-                    let x = await dbQuery(
+                    let x = dbQuery(
                         "GET",
                         "targetsHP/" + target.id.substring(1)
                     );
@@ -1405,7 +1485,7 @@
                     targetHits.push("1 ");
                     target_pID.push(target.id.substring(1));
                     damage.push("0");
-                    let x = await dbQuery(
+                    let x = dbQuery(
                         "GET",
                         "targetsHP/" + target.id.substring(1)
                     );

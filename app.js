@@ -570,6 +570,25 @@ app.get("/conditionsInEffect/:eID/:round", (req, res) => {
     });
 });
 
+app.get("/anyoneStillAffected/:conditionID/:round", (req, res) => {
+    let conditionID = req.params.conditionID;
+    let round = req.params.round
+    let sql = `SELECT *
+        FROM ct_tbl_condition
+        JOIN ct_tbl_condition_affectee ON ct_tbl_condition.taID = ct_tbl_condition_affectee.taID
+        JOIN ct_tbl_participant ON ct_tbl_condition.pID = ct_tbl_participant.pID
+                WHERE ct_tbl_condition.conditionID = ${conditionID} AND ct_tbl_condition_affectee.end_round >= ${round}
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        // console.log(results);
+        res.send(results);
+    });
+});
+
 app.get("/getConditionsForCtApp/:eID/", (req, res) => {
     let eID = req.params.eID;
     let sql = `SELECT *
