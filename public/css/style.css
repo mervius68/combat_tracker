@@ -128,6 +128,42 @@ hr {
     font-size: 1em;
 }
 
+/*
+    Context Menu Stuff!
+*/
+
+.custom-cm {
+    background-color: white;
+    border: 1px solid #cccccc;
+    box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+    width: 200px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+}
+
+.custom-cm__item {
+    cursor: pointer;
+    padding: 8px 15px;
+}
+
+.custom-cm__item:hover {
+    background-color: #f8f8f8;
+}
+
+.custom-cm__divider {
+    margin: 10px 0;
+    border-bottom: 1px solid darkgray;
+}
+
+.arrow-container::before {
+    content: "\2192"; /* Unicode character for right arrow */
+    font-size: 1.6em;
+  }
+  
+
 .concentration {
     background-color: yellow;
     font-weight: bold;

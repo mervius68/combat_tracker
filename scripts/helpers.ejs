@@ -11,8 +11,22 @@
             }
         }
     };
+    // const encounterClickListener = function (event) {
+    //     if (event.target.classList.contains("tooltip")) {
+    //         // alert(event.target.outerHTML)
+    //         // if (event.target.previousSibling.value === "") {
+    //         //     event.target.previousSibling.value = "x";
+    //         // } else if (event.target.previousSibling.value === "x") {
+    //         //     event.target.previousSibling.value = "";
+    //         // }
+    //     }
+    // };
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
+        // document.removeEventListener("click", clickEventListener);
+        try {
+            window.removeEventListener("contextmenu", contextMenuListener);
+        } catch (err) {}
         document.removeEventListener("keydown", keydownEventListener);
         document.removeEventListener("keydown", clickEventListener);
         cellCountVertical = 1;
@@ -40,9 +54,11 @@
         );
         let header = document.querySelector(".main_header");
 
-        header.textContent = `${encounter[0]?.campaign || "No available encounters yet"
-            } - ${encounter[0]?.location || ""} (${encounter[0]?.description || ""
-            })`;
+        header.textContent = `${
+            encounter[0]?.campaign || "No available encounters yet"
+        } - ${encounter[0]?.location || ""} (${
+            encounter[0]?.description || ""
+        })`;
 
         ctApp = await dbQuery("GET", "participants/" + encounterID);
 
@@ -68,7 +84,7 @@
                 ct_damages?.reduce((max, obj) => {
                     return obj.round > max.round ? obj : max;
                 }).round || 1;
-        } catch (err) { }
+        } catch (err) {}
 
         // get participants hps by round
         participantsHpsByRound = await dbQuery(
@@ -84,7 +100,7 @@
                 if (Array.isArray(participant.damageArray[i - 1])) {
                     participant.damageArray[i].push(
                         participant.damageArray[i - 1][
-                        participant.damageArray[i - 1].length - 1
+                            participant.damageArray[i - 1].length - 1
                         ]
                     );
                 } else {
@@ -350,6 +366,26 @@
                 i == totalRounds + 1 ? "" : "Round " + (i + 1);
             mainContainer.appendChild(headerText);
 
+            let divCM = document.createElement("div");
+            divCM.classList.add("custom-cm");
+            let divCM2 = document.createElement("div");
+            divCM2.classList.add("custom-cm__item");
+            divCM2.innerHTML = "Item #1";
+            let divCM3 = document.createElement("div");
+            divCM3.classList.add("custom-cm__item");
+            divCM3.innerHTML = "Item #2";
+            let divCMDivider = document.createElement("div");
+            divCMDivider.classList.add("custom-cm__divider");
+            let divCM4 = document.createElement("div");
+            divCM4.classList.add("custom-cm__item");
+            divCM4.innerHTML = "Item #3";
+
+            divCM.appendChild(divCM2);
+            divCM.appendChild(divCM3);
+            divCM.appendChild(divCMDivider);
+            divCM.appendChild(divCM4);
+            mainContainer.appendChild(divCM);
+
             // populate the sections
             let roundActions = ctActions.filter((action) => {
                 return action.round == i;
@@ -375,10 +411,10 @@
                 // locate the HTML elements for this participant
                 participantHTML = mainContainer.querySelectorAll(
                     '[data-round="' +
-                    i +
-                    '"] [data-section="1"] [data-participant="' +
-                    participant.pID +
-                    '"]'
+                        i +
+                        '"] [data-section="1"] [data-participant="' +
+                        participant.pID +
+                        '"]'
                 );
 
                 // populate row in section 1 (ac, hp, character name, and initiative value)
@@ -402,7 +438,7 @@
                                     ? "<b>" + hp + "</b>"
                                     : hp) +
                                 (index <
-                                    participant.damageArray[i - 1].length - 1
+                                participant.damageArray[i - 1].length - 1
                                     ? ", "
                                     : "");
                         });
@@ -414,7 +450,7 @@
                                     ? "<b>" + hp + "</b>"
                                     : hp) +
                                 (index <
-                                    participant.damageArray[i - 2].length - 1
+                                participant.damageArray[i - 2].length - 1
                                     ? ", "
                                     : "");
                         });
@@ -436,21 +472,34 @@
                             parseInt(condition.start_round) <= i &&
                             parseInt(condition.end_round) >= i
                         ) {
-
                             // get the participants who are affected by this condition.taID
-                            let affectees = await dbQuery("GET", "getAffectees/" + condition.taID)
+                            let affectees = await dbQuery(
+                                "GET",
+                                "getAffectees/" + condition.taID
+                            );
                             let affecteesString = "";
                             affectees.forEach((affectee, index) => {
-                                affecteesString += affectee.character_name + (index != affectees.length -1 ? ", ": "")
-                            })
+                                affecteesString +=
+                                    affectee.character_name +
+                                    (index != affectees.length - 1 ? ", " : "");
+                            });
 
                             let toolTipHTML = document.createElement("span");
                             toolTipHTML.classList.add("tooltip");
                             toolTipHTML.classList.add("concentration");
+                            toolTipHTML.setAttribute(
+                                "data-condition-id",
+                                condition.conditionID
+                            );
                             toolTipHTML.innerText = "C";
                             let toolTipText = document.createElement("span");
                             toolTipText.classList.add("tooltiptext");
-                            toolTipText.innerText = condition.description + "\n\n" + participant.character_name + "  ---->  " + affecteesString;
+                            toolTipText.innerHTML =
+                                condition.description.toUpperCase() +
+                                "<br><br>" +
+                                participant.character_name +
+                                " <span class='arrow-container'></span> " +
+                                affecteesString;
                             toolTipHTML.appendChild(toolTipText);
                             turn.nextSibling.nextSibling.innerHTML +=
                                 toolTipHTML.outerHTML;
@@ -476,12 +525,12 @@
                         if (
                             affected.concentration === 0
                                 ? affected.pID !=
-                                parseInt(affected.affected_pID)
+                                  parseInt(affected.affected_pID)
                                 : affected.concentration === 1 &&
-                                affected.pID !=
-                                parseInt(affected.affected_pID) &&
-                                parseInt(affected.start_round) <= i &&
-                                parseInt(affected.end_round) >= i
+                                  affected.pID !=
+                                      parseInt(affected.affected_pID) &&
+                                  parseInt(affected.start_round) <= i &&
+                                  parseInt(affected.end_round) >= i
                         ) {
                             let starter = parseInt(affected.start_round);
                             let stopper = parseInt(affected.end_round);
@@ -547,11 +596,22 @@
                             function populateAffected() {
                                 const toolTipHTML =
                                     document.createElement("span");
-                                toolTipHTML.className = "tooltip affected";
-                                toolTipHTML.innerHTML = "A"
+                                // toolTipHTML.className = "tooltip affected";
+                                toolTipHTML.classList.add ("tooltip")
+                                toolTipHTML.classList.add ("affected");
+                                toolTipHTML.setAttribute("data-condition-id", affected.conditionID);
+                                toolTipHTML.setAttribute("data-affected-id", affected.affected_pID)
+                                toolTipHTML.innerHTML = "A";
                                 let span5 = document.createElement("span");
                                 span5.classList.add("tooltiptext");
-                                span5.innerHTML = affected.description + "<br><br>" + ctApp.find((participant) => { return affected.pID == participant.pID }).character_name + " -----> " + participant.character_name
+                                span5.innerHTML =
+                                    affected.description +
+                                    "<br><br>" +
+                                    ctApp.find((participant) => {
+                                        return affected.pID == participant.pID;
+                                    }).character_name +
+                                    " <span class='arrow-container'></span> " +
+                                    participant.character_name;
                                 toolTipHTML.appendChild(span5);
                                 turn.nextSibling.nextSibling.appendChild(
                                     toolTipHTML
@@ -631,7 +691,7 @@
                                 : "");
                         damageString += (index > 0 ? " / " : "") + item.damage;
                     });
-                } catch (err) { }
+                } catch (err) {}
 
                 let actionArray = [];
 
@@ -648,7 +708,7 @@
                     actionArray
                 );
             }
-        } catch (err) { }
+        } catch (err) {}
 
         document.querySelector(".ct_round_container").innerHTML =
             mainContainer.innerHTML;
@@ -663,7 +723,7 @@
                 "selected"
             );
             navify();
-        } catch (err) { }
+        } catch (err) {}
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
             try {
@@ -682,7 +742,7 @@
                         actionArray[4] +
                         " ";
                 }
-            } catch (err) { }
+            } catch (err) {}
 
             let actionHTML = "data-" + actionType;
             let action = 1;
@@ -699,7 +759,7 @@
                 x.nextSibling.nextSibling.innerHTML = actionArray[2];
                 x.nextSibling.nextSibling.nextSibling.innerHTML =
                     actionArray[3];
-            } catch (err) { }
+            } catch (err) {}
         }
 
         let xyz = document.querySelectorAll(".ct_round");
@@ -708,8 +768,27 @@
         xyz[xyz.length - 1].previousSibling.classList.add("hidden");
         xyz[xyz.length - 1].previousSibling.classList.add("sometimes_hidden");
 
+        const cm = document.querySelector(".custom-cm");
+
+        const contextMenuListener = function (e) {
+            e.preventDefault();
+            console.log(e.target);
+            showContextMenu();
+            cm.style.top = (e.y + cm.offsetHeight > window.innerHeight ? window.innerHeight - cm.offsetHeight : e.y) + "px";
+            cm.style.left = (e.x + cm.offsetWidth > window.innerWidth ? window.innerWidth - cm.offsetWidth : e.x) + "px";
+        };
+
+        function showContextMenu(show = true) {
+            cm.style.display = show ? "block" : "none";
+        }
+        window.addEventListener("click", () => {
+            showContextMenu(false);
+        })
+        document.addEventListener("contextmenu", contextMenuListener);
+
         // fill values for dropdown
         fillDropdown(encounterCode);
+        // document.addEventListener("click", encounterClickListener);
     }
 
     async function modalActions() {
@@ -1011,19 +1090,19 @@
             let conditionParticipant = condition.pID;
             let startHTML = document.querySelector(
                 '[data-round="' +
-                condition.start_round +
-                '"] [data-section="1"] [data-participant="' +
-                condition.pID +
-                '"]'
+                    condition.start_round +
+                    '"] [data-section="1"] [data-participant="' +
+                    condition.pID +
+                    '"]'
             );
             let start = startHTML.getAttribute("data-nav");
 
             let endHTML = document.querySelector(
                 '[data-round="' +
-                condition.end_round +
-                '"] [data-section="1"] [data-participant="' +
-                condition.end_pID +
-                '"]'
+                    condition.end_round +
+                    '"] [data-section="1"] [data-participant="' +
+                    condition.end_pID +
+                    '"]'
             );
             let end =
                 endHTML instanceof Element
@@ -1146,7 +1225,7 @@
                         try {
                             let x = z.querySelector(".conSavingThrowCheck");
                             z.removeChild(x);
-                        } catch (err) { }
+                        } catch (err) {}
                         let input =
                             participant.parentNode.previousSibling.value;
                         if (input / 2 <= 10) {
@@ -1164,7 +1243,7 @@
                         try {
                             let x = z.querySelector(".conSavingThrowCheck");
                             z.removeChild(x);
-                        } catch (err) { }
+                        } catch (err) {}
                     }
                 });
             }
@@ -1306,13 +1385,17 @@
                 // targetsArray.forEach((target) => {
                 //     console.log(target);
                 // })
-                console.log("targetHPsArray: " + targetHPsArray)
+                console.log("targetHPsArray: " + targetHPsArray);
             })
         );
 
         targetHPsArray.sort((a, b) => {
-            const indexA = targetsArray.findIndex((target) => target.id === "p" + a.id);
-            const indexB = targetsArray.findIndex((target) => target.id === "p" + b.id);
+            const indexA = targetsArray.findIndex(
+                (target) => target.id === "p" + a.id
+            );
+            const indexB = targetsArray.findIndex(
+                (target) => target.id === "p" + b.id
+            );
             return indexA - indexB;
         });
 
@@ -1355,15 +1438,15 @@
                     await dbQuery(
                         "GET",
                         "disableCondition/" +
-                        condition.getAttribute("data-cpid") +
-                        "/" +
-                        currentRound +
-                        "/" +
-                        condition.getAttribute(
-                            "data-participant-affected"
-                        ) +
-                        "/" +
-                        pID
+                            condition.getAttribute("data-cpid") +
+                            "/" +
+                            currentRound +
+                            "/" +
+                            condition.getAttribute(
+                                "data-participant-affected"
+                            ) +
+                            "/" +
+                            pID
                     )
                 );
                 disableConditionsString += condition.value;
@@ -1398,12 +1481,15 @@
                 round = parseInt(currentRound);
             }
 
-            let dataTarget = `submitTargets/${ctApp[0].eID
-                }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
-                    index
-                ].trim()}/${actionCategory}/${damage[index]
-                }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
-                }/${targetHPsArray[index]}`;
+            let dataTarget = `submitTargets/${
+                ctApp[0].eID
+            }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
+                index
+            ].trim()}/${actionCategory}/${
+                damage[index]
+            }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${
+                target_pID[index]
+            }/${targetHPsArray[index]}`;
             await dbQuery("GET", dataTarget);
             if (targetHPsArray[index] - damage[index] <= 0) {
                 await dbQuery(
@@ -1915,7 +2001,7 @@
             div5.classList.add("header");
             div5.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div5.classList.add("center");
             div5.textContent =
@@ -1927,7 +2013,7 @@
             div6.classList.add("header");
             div6.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div6.classList.add("center");
             div6.textContent = "Hit?";
@@ -1936,7 +2022,7 @@
             div7.classList.add("header");
             div7.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div7.classList.add("center");
             div7.textContent = "Target(s)";
@@ -1945,7 +2031,7 @@
             div8.classList.add("header");
             div8.classList.add(
                 actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
             );
             div8.classList.add("center");
             div8.textContent = "hp";
@@ -1958,7 +2044,7 @@
                 div9.classList.add("section");
                 div9.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div9.classList.add("center");
                 div9.setAttribute("data-participant", participant.pID);
@@ -1966,21 +2052,21 @@
                 div10.classList.add("section");
                 div10.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div10.classList.add("center");
                 let div11 = document.createElement("div");
                 div11.classList.add("section");
                 div11.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div11.classList.add("center");
                 let div12 = document.createElement("div");
                 div12.classList.add("section");
                 div12.classList.add(
                     actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
+                        (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
                 );
                 div12.classList.add("center");
                 section2.appendChild(div9);
