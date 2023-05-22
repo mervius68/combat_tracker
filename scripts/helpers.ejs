@@ -737,7 +737,7 @@
                                           }).numeric_value
                                         : "") +
                                     " <span class='arrow-container'></span> " +
-                                    participant.character_name;
+                                    participant.character_name + (participant.numeric_value ? " #" + participant.numeric_value : "");
                                 toolTipHTML.appendChild(span5);
                                 turn.nextSibling.nextSibling.appendChild(
                                     toolTipHTML
