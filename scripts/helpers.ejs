@@ -1413,7 +1413,7 @@
                     e.target.parentNode.querySelectorAll(".concentration");
                 concentrationStuff.forEach((participant) => {
                     let z = participant.parentElement;
-                    if (participant.parentNode.previousSibling.value != "") {
+                    if (participant.parentNode.previousSibling.value != "" && participant.parentNode.previousSibling.value != "0") {
                         try {
                             let x = z.querySelector(".conSavingThrowCheck");
                             z.removeChild(x);
