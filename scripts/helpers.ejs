@@ -23,14 +23,20 @@
     // };
 
     async function endCondition() {
+        let htmlSelected = document.querySelector(".selected");
+        let selectedID = htmlSelected.getAttribute("data-participant");
         let endThisCondition = document.querySelector("[data-cm-condition-id]");
         let conditionID = endThisCondition.getAttribute("data-cm-condition-id");
         let affecteeID = endThisCondition.getAttribute("data-cm-affected-id");
         let round = endThisCondition.getAttribute("data-cm-round");
+        let taid = endThisCondition.getAttribute("data-cm-taid")
         let conditionState = endThisCondition.getAttribute(
             "data-cm-concentration-or-affected"
         );
-        // console.log("THIS: " + endThisCondition.outerHTML);
+        if (conditionState == "concentration") {
+            affecteeID = selectedID
+        }
+        console.log("THIS: " + endThisCondition.outerHTML);
 
         await dbQuery(
             "GET",
@@ -41,7 +47,7 @@
                 "/" +
                 round +
                 "/" +
-                conditionState
+                conditionState + "/" + taid
         );
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
@@ -546,10 +552,10 @@
                                 break;
                             }
                         }
-                        console.log(affectedInitLower)
-                        console.log(condition.concentration)
-                        console.log(condition.start_round)
-                        console.log(endRound)
+                        // console.log(affectedInitLower)
+                        // console.log(condition.concentration)
+                        // console.log(condition.start_round)
+                        // console.log(endRound)
                         if (
                             (parseInt(condition.concentration) == 1 &&
                             parseInt(condition.start_round) <= i &&
@@ -587,6 +593,8 @@
                                 "data-affected-id",
                                 condition.affected_pID
                             );
+                            toolTipHTML.setAttribute("data-taid", condition.taID);
+
                             toolTipHTML.setAttribute("data-this-round", i);
                             toolTipHTML.innerText = "C";
                             let toolTipText = document.createElement("span");
@@ -717,6 +725,7 @@
                                 );
                                 toolTipHTML.setAttribute("data-this-round", i);
                                 toolTipHTML.innerHTML = "A";
+                                toolTipHTML.setAttribute("data-taid", affected.taID)
                                 let span5 = document.createElement("span");
                                 span5.classList.add("tooltiptext");
                                 span5.innerHTML =
@@ -849,6 +858,7 @@
                 "selected"
             );
             navify();
+            
         } catch (err) {}
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
@@ -893,6 +903,8 @@
         xyz[xyz.length - 1].classList.add("sometimes_hidden");
         xyz[xyz.length - 1].previousSibling.classList.add("hidden");
         xyz[xyz.length - 1].previousSibling.classList.add("sometimes_hidden");
+        startNav.parentNode.parentNode.classList.remove("hidden");
+        startNav.parentNode.parentNode.previousSibling.classList.remove("hidden");
 
         const cm = document.querySelector(".custom-cm");
 
@@ -964,6 +976,7 @@
                 "data-cm-affected-id",
                 e.target.getAttribute("data-affected-id")
             );
+            cmEnd.setAttribute("data-cm-taid", e.target.getAttribute("data-taid"))
             cmEnd.setAttribute(
                 "data-cm-round",
                 e.target.getAttribute("data-this-round")

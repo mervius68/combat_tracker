@@ -405,20 +405,20 @@ app.get("/endConditions/:pID/:round/:taID", (req, res) => {
     });
 });
 
-app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState", (req, res) => {
+app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState/:taid", (req, res) => {
     let conditionID = req.params.conditionID;
     let round = req.params.round;
     let affecteeID = req.params.affecteeID;
     let conditionState = req.params.conditionState;
+    let taid = req.params.taid;
     let sql;
     
     if (conditionState == "affected") {
         sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${affecteeID}'
-        where affected_pID = '${affecteeID}' AND taID IN (SELECT conditionID FROM ct_tbl_condition WHERE ct_tbl_condition.taID = ct_tbl_condition_affectee.taID)
-            `;
+        where affected_pID = '${affecteeID}' AND taID = '${taid}'            `;
     } else {
         sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${affecteeID}'
-        where taID IN (SELECT conditionID FROM ct_tbl_condition WHERE ct_tbl_condition.taID = ct_tbl_condition_affectee.taID)
+        where taID = '${taid}'
             `;
     }
     // console.log(sql);
