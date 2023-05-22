@@ -949,25 +949,25 @@
             // Rest of your code...
 
             let cmEnd = document.querySelector(".cmEnd");
-                // alert(e.target.getAttribute("data-condition-id"))
-                cmEnd.setAttribute(
-                    "data-cm-condition-id",
-                    e.target.getAttribute("data-condition-id")
-                );
-                cmEnd.setAttribute(
-                    "data-cm-affected-id",
-                    e.target.getAttribute("data-affected-id")
-                );
-                cmEnd.setAttribute(
-                    "data-cm-round",
-                    e.target.getAttribute("data-this-round")
-                );
-                cmEnd.setAttribute(
-                    "data-cm-concentration-or-affected",
-                    e.target.classList.contains("affected")
-                        ? "affected"
-                        : "concentration"
-                );
+            // alert(e.target.getAttribute("data-condition-id"))
+            cmEnd.setAttribute(
+                "data-cm-condition-id",
+                e.target.getAttribute("data-condition-id")
+            );
+            cmEnd.setAttribute(
+                "data-cm-affected-id",
+                e.target.getAttribute("data-affected-id")
+            );
+            cmEnd.setAttribute(
+                "data-cm-round",
+                e.target.getAttribute("data-this-round")
+            );
+            cmEnd.setAttribute(
+                "data-cm-concentration-or-affected",
+                e.target.classList.contains("affected")
+                    ? "affected"
+                    : "concentration"
+            );
         };
 
         function showContextMenu(show = true) {
@@ -1413,7 +1413,12 @@
                     e.target.parentNode.querySelectorAll(".concentration");
                 concentrationStuff.forEach((participant) => {
                     let z = participant.parentElement;
-                    if (participant.parentNode.previousSibling.value != "" && participant.parentNode.previousSibling.value != "0") {
+                    if (
+                        participant.parentNode.previousSibling.value != "" &&
+                        participant.parentNode.previousSibling.value != "0" && 
+                        participant.parentNode.previousSibling.value != "00" && 
+                        participant.parentNode.previousSibling.value != "000"
+                    ) {
                         try {
                             let x = z.querySelector(".conSavingThrowCheck");
                             z.removeChild(x);
