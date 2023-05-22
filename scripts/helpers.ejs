@@ -34,9 +34,9 @@
             "data-cm-concentration-or-affected"
         );
         if (conditionState == "concentration") {
-            affecteeID = selectedID
+            affecteeID = htmlSelected.getAttribute("data-cm-causer-id")
         }
-        console.log("THIS: " + endThisCondition.outerHTML);
+        console.log("THIS: " + endThisCondition.parentNode.outerHTML);
 
         await dbQuery(
             "GET",
@@ -594,6 +594,7 @@
                                 condition.affected_pID
                             );
                             toolTipHTML.setAttribute("data-taid", condition.taID);
+                            toolTipHTML.setAttribute("data-causerID", condition.pID);
 
                             toolTipHTML.setAttribute("data-this-round", i);
                             toolTipHTML.innerText = "C";
@@ -972,6 +973,7 @@
                 "data-cm-condition-id",
                 e.target.getAttribute("data-condition-id")
             );
+            cmEnd.setAttribute("data-cm-causer-id", e.target.getAttribute("data-causerID"))
             cmEnd.setAttribute(
                 "data-cm-affected-id",
                 e.target.getAttribute("data-affected-id")
