@@ -513,17 +513,25 @@
                             (obj) => obj.end_round === maxValue
                         );
 
-                        let affectedThisRound = ctApp.filter(item => affecteesStill.some(obj => obj.affected_pID === item.pID))
+                        let affectedThisRound = ctApp.filter((item) =>
+                            affecteesStill.some(
+                                (obj) => obj.affected_pID === item.pID
+                            )
+                        );
                         let endRound = maxObjects[0]?.end_round;
 
                         // console.log(affectedThisRound);
                         let affectedInitLower = false;
-                        if (affectedThisRound.some(item => item.init < participant.init)) {
+                        if (
+                            affectedThisRound.some(
+                                (item) => item.init < participant.init
+                            )
+                        ) {
                             affectedInitLower = true;
                         }
 
                         let matchingObject = null;
-                        
+
                         // Iterate over the values array in reverse order
                         for (let i = ctApp.length - 1; i >= 0; i--) {
                             const value = ctApp[i].pID;
@@ -542,10 +550,10 @@
                         if (
                             parseInt(condition.concentration) == 1 &&
                             parseInt(condition.start_round) <= i &&
-                            parseInt(endRound) >= i && 
+                            parseInt(endRound) >= i &&
                             affectedInitLower == true
-                            // parseInt(endRound) >= i // && 
-                            // participant.init > 
+                            // parseInt(endRound) >= i // &&
+                            // participant.init >
                         ) {
                             // get the participants who are affected by this condition.taID
                             let affectees = await dbQuery(
@@ -581,6 +589,9 @@
                                 condition.description.toUpperCase() +
                                 "<br><br>" +
                                 participant.character_name +
+                                (participant.numeric_value
+                                    ? " #" + participant.numeric_value
+                                    : "") +
                                 " <span class='arrow-container'></span> " +
                                 affecteesString;
                             toolTipHTML.appendChild(toolTipText);
@@ -645,27 +656,27 @@
                             // if (starter < i && stopper > i) {
                             //     populateAffected();
                             // }
-                            
-                            if 
-                                (starter < i && stopper > i) {
-                                populateAffected();
-                            } else if (affectedPosition == endPosition && affectedPosition < causerPosition && starter == i) {
 
-                            }
-                            else if (
+                            if (starter < i && stopper > i) {
+                                populateAffected();
+                            } else if (
+                                affectedPosition == endPosition &&
+                                affectedPosition < causerPosition &&
+                                starter == i
+                            ) {
+                            } else if (
                                 endPosition <= affectedPosition &&
-                                ((starter == i &&
-                                    stopper > i)  ||
+                                ((starter == i && stopper > i) ||
                                     (endPosition == affectedPosition &&
                                         stopper == i))
                             ) {
-                            //     console.log("-- " + causerPosition)
-                            // console.log(affectedPosition)
-                            // console.log(endPosition)
-                            // console.log(starter)
-                            // console.log(stopper)
+                                //     console.log("-- " + causerPosition)
+                                // console.log(affectedPosition)
+                                // console.log(endPosition)
+                                // console.log(starter)
+                                // console.log(stopper)
                                 populateAffected();
-                            }  else if (
+                            } else if (
                                 affectedPosition <= causerPosition &&
                                 starter < i &&
                                 stopper == i
@@ -708,6 +719,17 @@
                                     ctApp.find((participant) => {
                                         return affected.pID == participant.pID;
                                     }).character_name +
+                                    (ctApp.find((participant) => {
+                                        return affected.pID == participant.pID;
+                                    }).numeric_value
+                                        ? " #" +
+                                          ctApp.find((participant) => {
+                                              return (
+                                                  affected.pID ==
+                                                  participant.pID
+                                              );
+                                          }).numeric_value
+                                        : "") +
                                     " <span class='arrow-container'></span> " +
                                     participant.character_name;
                                 toolTipHTML.appendChild(span5);
@@ -868,38 +890,84 @@
 
         const cm = document.querySelector(".custom-cm");
 
+        // const contextMenuListener = function (e) {
+        //     e.preventDefault();
+        //     console.log(e.y);
+        //     if (e.type == "contextmenu") {
+        //         showContextMenu();
+        //         cm.style.top =
+        //             (e.y + cm.offsetHeight > window.innerHeight
+        //                 ? window.innerHeight - cm.offsetHeight
+        //                 : e.y) + "px";
+        //         cm.style.left =
+        //             (e.x + cm.offsetWidth > window.innerWidth
+        //                 ? window.innerWidth - cm.offsetWidth
+        //                 : e.x) + "px";
+        //         let cmEnd = document.querySelector(".cmEnd");
+        //         // alert(e.target.getAttribute("data-condition-id"))
+        //         cmEnd.setAttribute(
+        //             "data-cm-condition-id",
+        //             e.target.getAttribute("data-condition-id")
+        //         );
+        //         cmEnd.setAttribute(
+        //             "data-cm-affected-id",
+        //             e.target.getAttribute("data-affected-id")
+        //         );
+        //         cmEnd.setAttribute(
+        //             "data-cm-round",
+        //             e.target.getAttribute("data-this-round")
+        //         );
+        //         cmEnd.setAttribute(
+        //             "data-cm-concentration-or-affected",
+        //             e.target.classList.contains("affected")
+        //                 ? "affected"
+        //                 : "concentration"
+        //         );
+        //     }
+        // };
+
         const contextMenuListener = function (e) {
             e.preventDefault();
-            // console.log(e.target);
+            const scrollLeft =
+                window.pageXOffset || document.documentElement.scrollLeft;
+            const scrollTop =
+                window.pageYOffset || document.documentElement.scrollTop;
+            const menuHeight = cm.offsetHeight;
+            const menuWidth = cm.offsetWidth;
+            const clickY = e.clientY + scrollTop;
+            const clickX = e.clientX + scrollLeft;
+            const maxY = window.innerHeight + scrollTop;
+            const maxX = window.innerWidth + scrollLeft;
+
+            const top = clickY + menuHeight > maxY ? maxY - menuHeight : clickY;
+            const left = clickX + menuWidth > maxX ? maxX - menuWidth : clickX;
+
             showContextMenu();
-            cm.style.top =
-                (e.y + cm.offsetHeight > window.innerHeight
-                    ? window.innerHeight - cm.offsetHeight
-                    : e.y) + "px";
-            cm.style.left =
-                (e.x + cm.offsetWidth > window.innerWidth
-                    ? window.innerWidth - cm.offsetWidth
-                    : e.x) + "px";
+            cm.style.top = top + "px";
+            cm.style.left = left + "px";
+
+            // Rest of your code...
+
             let cmEnd = document.querySelector(".cmEnd");
-            // alert(e.target.getAttribute("data-condition-id"))
-            cmEnd.setAttribute(
-                "data-cm-condition-id",
-                e.target.getAttribute("data-condition-id")
-            );
-            cmEnd.setAttribute(
-                "data-cm-affected-id",
-                e.target.getAttribute("data-affected-id")
-            );
-            cmEnd.setAttribute(
-                "data-cm-round",
-                e.target.getAttribute("data-this-round")
-            );
-            cmEnd.setAttribute(
-                "data-cm-concentration-or-affected",
-                e.target.classList.contains("affected")
-                    ? "affected"
-                    : "concentration"
-            );
+                // alert(e.target.getAttribute("data-condition-id"))
+                cmEnd.setAttribute(
+                    "data-cm-condition-id",
+                    e.target.getAttribute("data-condition-id")
+                );
+                cmEnd.setAttribute(
+                    "data-cm-affected-id",
+                    e.target.getAttribute("data-affected-id")
+                );
+                cmEnd.setAttribute(
+                    "data-cm-round",
+                    e.target.getAttribute("data-this-round")
+                );
+                cmEnd.setAttribute(
+                    "data-cm-concentration-or-affected",
+                    e.target.classList.contains("affected")
+                        ? "affected"
+                        : "concentration"
+                );
         };
 
         function showContextMenu(show = true) {
@@ -1605,9 +1673,6 @@
             } else {
                 round = parseInt(currentRound);
             }
-
-            // alert(damage[index])
-            // alert(targetHPsArray[index])
 
             let dataTarget = `submitTargets/${
                 ctApp[0].eID
