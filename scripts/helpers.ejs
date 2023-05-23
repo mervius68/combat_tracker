@@ -1550,7 +1550,7 @@
         let targetsArray = Array.from(targets);
         // wrap the forEach loop in a Promise.all
         await Promise.all(
-            targetsArray.map(async (target) => {
+            targetsArray.map(async (target, index) => {
                 if (parseInt(target.value) && target.value != "0") {
                     targetHits.push("1 ");
                     target_pID.push(target.id.substring(1));
@@ -1566,7 +1566,7 @@
                             return participant.pID == target.id.substring(1);
                         }).starting_hp;
                     }
-                    targetHPsArray.push(x);
+                    targetHPsArray.push(`{'${index}' : ${x}}`);
                 } else if (target.value == "0") {
                     targetHits.push("0 ");
                     target_pID.push(target.id.substring(1));
@@ -1582,7 +1582,7 @@
                             return participant.pID == target.id.substring(1);
                         }).starting_hp;
                     }
-                    targetHPsArray.push(x);
+                    targetHPsArray.push(`{'${index}' : ${x}}`);
                 } else if (target.value == "x") {
                     targetHits.push("1 ");
                     target_pID.push(target.id.substring(1));
@@ -1598,14 +1598,30 @@
                             return participant.pID == target.id.substring(1);
                         }).starting_hp;
                     }
-                    targetHPsArray.push(x);
+                    targetHPsArray.push(`{'${index}' : ${x}}`);
                 }
+
                 // targetsArray.forEach((target) => {
                 //     console.log(target);
                 // })
                 // console.log("targetHPsArray: " + targetHPsArray);
             })
+            
         );
+        console.log(targetHPsArray)
+        targetHPsArray.sort()
+        console.log(targetHPsArray);
+        let sortedTargetHPs = [];
+
+
+        
+        targetHPsArray.forEach((item) => {
+            sortedTargetHPs.push(Object.keys[0].value)
+        })
+        alert(sortedTargetHPs);
+
+
+
         // alert("targetHPsArray: " + targetHPsArray)
 
         targetHPsArray.sort((a, b) => {
