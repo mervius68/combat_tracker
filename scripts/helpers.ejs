@@ -29,12 +29,12 @@
         let conditionID = endThisCondition.getAttribute("data-cm-condition-id");
         let affecteeID = endThisCondition.getAttribute("data-cm-affected-id");
         let round = endThisCondition.getAttribute("data-cm-round");
-        let taid = endThisCondition.getAttribute("data-cm-taid")
+        let taid = endThisCondition.getAttribute("data-cm-taid");
         let conditionState = endThisCondition.getAttribute(
             "data-cm-concentration-or-affected"
         );
         if (conditionState == "concentration") {
-            affecteeID = htmlSelected.getAttribute("data-cm-causer-id")
+            affecteeID = htmlSelected.getAttribute("data-cm-causer-id");
         }
         console.log("THIS: " + endThisCondition.parentNode.outerHTML);
 
@@ -47,7 +47,9 @@
                 "/" +
                 round +
                 "/" +
-                conditionState + "/" + taid
+                conditionState +
+                "/" +
+                taid
         );
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
@@ -558,14 +560,13 @@
                         // console.log(endRound)
                         if (
                             (parseInt(condition.concentration) == 1 &&
-                            parseInt(condition.start_round) <= i &&
-                            parseInt(endRound) >= i &&
-                            affectedInitLower == true) ||
+                                parseInt(condition.start_round) <= i &&
+                                parseInt(endRound) >= i &&
+                                affectedInitLower == true) ||
                             (parseInt(condition.concentration) == 1 &&
-                            parseInt(condition.start_round) == i &&
-                            // parseInt(endRound) >= i &&
-                            affectedInitLower == false)
-                            
+                                parseInt(condition.start_round) == i &&
+                                // parseInt(endRound) >= i &&
+                                affectedInitLower == false)
                         ) {
                             // get the participants who are affected by this condition.taID
                             let affectees = await dbQuery(
@@ -593,8 +594,14 @@
                                 "data-affected-id",
                                 condition.affected_pID
                             );
-                            toolTipHTML.setAttribute("data-taid", condition.taID);
-                            toolTipHTML.setAttribute("data-causerID", condition.pID);
+                            toolTipHTML.setAttribute(
+                                "data-taid",
+                                condition.taID
+                            );
+                            toolTipHTML.setAttribute(
+                                "data-causerID",
+                                condition.pID
+                            );
 
                             toolTipHTML.setAttribute("data-this-round", i);
                             toolTipHTML.innerText = "C";
@@ -726,7 +733,10 @@
                                 );
                                 toolTipHTML.setAttribute("data-this-round", i);
                                 toolTipHTML.innerHTML = "A";
-                                toolTipHTML.setAttribute("data-taid", affected.taID)
+                                toolTipHTML.setAttribute(
+                                    "data-taid",
+                                    affected.taID
+                                );
                                 let span5 = document.createElement("span");
                                 span5.classList.add("tooltiptext");
                                 span5.innerHTML =
@@ -747,7 +757,10 @@
                                           }).numeric_value
                                         : "") +
                                     " <span class='arrow-container'></span> " +
-                                    participant.character_name + (participant.numeric_value ? " #" + participant.numeric_value : "");
+                                    participant.character_name +
+                                    (participant.numeric_value
+                                        ? " #" + participant.numeric_value
+                                        : "");
                                 toolTipHTML.appendChild(span5);
                                 turn.nextSibling.nextSibling.appendChild(
                                     toolTipHTML
@@ -859,7 +872,6 @@
                 "selected"
             );
             navify();
-            
         } catch (err) {}
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
@@ -905,7 +917,9 @@
         xyz[xyz.length - 1].previousSibling.classList.add("hidden");
         xyz[xyz.length - 1].previousSibling.classList.add("sometimes_hidden");
         startNav.parentNode.parentNode.classList.remove("hidden");
-        startNav.parentNode.parentNode.previousSibling.classList.remove("hidden");
+        startNav.parentNode.parentNode.previousSibling.classList.remove(
+            "hidden"
+        );
 
         const cm = document.querySelector(".custom-cm");
 
@@ -973,12 +987,18 @@
                 "data-cm-condition-id",
                 e.target.getAttribute("data-condition-id")
             );
-            cmEnd.setAttribute("data-cm-causer-id", e.target.getAttribute("data-causerID"))
+            cmEnd.setAttribute(
+                "data-cm-causer-id",
+                e.target.getAttribute("data-causerID")
+            );
             cmEnd.setAttribute(
                 "data-cm-affected-id",
                 e.target.getAttribute("data-affected-id")
             );
-            cmEnd.setAttribute("data-cm-taid", e.target.getAttribute("data-taid"))
+            cmEnd.setAttribute(
+                "data-cm-taid",
+                e.target.getAttribute("data-taid")
+            );
             cmEnd.setAttribute(
                 "data-cm-round",
                 e.target.getAttribute("data-this-round")
@@ -1436,8 +1456,8 @@
                     let z = participant.parentElement;
                     if (
                         participant.parentNode.previousSibling.value != "" &&
-                        participant.parentNode.previousSibling.value != "0" && 
-                        participant.parentNode.previousSibling.value != "00" && 
+                        participant.parentNode.previousSibling.value != "0" &&
+                        participant.parentNode.previousSibling.value != "00" &&
                         participant.parentNode.previousSibling.value != "000"
                     ) {
                         try {
@@ -1566,7 +1586,7 @@
                             return participant.pID == target.id.substring(1);
                         }).starting_hp;
                     }
-                    targetHPsArray.push(`{'${index}' : ${x}}`);
+                    targetHPsArray.push({ [`${index}`]: x });
                 } else if (target.value == "0") {
                     targetHits.push("0 ");
                     target_pID.push(target.id.substring(1));
@@ -1582,7 +1602,7 @@
                             return participant.pID == target.id.substring(1);
                         }).starting_hp;
                     }
-                    targetHPsArray.push(`{'${index}' : ${x}}`);
+                    targetHPsArray.push({ [`${index}`]: x });
                 } else if (target.value == "x") {
                     targetHits.push("1 ");
                     target_pID.push(target.id.substring(1));
@@ -1598,7 +1618,7 @@
                             return participant.pID == target.id.substring(1);
                         }).starting_hp;
                     }
-                    targetHPsArray.push(`{'${index}' : ${x}}`);
+                    targetHPsArray.push({ [`${index}`]: x });
                 }
 
                 // targetsArray.forEach((target) => {
@@ -1606,33 +1626,31 @@
                 // })
                 // console.log("targetHPsArray: " + targetHPsArray);
             })
-            
         );
-        console.log(targetHPsArray)
-        targetHPsArray.sort()
-        console.log(targetHPsArray);
-        let sortedTargetHPs = [];
-
-
         
-        targetHPsArray.forEach((item) => {
-            sortedTargetHPs.push(Object.keys[0].value)
-        })
-        alert(sortedTargetHPs);
-
-
+        let sortedTargetHPs = [];
+        sortedTargetHPs = targetHPsArray
+            .reduce((acc, obj) => {
+                const key = parseInt(Object.keys(obj)[0]);
+                const value = Object.values(obj)[0];
+                acc.push({ key, value });
+                return acc;
+            }, [])
+            .sort((a, b) => a.key - b.key)
+            .map((obj) => obj.value);
+        console.log("here: " + sortedTargetHPs);
 
         // alert("targetHPsArray: " + targetHPsArray)
 
-        targetHPsArray.sort((a, b) => {
-            const indexA = targetsArray.findIndex(
-                (target) => target.id === "p" + a.id
-            );
-            const indexB = targetsArray.findIndex(
-                (target) => target.id === "p" + b.id
-            );
-            return indexA - indexB;
-        });
+        // targetHPsArray.sort((a, b) => {
+        //     const indexA = targetsArray.findIndex(
+        //         (target) => target.id === "p" + a.id
+        //     );
+        //     const indexB = targetsArray.findIndex(
+        //         (target) => target.id === "p" + b.id
+        //     );
+        //     return indexA - indexB;
+        // });
 
         if (damage == "") {
             damage = "-";
@@ -1724,9 +1742,9 @@
                 damage[index]
             }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${
                 target_pID[index]
-            }/${targetHPsArray[index]}`;
+            }/${sortedTargetHPs[index]}`;
             await dbQuery("GET", dataTarget);
-            if (targetHPsArray[index] - damage[index] <= 0) {
+            if (sortedTargetHPs[index] - damage[index] <= 0) {
                 await dbQuery(
                     "GET",
                     "terminate/" + target_pID[index] + "/" + round
