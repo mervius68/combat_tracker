@@ -1264,9 +1264,12 @@
         div16.classList.add("conSaveParent");
 
         // populate the targets of the modal
+        let redHTMLElements = document.querySelector(".red");
+        // make an array that contains only the redHTMLElements that have 'data-nav' property < dataNavSelected
+        // then, below, if participant.pID matches any of the numbers in that array, don't include it in the following
+        // forEach
         allParticipants.forEach((participant) => {
-            if (participant.new_hp != 0) {
-                let target = document.createElement("input");
+            let target = document.createElement("input");
             target.setAttribute("type", "text");
             target.setAttribute("value", "");
             target.classList.add("text_field");
@@ -1290,8 +1293,6 @@
             div16.appendChild(targetLabel);
 
             div16.appendChild(br3);
-            }
-            
         });
 
         divRight.appendChild(div16);
