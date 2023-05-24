@@ -1265,7 +1265,8 @@
 
         // populate the targets of the modal
         allParticipants.forEach((participant) => {
-            let target = document.createElement("input");
+            if (participant.new_hp != 0) {
+                let target = document.createElement("input");
             target.setAttribute("type", "text");
             target.setAttribute("value", "");
             target.classList.add("text_field");
@@ -1289,6 +1290,8 @@
             div16.appendChild(targetLabel);
 
             div16.appendChild(br3);
+            }
+            
         });
 
         divRight.appendChild(div16);
