@@ -184,16 +184,10 @@
         });
         totalRounds = Math.max(totalRounds, damageRounds);
 
-        // start a loop
+        // start a loop to build each round
         let mainContainer = document.createElement("div");
         for (let i = 1; i <= totalRounds + 1; i++) {
-            // determine which of the participants should be in this round
-            let roundParticipants = ctApp.filter(
-                (participant) =>
-                    participant.join_round <= i &&
-                    (participant.dead_round || 500) >= i
-            );
-
+            
             // build the wireframe of first section (participants);
 
             let ctRound = document.createElement("div");
@@ -588,6 +582,7 @@
                                 "data-condition-id",
                                 condition.conditionID
                             );
+                            console.log(condition.conditionID + " " + i)
                             toolTipHTML.setAttribute(
                                 "data-affected-id",
                                 condition.affected_pID
@@ -805,6 +800,8 @@
                 });
             });
         }
+
+        // load the actions into the wireframe
         try {
             for (const action of ctActions) {
                 let tool = {};
@@ -857,10 +854,12 @@
             }
         } catch (err) { }
 
+        // size the sections
         document.querySelector(".ct_round_container").innerHTML =
             mainContainer.innerHTML;
         resizeSections();
 
+        // assign background colors to show selected line
         let startNav = document.querySelector(`[data-nav="${dataNav}"]`);
         try {
             startNav.classList.add("selected");
@@ -871,6 +870,7 @@
             );
             navify();
         } catch (err) { }
+
 
         function sendToCoordinate(round, participant, actionType, actionArray) {
             try {
@@ -920,42 +920,6 @@
         );
 
         const cm = document.querySelector(".custom-cm");
-
-        // const contextMenuListener = function (e) {
-        //     e.preventDefault();
-        //     console.log(e.y);
-        //     if (e.type == "contextmenu") {
-        //         showContextMenu();
-        //         cm.style.top =
-        //             (e.y + cm.offsetHeight > window.innerHeight
-        //                 ? window.innerHeight - cm.offsetHeight
-        //                 : e.y) + "px";
-        //         cm.style.left =
-        //             (e.x + cm.offsetWidth > window.innerWidth
-        //                 ? window.innerWidth - cm.offsetWidth
-        //                 : e.x) + "px";
-        //         let cmEnd = document.querySelector(".cmEnd");
-        //         // alert(e.target.getAttribute("data-condition-id"))
-        //         cmEnd.setAttribute(
-        //             "data-cm-condition-id",
-        //             e.target.getAttribute("data-condition-id")
-        //         );
-        //         cmEnd.setAttribute(
-        //             "data-cm-affected-id",
-        //             e.target.getAttribute("data-affected-id")
-        //         );
-        //         cmEnd.setAttribute(
-        //             "data-cm-round",
-        //             e.target.getAttribute("data-this-round")
-        //         );
-        //         cmEnd.setAttribute(
-        //             "data-cm-concentration-or-affected",
-        //             e.target.classList.contains("affected")
-        //                 ? "affected"
-        //                 : "concentration"
-        //         );
-        //     }
-        // };
 
         const contextMenuListener = function (e) {
             e.preventDefault();
