@@ -556,8 +556,8 @@
                                 parseInt(endRound) >= i &&
                                 affectedInitLower == true) ||
                             (parseInt(condition.concentration) == 1 &&
-                                parseInt(condition.start_round) == i &&
-                                // parseInt(endRound) >= i &&
+                                parseInt(condition.start_round) <= i &&
+                                parseInt(endRound) >= i &&
                                 affectedInitLower == false)
                         ) {
                             // get the participants who are affected by this condition.taID
