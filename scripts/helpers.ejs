@@ -1230,7 +1230,7 @@
         let redHTMLElements = document.querySelectorAll(".red.pointer");
         let redHTML = Array.from(redHTMLElements);
         let redAfterSelection = redHTML.filter((item) => {
-            return parseInt(item.getAttribute("data-nav")) < parseInt(dataNavSelected)
+            return parseInt(item.getAttribute("data-nav")) < parseInt(dataNavSelected) + ctApp.length
         })
         let redAfterSelectionParticipants = [];
         redAfterSelection.forEach((item) => {
