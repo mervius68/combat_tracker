@@ -489,11 +489,23 @@
                     }
 
                     // show character name
-                    turn.nextSibling.nextSibling.innerText =
+                    let characterDisplay = "";
+                    if (participant.join_round <= i && participant.dead_round >= i) {
+                        characterDisplay =
                         participant.character_name +
                         (participant.numeric_value == null
                             ? ""
                             : " #" + participant.numeric_value);
+                    } else {
+                        let span6 = document.createElement("span");
+                        span6.classList.add("participantGray");
+                        span6.innerHTML = participant.character_name +
+                        (participant.numeric_value == null
+                            ? ""
+                            : " #" + participant.numeric_value);
+                        characterDisplay = span6.outerHTML;
+                    }
+                    turn.nextSibling.nextSibling.innerHTML = characterDisplay;
 
                     // if character has a condition/concentration, show icon with tooltip
                     participant.conditionsArray.forEach(async (condition) => {

@@ -108,6 +108,12 @@ body {
     background-color: lightsalmon;
 }
 
+.participantGray {
+    background-color: darkslategray;
+    color: lightgray;
+    padding: .1em .6em;
+}
+
 .lightred {
     background-color: red;
     color: white;
