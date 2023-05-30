@@ -187,7 +187,12 @@
         // start a loop to build each round
         let mainContainer = document.createElement("div");
         for (let i = 1; i <= totalRounds + 1; i++) {
-            
+            let roundCtApp = ctApp.filter((participant) => {
+                return participant.join_round <= i &&
+             (participant.dead_round >= i ||
+                     participant.dead_round == "")
+            })
+            console.log(roundCtApp)
             // build the wireframe of first section (participants);
 
             let ctRound = document.createElement("div");
@@ -231,13 +236,13 @@
             ctRound.appendChild(section1);
             mainContainer.appendChild(ctRound);
 
-            for (let j = 0; j <= ctApp.length - 1; j++) {
+            for (let j = 0; j <= roundCtApp.length - 1; j++) {
                 let div5 = document.createElement("div");
                 div5.classList.add("section");
                 div5.classList.add("ct_turn_bookends");
                 div5.classList.add("center");
                 div5.classList.add("pointer");
-                div5.setAttribute("data-participant", ctApp[j].pID);
+                div5.setAttribute("data-participant", roundCtApp[j].pID);
                 div5.setAttribute("data-nav", cellCountVertical);
                 div5.setAttribute("tabindex", cellCountVertical);
                 div5.setAttribute("data-round", i);
@@ -265,7 +270,7 @@
             let attacksThisRound = [];
             let bonusThisRound = [];
             let reactThisRound = [];
-            ctApp.forEach((participant) => {
+            roundCtApp.forEach((participant) => {
                 attacksThisRound.push(
                     ctActions.filter((action) => {
                         return (
@@ -276,7 +281,7 @@
                     })
                 );
             });
-            ctApp.forEach((participant) => {
+            roundCtApp.forEach((participant) => {
                 bonusThisRound.push(
                     ctActions.filter((action) => {
                         return (
@@ -287,7 +292,7 @@
                     })
                 );
             });
-            ctApp.forEach((participant) => {
+            roundCtApp.forEach((participant) => {
                 reactThisRound.push(
                     ctActions.filter((action) => {
                         return (
@@ -308,7 +313,7 @@
                 "attack",
                 ctRound,
                 numAttacks,
-                ctApp
+                roundCtApp
             );
             mainContainer.appendChild(sectionHTML);
 
@@ -317,7 +322,7 @@
                 "bonus",
                 ctRound,
                 bonusActions,
-                ctApp
+                roundCtApp
             );
             mainContainer.appendChild(sectionHTML);
 
@@ -326,7 +331,7 @@
                 "react",
                 ctRound,
                 reactActions,
-                ctApp
+                roundCtApp
             );
             mainContainer.appendChild(sectionHTML);
 
@@ -364,7 +369,7 @@
             section2.appendChild(div7);
             section2.appendChild(div8);
 
-            ctApp.forEach((participant) => {
+            roundCtApp.forEach((participant) => {
                 let div9 = document.createElement("div");
                 div9.classList.add("section");
                 div9.classList.add("ct_turn_bookends");
@@ -424,7 +429,7 @@
 
             // populate participants
             let participantHTML;
-            ctApp.forEach(async (participant) => {
+            roundCtApp.forEach(async (participant) => {
                 // find latest damage report for this user;
                 // if no damages at all, apply participant's starting_hp;
                 // else, if no damages for this round, check previous round
@@ -513,7 +518,7 @@
                             (obj) => obj.end_round === maxValue
                         );
 
-                        let affectedThisRound = ctApp.filter((item) =>
+                        let affectedThisRound = roundCtApp.filter((item) =>
                             affecteesStill.some(
                                 (obj) => obj.affected_pID === item.pID
                             )
@@ -533,11 +538,11 @@
                         let matchingObject = null;
 
                         // Iterate over the values array in reverse order
-                        for (let i = ctApp.length - 1; i >= 0; i--) {
-                            const value = ctApp[i].pID;
+                        for (let i = roundCtApp.length - 1; i >= 0; i--) {
+                            const value = roundCtApp[i].pID;
 
                             // Find the first object that matches the current value
-                            matchingObject = ctApp.find(
+                            matchingObject = roundCtApp.find(
                                 (obj) => obj.pID === value
                             );
 
@@ -617,16 +622,16 @@
 
                     // if participant is affected by a condition, show icon with tooltip
                     participant.affectedArray.forEach((affected) => {
-                        const affectedParticipant = ctApp.find(
+                        const affectedParticipant = roundCtApp.find(
                             (participant) => participant.pID === affected.pID
                         );
-                        let endPosition = ctApp.findIndex((item) => {
+                        let endPosition = roundCtApp.findIndex((item) => {
                             return item.pID == affected.end_pID;
                         });
-                        let causerPosition = ctApp.findIndex((item) => {
+                        let causerPosition = roundCtApp.findIndex((item) => {
                             return item.pID == affected.pID;
                         });
-                        let affectedPosition = ctApp.findIndex((item) => {
+                        let affectedPosition = roundCtApp.findIndex((item) => {
                             return item.pID == affected.affected_pID;
                         });
 
@@ -735,14 +740,14 @@
                                 span5.innerHTML =
                                     affected.description +
                                     "<br><br>" +
-                                    ctApp.find((participant) => {
+                                    roundCtApp.find((participant) => {
                                         return affected.pID == participant.pID;
                                     }).character_name +
-                                    (ctApp.find((participant) => {
+                                    (roundCtApp.find((participant) => {
                                         return affected.pID == participant.pID;
                                     }).numeric_value
                                         ? " #" +
-                                        ctApp.find((participant) => {
+                                        roundCtApp.find((participant) => {
                                             return (
                                                 affected.pID ==
                                                 participant.pID
@@ -2210,7 +2215,7 @@
         actionType,
         ctRound,
         numberActions,
-        ctApp
+        roundCtApp
     ) {
         let round = ctRound;
         for (let j = 1; j <= numberActions; j++) {
@@ -2262,7 +2267,12 @@
             section2.appendChild(div6);
             section2.appendChild(div7);
             section2.appendChild(div8);
-            ctApp.forEach((participant) => {
+            // let roundCtApp = ctApp.filter((participant) => {
+            //     return participant.join_round <= round &&
+            //  (participant.dead_round >= round ||
+            //          participant.dead_round == "")
+            // })
+            roundCtApp.forEach((participant) => {
                 let div9 = document.createElement("div");
                 div9.classList.add("section");
                 div9.classList.add(
