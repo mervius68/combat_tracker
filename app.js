@@ -389,6 +389,22 @@ app.get("/terminate/:targeted_pID/:round", (req, res) => {
     });
 });
 
+app.get("/revive/:targeted_pID/", (req, res) => {
+    let targeted_pID = req.params.targeted_pID;
+    let round = req.params.round;
+    let sql = `UPDATE ct_tbl_participant SET dead_round = '100'
+        where pID = '${targeted_pID}'
+            `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        // console.log(results);
+        res.send(results);
+    });
+});
+
 app.get("/endConditions/:pID/:round/:taID", (req, res) => {
     let pID = req.params.pID;
     let round = req.params.round;

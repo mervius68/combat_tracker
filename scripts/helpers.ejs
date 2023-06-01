@@ -1741,6 +1741,11 @@
                     "GET",
                     "endConditions/" + target_pID[index] + "/" + round
                 );
+            } else {
+                await dbQuery(
+                    "GET",
+                    "revive/" + target_pID[index] + "/"
+                )
             }
         });
 
