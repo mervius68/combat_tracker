@@ -3,6 +3,7 @@
     let participantsHpsByRound;
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
+        alert("HEY");
         document.removeEventListener("keydown", keydownEventListener);
         document.removeEventListener("keydown", clickEventListener);
         cellCountVertical = 1;

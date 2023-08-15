@@ -235,7 +235,7 @@ app.get(
         let nextTargetID = req.params.nextTargetID;
 
         let hit = req.params.hit;
-        
+
         let damage = req.params.damage;
         if (hit == "x") {
             hit = 1;
@@ -259,7 +259,7 @@ app.get(
         let nextToolID = req.params.nextToolID;
 
         // build multiple INSERTs if needed
-        
+
         let target_pIDArray = target_pID.split(" ").map;
 
         let sql = `INSERT into ct_tbl_action
@@ -326,7 +326,7 @@ app.get("/getNextTAID", (req, res) => {
             throw err;
         }
         // console.log(results);
-        res.send(results[0] || {taID: 0});
+        res.send(results[0] || { taID: 0 });
     });
 });
 
@@ -406,6 +406,7 @@ app.get("/revive/:targeted_pID/", (req, res) => {
 });
 
 app.get("/endConditions/:pID/:round/:taID", (req, res) => {
+    console.log("hiya!")
     let pID = req.params.pID;
     let round = req.params.round;
     let taID = req.params.taID;
@@ -429,7 +430,7 @@ app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState/:taid", (
     let conditionState = req.params.conditionState;
     let taid = req.params.taid;
     let sql;
-    
+
     if (conditionState == "affected") {
         sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${affecteeID}'
         where affected_pID = '${affecteeID}' AND taID = '${taid}'            `;
@@ -454,10 +455,12 @@ app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState/:taid", (
 
 app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
     let cpID = req.params.cpID;
+    console.log("cpID: " + cpID)
     let round = req.params.round;
     let affected_pID = req.params.affected_pID;
     let pID = req.params.pID
-    let sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${pID}' WHERE taID IN (select taID from ct_tbl_condition where ct_tbl_condition.cpID = '${cpID}') AND affected_pID = '${affected_pID}'`;
+    let sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${pID}' WHERE taID IN (select taID from ct_tbl_condition where ct_tbl_condition.taID = '${cpID}') AND affected_pID = '${affected_pID}'`;
+    console.log(sql);
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
@@ -465,7 +468,7 @@ app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
         }
         res.send(results);
     });
-  });
+});
 
 app.get("/participantActions/:encounter/:round", (req, res) => {
     let encounter = req.params.encounter;

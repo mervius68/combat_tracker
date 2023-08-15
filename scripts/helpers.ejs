@@ -11,16 +11,6 @@
             }
         }
     };
-    // const encounterClickListener = function (event) {
-    //     if (event.target.classList.contains("tooltip")) {
-    //         // alert(event.target.outerHTML)
-    //         // if (event.target.previousSibling.value === "") {
-    //         //     event.target.previousSibling.value = "x";
-    //         // } else if (event.target.previousSibling.value === "x") {
-    //         //     event.target.previousSibling.value = "";
-    //         // }
-    //     }
-    // };
 
     async function endCondition() {
         let htmlSelected = document.querySelector(".selected");
@@ -36,7 +26,6 @@
         if (conditionState == "concentration") {
             affecteeID = htmlSelected.getAttribute("data-cm-causer-id");
         }
-        console.log("THIS: " + endThisCondition.parentNode.outerHTML);
 
         await dbQuery(
             "GET",
@@ -55,8 +44,6 @@
         let dataNav = html.getAttribute("data-nav");
         load_encounter(0, dataNav);
 
-        // console.log(endThisCondition)
-        // console.log(conditionID + " & " + affecteeID + " & " + round + " & " + conditionState)
     }
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
@@ -187,7 +174,7 @@
         // start a loop to build each round
         let mainContainer = document.createElement("div");
         for (let i = 1; i <= totalRounds + 1; i++) {
-            
+
             // build the wireframe of first section (participants);
 
             let ctRound = document.createElement("div");
@@ -402,14 +389,6 @@
             divCM2.classList.add("cmEnd");
             divCM2.innerHTML = "End This Condition";
             divCM2.setAttribute("onclick", "endCondition()");
-            // let divCM3 = document.createElement("div");
-            // divCM3.classList.add("custom-cm__item");
-            // divCM3.innerHTML = "Item #2";
-            // let divCMDivider = document.createElement("div");
-            // divCMDivider.classList.add("custom-cm__divider");
-            // let divCM4 = document.createElement("div");
-            // divCM4.classList.add("custom-cm__item");
-            // divCM4.innerHTML = "Item #3";
 
             divCM.appendChild(divCM2);
             // divCM.appendChild(divCM3);
@@ -492,17 +471,17 @@
                     let characterDisplay = "";
                     if (participant.join_round <= i && participant.dead_round >= i) {
                         characterDisplay =
-                        participant.character_name +
-                        (participant.numeric_value == null
-                            ? ""
-                            : " #" + participant.numeric_value);
+                            participant.character_name +
+                            (participant.numeric_value == null
+                                ? ""
+                                : " #" + participant.numeric_value);
                     } else {
                         let span6 = document.createElement("span");
                         span6.classList.add("participantGray");
                         span6.innerHTML = participant.character_name +
-                        (participant.numeric_value == null
-                            ? ""
-                            : " #" + participant.numeric_value);
+                            (participant.numeric_value == null
+                                ? ""
+                                : " #" + participant.numeric_value);
                         characterDisplay = span6.outerHTML;
                     }
                     turn.nextSibling.nextSibling.innerHTML = characterDisplay;
@@ -594,7 +573,7 @@
                                 "data-condition-id",
                                 condition.conditionID
                             );
-                            console.log(condition.conditionID + " " + i)
+                            // console.log(condition.conditionID + " " + i)
                             toolTipHTML.setAttribute(
                                 "data-affected-id",
                                 condition.affected_pID
@@ -935,54 +914,57 @@
 
         const contextMenuListener = function (e) {
             e.preventDefault();
-            const scrollLeft =
-                window.pageXOffset || document.documentElement.scrollLeft;
-            const scrollTop =
-                window.pageYOffset || document.documentElement.scrollTop;
-            const menuHeight = cm.offsetHeight;
-            const menuWidth = cm.offsetWidth;
-            const clickY = e.clientY + scrollTop;
-            const clickX = e.clientX + scrollLeft;
-            const maxY = window.innerHeight + scrollTop;
-            const maxX = window.innerWidth + scrollLeft;
+            if (e.target.classList.contains("affected") || e.target.classList.contains("concentration")) {
+                const scrollLeft =
+                    window.pageXOffset || document.documentElement.scrollLeft;
+                const scrollTop =
+                    window.pageYOffset || document.documentElement.scrollTop;
+                const menuHeight = cm.offsetHeight;
+                const menuWidth = cm.offsetWidth;
+                const clickY = e.clientY + scrollTop;
+                const clickX = e.clientX + scrollLeft;
+                const maxY = window.innerHeight + scrollTop;
+                const maxX = window.innerWidth + scrollLeft;
 
-            const top = clickY + menuHeight > maxY ? maxY - menuHeight : clickY;
-            const left = clickX + menuWidth > maxX ? maxX - menuWidth : clickX;
+                const top = clickY + menuHeight > maxY ? maxY - menuHeight : clickY;
+                const left = clickX + menuWidth > maxX ? maxX - menuWidth : clickX;
 
-            showContextMenu();
-            cm.style.top = top + "px";
-            cm.style.left = left + "px";
+                showContextMenu();
+                cm.style.top = top + "px";
+                cm.style.left = left + "px";
 
-            // Rest of your code...
+                // Rest of your code...
 
-            let cmEnd = document.querySelector(".cmEnd");
-            // alert(e.target.getAttribute("data-condition-id"))
-            cmEnd.setAttribute(
-                "data-cm-condition-id",
-                e.target.getAttribute("data-condition-id")
-            );
-            cmEnd.setAttribute(
-                "data-cm-causer-id",
-                e.target.getAttribute("data-causerID")
-            );
-            cmEnd.setAttribute(
-                "data-cm-affected-id",
-                e.target.getAttribute("data-affected-id")
-            );
-            cmEnd.setAttribute(
-                "data-cm-taid",
-                e.target.getAttribute("data-taid")
-            );
-            cmEnd.setAttribute(
-                "data-cm-round",
-                e.target.getAttribute("data-this-round")
-            );
-            cmEnd.setAttribute(
-                "data-cm-concentration-or-affected",
-                e.target.classList.contains("affected")
-                    ? "affected"
-                    : "concentration"
-            );
+                let cmEnd = document.querySelector(".cmEnd");
+                // alert(e.target.getAttribute("data-condition-id"))
+                cmEnd.setAttribute(
+                    "data-cm-condition-id",
+                    e.target.getAttribute("data-condition-id")
+                );
+                cmEnd.setAttribute(
+                    "data-cm-causer-id",
+                    e.target.getAttribute("data-causerID")
+                );
+                cmEnd.setAttribute(
+                    "data-cm-affected-id",
+                    e.target.getAttribute("data-affected-id")
+                );
+                cmEnd.setAttribute(
+                    "data-cm-taid",
+                    e.target.getAttribute("data-taid")
+                );
+                cmEnd.setAttribute(
+                    "data-cm-round",
+                    e.target.getAttribute("data-this-round")
+                );
+                cmEnd.setAttribute(
+                    "data-cm-concentration-or-affected",
+                    e.target.classList.contains("affected")
+                        ? "affected"
+                        : "concentration"
+                );
+            }
+
         };
 
         function showContextMenu(show = true) {
@@ -1480,11 +1462,18 @@
     }
 
     async function submitAction(forceCondition = 0) {
-        // get current round
+        // get html of selected row
         let html = document.querySelector(".selected");
+
+        // define current round
         let currentRound = html.getAttribute("data-round");
+
+        // who is committing the action?
         let pID = html.getAttribute("data-participant");
+
+        // which row of the combat tracker is selected/active?
         let dataNav = html.getAttribute("data-nav");
+
         let holdingOneRound = 0;
         // determine next available action number
         let nextAID = await dbQuery("GET", "getNewAID");
@@ -1618,7 +1607,7 @@
                 // console.log("targetHPsArray: " + targetHPsArray);
             })
         );
-
+            // alert("target_pID: " + target_pID)
         let sortedTargetHPs = [];
         sortedTargetHPs = targetHPsArray
             .reduce((acc, obj) => {
@@ -1629,7 +1618,7 @@
             }, [])
             .sort((a, b) => a.key - b.key)
             .map((obj) => obj.value);
-        console.log("here: " + sortedTargetHPs);
+        // console.log("here: " + sortedTargetHPs);
 
         // alert("targetHPsArray: " + targetHPsArray)
 
@@ -1676,7 +1665,7 @@
         let disabledConditionsArray = [];
         disableConditionsEle.forEach(async (condition) => {
             // get value of taID by sending data-cpid to ct_tbl_condition
-
+            // alert("A: " + condition.outerHTML)
             if (condition.checked == true) {
                 disabledConditionsArray.push(
                     await dbQuery(
@@ -1732,6 +1721,8 @@
                 }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
                 }/${sortedTargetHPs[index]}`;
             await dbQuery("GET", dataTarget);
+            // alert("sortedTargetHPs[index] = " + sortedTargetHPs[index]);
+            // alert("damage[index] = " + damage[index])
             if (sortedTargetHPs[index] - damage[index] <= 0) {
                 await dbQuery(
                     "GET",
@@ -1748,6 +1739,8 @@
                 )
             }
         });
+
+        
 
         load_encounter(0, dataNav);
         let modal = document.querySelector(".modal");
@@ -1796,7 +1789,7 @@
             "participantTools/" + characterID
         );
         // targets
-        
+
         // conditions in effect (with option to end them)
         let conditionsInEffect = await dbQuery(
             "GET",
