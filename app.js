@@ -150,12 +150,13 @@ app.get("/getNextTargetID", (req, res) => {
     });
 });
 
-app.get("/getAffectees/:taID", (req, res) => {
+app.get("/getAffectees/:taID/:round", (req, res) => {
     let taID = req.params.taID;
+    let round = req.params.round;
     let sql = `SELECT *
         FROM ct_tbl_condition_affectee
         JOIN ct_tbl_participant ON ct_tbl_condition_affectee.affected_pID = ct_tbl_participant.pID
-        WHERE ct_tbl_condition_affectee.taID = ${taID}
+        WHERE ct_tbl_condition_affectee.taID = ${taID} AND ct_tbl_condition_affectee.start_round <= ${round} AND ct_tbl_condition_affectee.end_round >= ${round}
                 ORDER by caID ASC
                 `;
     let query = db.all(sql, [], (err, results) => {

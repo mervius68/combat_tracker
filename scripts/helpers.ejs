@@ -554,14 +554,14 @@
                             // get the participants who are affected by this condition.taID
                             let affectees = await dbQuery(
                                 "GET",
-                                "getAffectees/" + condition.taID
+                                "getAffectees/" + condition.taID + "/" + i
                             );
                             let affecteesString = "";
                             affectees.forEach((affectee, index) => {
                                 affecteesString +=
                                     affectee.character_name +
                                     (affectee.numeric_value
-                                        ? affectee.numeric_value
+                                        ? " #" + affectee.numeric_value
                                         : "") +
                                     (index != affectees.length - 1 ? ", " : "");
                             });
