@@ -212,7 +212,6 @@ app.get(
                 console.log(err);
                 throw err;
             }
-            // console.log(sql);
             res.send(results);
         });
     }
@@ -461,7 +460,6 @@ app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
     let affected_pID = req.params.affected_pID;
     let pID = req.params.pID
     let sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${pID}' WHERE taID IN (select taID from ct_tbl_condition where ct_tbl_condition.taID = '${cpID}') AND affected_pID = '${affected_pID}'`;
-    console.log(sql);
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);

@@ -627,41 +627,13 @@
                                 ? affected.pID !=
                                 parseInt(affected.affected_pID)
                                 : affected.concentration === 1 &&
-                                affected.pID !=
-                                parseInt(affected.affected_pID) &&
+                                // affected.pID !=
+                                // parseInt(affected.affected_pID) &&
                                 parseInt(affected.start_round) <= i &&
                                 parseInt(affected.end_round) >= i
                         ) {
                             let starter = parseInt(affected.start_round);
                             let stopper = parseInt(affected.end_round);
-
-                            // if (endPosition <= affectedPosition) {
-                            //     if (
-                            //         (starter == i && stopper > i && causerPosition) ||
-                            //         (endPosition == affectedPosition &&
-                            //             stopper == i)
-                            //     ) {
-                            //         populateAffected();
-                            //     }
-                            // } else if (
-                            //     causerPosition < affectedPosition &&
-                            //     affectedPosition <= endPosition
-                            // ) {
-                            //     if (starter == i && stopper == i) {
-                            //         populateAffected();
-                            //     } else if (starter < i && stopper == i) {
-                            //         populateAffected();
-                            //     } else if (starter == i && stopper > i) {
-                            //         populateAffected();
-                            //     }
-                            // } else if (affectedPosition <= causerPosition) {
-                            //     if (starter < i && stopper == i) {
-                            //         populateAffected();
-                            //     }
-                            // }
-                            // if (starter < i && stopper > i) {
-                            //     populateAffected();
-                            // }
 
                             if (starter < i && stopper > i) {
                                 populateAffected();
@@ -676,11 +648,6 @@
                                     (endPosition == affectedPosition &&
                                         stopper == i))
                             ) {
-                                //     console.log("-- " + causerPosition)
-                                // console.log(affectedPosition)
-                                // console.log(endPosition)
-                                // console.log(starter)
-                                // console.log(stopper)
                                 populateAffected();
                             } else if (
                                 affectedPosition <= causerPosition &&
@@ -832,7 +799,7 @@
 
                 actionArray[0] = tool || "";
                 actionArray[1] =
-                    action.hit == 1 ? "<b class='lightred'>X</b>" : "";
+                    action.hit == 1 ? "<b>✅</b>" : "";
                 actionArray[2] = targetString || "";
                 actionArray[3] = damageString || "";
                 actionArray[4] = action.notes || "";
