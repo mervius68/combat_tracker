@@ -1574,7 +1574,7 @@
                 // console.log("targetHPsArray: " + targetHPsArray);
             })
         );
-            // alert("target_pID: " + target_pID)
+        // alert("target_pID: " + target_pID)
         let sortedTargetHPs = [];
         sortedTargetHPs = targetHPsArray
             .reduce((acc, obj) => {
@@ -1630,11 +1630,13 @@
         let disableConditionsEle = document.getElementsByName("conditions");
         let disableConditionsString = "";
         let disabledConditionsArray = [];
-        disableConditionsEle.forEach(async (condition) => {
-            // get value of taID by sending data-cpid to ct_tbl_condition
-            // alert("A: " + condition.outerHTML)
-            if (condition.checked == true) {
-                disabledConditionsArray.push(
+
+        async function processConditions() {
+            for (const condition of disableConditionsEle) {
+                Promise.all(
+
+                )
+                if (condition.checked) {
                     await dbQuery(
                         "GET",
                         "disableCondition/" +
@@ -1648,10 +1650,29 @@
                         "/" +
                         pID
                     )
-                );
-                disableConditionsString += condition.value;
+
+                    // create arrays for each condition we want to edit
+
+                    // dig into ctApp for info
+                    // grab character where ctApp[x].chID == condition.getAttribute("affected");
+                    // conditionName = ctApp[x].affectedArray[x].condition_name
+                    // creator = ctApp[x].chID == ctApp[x].affectedArray[x].pID
+                    // endsFor = all the people for whom ctApp[x].affectedArray[x].conditionID == condition.data-cpid
+
+                    // add info to notes
+
+                    // alert(condition.outerHTML);
+                    if (notes == "-") {
+                        notes = condition.getAttribute("data-cpid") + " ends ()";
+                    } else {
+                        notes += condition.getAttribute("data-cpid") + " ends ()";
+                    }
+                    disableConditionsString += condition.value;
+                }
             }
-        });
+        }
+        await processConditions();
+        alert(notes);
         if (disableConditionsString == "") {
             disableConditionsString = "-";
         }
@@ -1707,7 +1728,7 @@
             }
         });
 
-        
+
 
         load_encounter(0, dataNav);
         let modal = document.querySelector(".modal");
