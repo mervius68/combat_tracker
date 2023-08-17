@@ -114,6 +114,10 @@ body {
     padding: .1em .6em;
 }
 
+.hitGreen {
+    background-color: green;
+}
+
 .lightred {
     background-color: red;
     color: white;
