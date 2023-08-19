@@ -1631,12 +1631,39 @@
         let disableConditionsString = "";
         let disabledConditionsArray = [];
 
+        conditionsOff = [];
+        conditionsToTurnOff = {};
+        // let conditionsOff = [];
         async function processConditions() {
             for (const condition of disableConditionsEle) {
-                Promise.all(
 
-                )
+
                 if (condition.checked) {
+
+                    let object = {
+                        affectedpID: condition.getAttribute("data-participant-affected"),
+                        condition: condition.getAttribute("data-cpid")
+                    }
+                    conditionsOff.push(object);           // create arrays for each condition we want to edit
+                    console.log(conditionsOff.length);
+                    conditionsOff.forEach((obj) => {
+                        if (!conditionsToTurnOff[obj.condition]) {
+                            conditionsToTurnOff[obj.condition] = [];
+                            conditionsToTurnOff[obj.condition].affectees = [];
+                        }
+                        conditionsToTurnOff[obj.condition].affectees.push(obj.affectedpID);
+                        conditionsToTurnOff[obj.condition].affectees = [...new Set(conditionsToTurnOff[obj.condition].affectees)]
+                    })
+                    
+                    alert(conditionsToTurnOff);
+                    if (notes == "-") {
+                        notes = condition.getAttribute("data-cpid") + " ends ()";
+                    } else {
+                        notes += condition.getAttribute("data-cpid") + " ends ()";
+                    }
+                    disableConditionsString += condition.value;
+
+
                     await dbQuery(
                         "GET",
                         "disableCondition/" +
@@ -1651,7 +1678,6 @@
                         pID
                     )
 
-                    // create arrays for each condition we want to edit
 
                     // dig into ctApp for info
                     // grab character where ctApp[x].chID == condition.getAttribute("affected");
@@ -1662,17 +1688,12 @@
                     // add info to notes
 
                     // alert(condition.outerHTML);
-                    if (notes == "-") {
-                        notes = condition.getAttribute("data-cpid") + " ends ()";
-                    } else {
-                        notes += condition.getAttribute("data-cpid") + " ends ()";
-                    }
-                    disableConditionsString += condition.value;
+
                 }
             }
         }
         await processConditions();
-        alert(notes);
+
         if (disableConditionsString == "") {
             disableConditionsString = "-";
         }
