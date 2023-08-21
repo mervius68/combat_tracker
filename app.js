@@ -455,7 +455,6 @@ app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState/:taid", (
 
 app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
     let cpID = req.params.cpID;
-    console.log("cpID: " + cpID)
     let round = req.params.round;
     let affected_pID = req.params.affected_pID;
     let pID = req.params.pID

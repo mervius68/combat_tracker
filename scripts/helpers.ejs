@@ -1256,6 +1256,19 @@
         // );
 
         conditionsInEffect.forEach((condition) => {
+
+            // if...
+            // condition.end_round == currentRound &&
+            // condition.end_pID !== participantID
+            // alert("******")
+            // alert(condition.end_round);
+            // alert(currentRound);
+            // alert(condition.end_pID);
+            // alert(participantID);
+            // alert(condition.pID);
+            if (condition.end_round == currentRound && condition.end_pID == participantID) { 
+
+            } else {
             let conditionParticipant = condition.pID;
             let startHTML = document.querySelector(
                 '[data-round="' +
@@ -1357,71 +1370,74 @@
                     html.innerHTML += concentrationSpan.outerHTML;
                 }
             }
+        }
+
+
         });
 
-        container.appendChild(divModalBottom);
+    container.appendChild(divModalBottom);
 
-        let buttonContainer = document.createElement("div");
-        buttonContainer.classList.add("button_container");
-        let submit = document.createElement("button");
-        submit.innerText = "SUBMIT";
-        submit.setAttribute("onclick", "submitAction()");
-        submit.classList.add("button");
-        let submitGoToCondition = document.createElement("button");
-        submitGoToCondition.innerText = "SUBMIT + go to CONDITIONS";
-        submitGoToCondition.classList.add("button");
-        submitGoToCondition.setAttribute("onclick", "submitAction('1')");
+    let buttonContainer = document.createElement("div");
+    buttonContainer.classList.add("button_container");
+    let submit = document.createElement("button");
+    submit.innerText = "SUBMIT";
+    submit.setAttribute("onclick", "submitAction()");
+    submit.classList.add("button");
+    let submitGoToCondition = document.createElement("button");
+    submitGoToCondition.innerText = "SUBMIT + go to CONDITIONS";
+    submitGoToCondition.classList.add("button");
+    submitGoToCondition.setAttribute("onclick", "submitAction('1')");
 
-        buttonContainer.appendChild(submit);
-        buttonContainer.appendChild(submitGoToCondition);
-        container.appendChild(buttonContainer);
+    buttonContainer.appendChild(submit);
+    buttonContainer.appendChild(submitGoToCondition);
+    container.appendChild(buttonContainer);
 
-        modal.innerHTML = container.outerHTML;
+    modal.innerHTML = container.outerHTML;
 
-        await document.removeEventListener("click", clickEventListener);
-        document.addEventListener("click", clickEventListener);
+    await document.removeEventListener("click", clickEventListener);
+    document.addEventListener("click", clickEventListener);
 
-        // Attach the event listener to the modal
-        modal.addEventListener("click", modalClickListener);
+    // Attach the event listener to the modal
+    modal.addEventListener("click", modalClickListener);
 
-        modal.addEventListener("input", function (e) {
-            if (e.target.parentElement.classList.contains("conSaveParent")) {
-                let concentrationStuff =
-                    e.target.parentNode.querySelectorAll(".concentration");
-                concentrationStuff.forEach((participant) => {
-                    let z = participant.parentElement;
-                    if (
-                        participant.parentNode.previousSibling.value != "" &&
-                        participant.parentNode.previousSibling.value != "0" &&
-                        participant.parentNode.previousSibling.value != "00" &&
-                        participant.parentNode.previousSibling.value != "000"
-                    ) {
-                        try {
-                            let x = z.querySelector(".conSavingThrowCheck");
-                            z.removeChild(x);
-                        } catch (err) { }
-                        let input =
-                            participant.parentNode.previousSibling.value;
-                        if (input / 2 <= 10) {
-                            input = 10;
-                        } else {
-                            input = Math.floor(input / 2);
-                        }
-                        let span3 = document.createElement("span");
-                        if (parseInt(input)) {
-                            span3.classList.add("conSavingThrowCheck");
-                            span3.innerHTML = `DC CON ${input}`;
-                        }
-                        participant.parentNode.appendChild(span3);
+    modal.addEventListener("input", function (e) {
+        if (e.target.parentElement.classList.contains("conSaveParent")) {
+            let concentrationStuff =
+                e.target.parentNode.querySelectorAll(".concentration");
+            concentrationStuff.forEach((participant) => {
+                let z = participant.parentElement;
+                if (
+                    participant.parentNode.previousSibling.value != "" &&
+                    participant.parentNode.previousSibling.value != "0" &&
+                    participant.parentNode.previousSibling.value != "00" &&
+                    participant.parentNode.previousSibling.value != "000"
+                ) {
+                    try {
+                        let x = z.querySelector(".conSavingThrowCheck");
+                        z.removeChild(x);
+                    } catch (err) { }
+                    let input =
+                        participant.parentNode.previousSibling.value;
+                    if (input / 2 <= 10) {
+                        input = 10;
                     } else {
-                        try {
-                            let x = z.querySelector(".conSavingThrowCheck");
-                            z.removeChild(x);
-                        } catch (err) { }
+                        input = Math.floor(input / 2);
                     }
-                });
-            }
-        });
+                    let span3 = document.createElement("span");
+                    if (parseInt(input)) {
+                        span3.classList.add("conSavingThrowCheck");
+                        span3.innerHTML = `DC CON ${input}`;
+                    }
+                    participant.parentNode.appendChild(span3);
+                } else {
+                    try {
+                        let x = z.querySelector(".conSavingThrowCheck");
+                        z.removeChild(x);
+                    } catch (err) { }
+                }
+            });
+        }
+    });
     }
 
     async function submitAction(forceCondition = 0) {
@@ -1713,12 +1729,12 @@
                 let x = ctApp.find((participant) => {
                     return participant.pID == affectee
                 })
-                string += index < conditionsToTurnOff[condition].affectees.length ? " " + x.character_name  : ""
+                string += index < conditionsToTurnOff[condition].affectees.length ? " " + x.character_name + (x.numeric_value ? " #" + x.numeric_value : "") : ""
             })
             if (notes == "-") {
                 notes = string
             } else {
-                notes += " | " + string 
+                notes += " | " + string
             }
         })
 
@@ -2595,6 +2611,7 @@
     }
 
     const clickEventListener = function (event) {
+        // alert(event.target.outerHTML);
         // if (event.target.classList.contains("modal_text_inputs")) {
         //     if (event.target.previousSibling.innerHTML == "") {
         //         event.target.previousSibling.innerHTML = "x"
