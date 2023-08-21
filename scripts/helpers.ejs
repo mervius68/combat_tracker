@@ -495,7 +495,6 @@
                             "/" +
                             i
                         );
-                        // console.log(affecteesStill);
 
                         const maxValue = Math.max(
                             ...affecteesStill.map((obj) => obj.end_round)
@@ -537,10 +536,7 @@
                                 break;
                             }
                         }
-                        // console.log(affectedInitLower)
-                        // console.log(condition.concentration)
-                        // console.log(condition.start_round)
-                        // console.log(endRound)
+
                         if (
                             (parseInt(condition.concentration) == 1 &&
                                 parseInt(condition.start_round) <= i &&
@@ -1633,19 +1629,15 @@
 
         conditionsOff = [];
         conditionsToTurnOff = {};
-        // let conditionsOff = [];
+        conditionsData = {};
         async function processConditions() {
             for (const condition of disableConditionsEle) {
-
-
                 if (condition.checked) {
-
-                    let object = {
+                    const object = {
                         affectedpID: condition.getAttribute("data-participant-affected"),
                         condition: condition.getAttribute("data-cpid")
                     }
                     conditionsOff.push(object);           // create arrays for each condition we want to edit
-                    console.log(conditionsOff.length);
                     conditionsOff.forEach((obj) => {
                         if (!conditionsToTurnOff[obj.condition]) {
                             conditionsToTurnOff[obj.condition] = [];
@@ -1654,15 +1646,8 @@
                         conditionsToTurnOff[obj.condition].affectees.push(obj.affectedpID);
                         conditionsToTurnOff[obj.condition].affectees = [...new Set(conditionsToTurnOff[obj.condition].affectees)]
                     })
-                    
-                    alert(conditionsToTurnOff);
-                    if (notes == "-") {
-                        notes = condition.getAttribute("data-cpid") + " ends ()";
-                    } else {
-                        notes += condition.getAttribute("data-cpid") + " ends ()";
-                    }
-                    disableConditionsString += condition.value;
 
+                    disableConditionsString += condition.value;
 
                     await dbQuery(
                         "GET",
@@ -1677,22 +1662,68 @@
                         "/" +
                         pID
                     )
-
-
-                    // dig into ctApp for info
-                    // grab character where ctApp[x].chID == condition.getAttribute("affected");
-                    // conditionName = ctApp[x].affectedArray[x].condition_name
-                    // creator = ctApp[x].chID == ctApp[x].affectedArray[x].pID
-                    // endsFor = all the people for whom ctApp[x].affectedArray[x].conditionID == condition.data-cpid
-
-                    // add info to notes
-
-                    // alert(condition.outerHTML);
-
                 }
             }
+
+
+            ctApp.forEach((participant) => {
+                Object.keys(conditionsToTurnOff).forEach((condition) => {
+
+                    if (!conditionsToTurnOff[condition]["condition_name"]) {
+                        conditionsToTurnOff[condition]["condition_name"] = getConditionNameById(condition);
+                        const creator = ctApp.filter((participant) => {
+                            return participant.pID == getCreatorById(condition);
+                        });
+                        conditionsToTurnOff[condition]["creator"] = creator.length > 0 ? creator[0].character_name : null;
+                    }
+
+
+                    function getConditionNameById(idToFind) {
+                        const conditionsArray = participant.conditionsArray;
+                        for (const condition of conditionsArray) {
+                            if (condition.conditionID == parseInt(idToFind)) {
+                                return condition.description;
+                            }
+                        }
+                        return null; // Return null if no match is found
+                    }
+
+                    function getCreatorById(idToFind) {
+                        const conditionsArray = participant.conditionsArray;
+                        for (const condition of conditionsArray) {
+                            if (condition.conditionID == parseInt(idToFind)) {
+                                return condition.pID;
+                            }
+                        }
+                        return null; // Return null if no match is found
+                    }
+
+                })
+            })
+
+
+
         }
         await processConditions();
+
+        Object.keys(conditionsToTurnOff).forEach((condition) => {
+
+            let string = conditionsToTurnOff[condition].creator + "&apos;s " + conditionsToTurnOff[condition].condition_name + " ends for "
+            conditionsToTurnOff[condition].affectees.forEach((affectee, index) => {
+                let x = ctApp.find((participant) => {
+                    return participant.pID == affectee
+                })
+                string += index < conditionsToTurnOff[condition].affectees.length ? " " + x.character_name  : ""
+            })
+            if (notes == "-") {
+                notes = string
+            } else {
+                notes += " | " + string 
+            }
+        })
+
+
+
 
         if (disableConditionsString == "") {
             disableConditionsString = "-";
@@ -1723,15 +1754,13 @@
                 round = parseInt(currentRound);
             }
 
-            let dataTarget = `submitTargets/${ctApp[0].eID
+            const dataTarget = `submitTargets/${ctApp[0].eID
                 }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
                     index
                 ].trim()}/${actionCategory}/${damage[index]
                 }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
                 }/${sortedTargetHPs[index]}`;
             await dbQuery("GET", dataTarget);
-            // alert("sortedTargetHPs[index] = " + sortedTargetHPs[index]);
-            // alert("damage[index] = " + damage[index])
             if (sortedTargetHPs[index] - damage[index] <= 0) {
                 await dbQuery(
                     "GET",
