@@ -1471,7 +1471,6 @@
         }
 
         // get weapon radio buttons
-
         let weaponsText = document.getElementsByName("weaponsText");
         let concentrationNext = 0;
         let holding = 0;
@@ -1502,7 +1501,6 @@
                         return weapon.checked == true;
                     })
                     .getAttribute("data-holding-one-round") || 0;
-
             if (isNaN(parseInt(tool))) {
                 actionString = tool;
                 nextToolID = "0";
@@ -1519,6 +1517,7 @@
             actionString = weaponsText[0].value;
             nextToolID = "0";
         }
+
         // determine hits and combine them into string, like "0/1" (for miss/hit)
         let targets = document.getElementsByName("participants");
         let targetHits = [];
@@ -1527,6 +1526,7 @@
         let targetHPsArray = [];
         let conditionName = actionString;
         let targetsArray = Array.from(targets);
+
         // wrap the forEach loop in a Promise.all
         await Promise.all(
             targetsArray.map(async (target, index) => {
@@ -1579,14 +1579,8 @@
                     }
                     targetHPsArray.push({ [`${index}`]: x });
                 }
-
-                // targetsArray.forEach((target) => {
-                //     console.log(target);
-                // })
-                // console.log("targetHPsArray: " + targetHPsArray);
             })
         );
-        // alert("target_pID: " + target_pID)
         let sortedTargetHPs = [];
         sortedTargetHPs = targetHPsArray
             .reduce((acc, obj) => {
@@ -1597,19 +1591,6 @@
             }, [])
             .sort((a, b) => a.key - b.key)
             .map((obj) => obj.value);
-        // console.log("here: " + sortedTargetHPs);
-
-        // alert("targetHPsArray: " + targetHPsArray)
-
-        // targetHPsArray.sort((a, b) => {
-        //     const indexA = targetsArray.findIndex(
-        //         (target) => target.id === "p" + a.id
-        //     );
-        //     const indexB = targetsArray.findIndex(
-        //         (target) => target.id === "p" + b.id
-        //     );
-        //     return indexA - indexB;
-        // });
 
         if (damage == "") {
             damage = "-";
@@ -1729,7 +1710,7 @@
                 let x = ctApp.find((participant) => {
                     return participant.pID == affectee
                 })
-                string += index < conditionsToTurnOff[condition].affectees.length ? " " + x.character_name + (x.numeric_value ? " #" + x.numeric_value : "") : ""
+                string += index < conditionsToTurnOff[condition].affectees.length ? " [" + x.character_name + "]" + (x.numeric_value ? " #" + x.numeric_value : "") : ""
             })
             if (notes == "-") {
                 notes = string
@@ -1737,9 +1718,6 @@
                 notes += " | " + string
             }
         })
-
-
-
 
         if (disableConditionsString == "") {
             disableConditionsString = "-";
