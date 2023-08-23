@@ -534,7 +534,7 @@ h3 {
   
   
   .hovered {
-    background-color: white;
+    /* background-color: white; */
     outline: 10px black solid;
     z-index: 5;
   }
