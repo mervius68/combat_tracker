@@ -524,5 +524,18 @@ h3 {
 
 .tooltip:hover .tooltiptext {
     visibility: visible;
-    opacity: 1;
+    opacity: 0.6;
 }
+
+.hovertwin {
+    transition: background-color 0.3s ease-in-out, outline 0.3s ease-in-out;
+    cursor: pointer;
+}
+  
+  
+  .hovered {
+    background-color: white;
+    outline: 10px black solid;
+    z-index: 5;
+  }
+  

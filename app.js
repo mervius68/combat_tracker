@@ -220,17 +220,14 @@ app.get(
 app.get(
     "/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID",
     (req, res) => {
-        let encounter = req.params.encounter;
+        const encounter = req.params.encounter;
         let round = req.params.round;
         let toolID = req.params.tool; // may be toolID or descriptive string (e.g. disengage)
-        let actionString = req.params.action_type || "";
-        if (actionString == "-") {
-            actionString = "";
-        }
-        if (isNaN(parseInt(toolID))) {
-            actionString = toolID;
-            toolID = "";
-        }
+        let actionString = req.params.action_type == "-"
+            ? ""
+            : req.params.action_type || "";
+        toolID = isNaN(parseInt(toolID)) ? (actionString = toolID, "") : toolID;
+
         let pID = req.params.pID;
         let nextTargetID = req.params.nextTargetID;
 
@@ -256,7 +253,6 @@ app.get(
         if (actionString != "" && target_pID == "-") {
             nextTargetID = "NULL";
         }
-        let nextToolID = req.params.nextToolID;
 
         // build multiple INSERTs if needed
 
@@ -271,7 +267,6 @@ app.get(
                 console.log(err);
                 throw err;
             }
-            // console.log(sql);
             res.send({});
         });
     }
@@ -295,7 +290,7 @@ app.get("/targetsHP/:target_pID", (req, res) => {
 });
 
 app.get(
-    "/addCondition/:eID/:creator/:taID/:end_pID/:newCpID/:concentration",
+    "/addCondition/:eID/:creator/:taID/:end_pID/:newCpID/:concentration/:nextAID",
     (req, res) => {
         let eID = req.params.eID;
         let creator = req.params.creator;
@@ -303,10 +298,11 @@ app.get(
         let end_pID = req.params.end_pID;
         let newCpID = req.params.newCpID;
         let concentration = req.params.concentration;
+        let nextAID = req.params.nextAID;
 
         let sql = `INSERT into ct_tbl_condition
-                (eID, pID, taID, cpID, concentration)
-                values ('${eID}', '${creator}', '${taID}', '${newCpID}', '${concentration}')
+                (aID, eID, pID, taID, cpID, concentration)
+                values ('${nextAID}', '${eID}', '${creator}', '${taID}', '${newCpID}', '${concentration}')
             `;
         let query = db.run(sql, [], (err, results) => {
             if (err) {
@@ -509,7 +505,8 @@ app.get("/turns/", (req, res) => {
                 LEFT JOIN ct_tbl_turn        ON ct_tbl_round.rID       = ct_tbl_turn.rID 
                 LEFT JOIN ct_tbl_action      ON ct_tbl_action.targetID      = ct_tbl_turn.targetID
                      JOIN ct_tbl_participant ON ct_tbl_turn.pID        = ct_tbl_participant.pID
-                    LEFT JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
+                LEFT JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
+                LEFT JOIN ct_tbl_condition   ON ct_tbl_action.aID      = ct_tbl_condition.aID
                     
                 WHERE ct_tbl_encounter.eID = 1 ORDER BY aID ASC;
     `;
@@ -527,6 +524,21 @@ app.get("/actions/:encounter", (req, res) => {
     let sql = `SELECT * 
         FROM ct_tbl_action
                 WHERE eID = ${encounter} ORDER BY round, aID;
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
+app.get("/actionsConditions/:encounter", (req, res) => {
+    let encounter = req.params.encounter;
+    let sql = `SELECT * 
+        FROM ct_tbl_condition
+                WHERE eID = ${encounter};
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {

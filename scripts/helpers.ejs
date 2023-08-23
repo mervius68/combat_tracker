@@ -85,7 +85,32 @@
         ctApp = await dbQuery("GET", "participants/" + encounterID);
 
         // get all the actions of this encounter
-        let ctActions = await dbQuery("GET", "actions/" + encounterID);
+        // let ctActions = await dbQuery("GET", "actions/" + encounterID);
+        ctActions = await dbQuery("GET", "actions/" + encounterID);
+        ctActionsConditions = await dbQuery("GET", "actionsConditions/" + encounterID)
+
+        function mergeArrays(mainArray, secondaryArray) {
+            // Create a map of objects in the secondary array using aID as the key
+            const secondaryMap = new Map();
+            for (const obj of secondaryArray) {
+                secondaryMap.set(obj.aID, obj);
+            }
+
+            // Iterate through the main array and add properties from the secondary array
+            for (const obj of mainArray) {
+                const matchingObj = secondaryMap.get(obj.aID);
+                if (matchingObj) {
+                    // Merge properties from matchingObj into obj
+                    Object.assign(obj, matchingObj);
+                }
+            }
+
+            return mainArray;
+        }
+
+        result = mergeArrays(ctActions, ctActionsConditions);
+        ctActions = result;
+
 
         // get all the conditions of this encounter
         let ctConditions = await dbQuery(
@@ -585,6 +610,8 @@
 
                             toolTipHTML.setAttribute("data-this-round", i);
                             toolTipHTML.innerText = "C";
+                            toolTipHTML.classList.add("hovertwin");
+                            toolTipHTML.setAttribute("data-hover-id", condition.taID);
                             let toolTipText = document.createElement("span");
                             toolTipText.classList.add("tooltiptext");
                             toolTipText.innerHTML =
@@ -680,8 +707,13 @@
                                 );
                                 toolTipHTML.setAttribute("data-this-round", i);
                                 toolTipHTML.innerHTML = "A";
+                                toolTipHTML.classList.add("hovertwin")
                                 toolTipHTML.setAttribute(
                                     "data-taid",
+                                    affected.taID
+                                );
+                                toolTipHTML.setAttribute(
+                                    "data-hover-id",
                                     affected.taID
                                 );
                                 let span5 = document.createElement("span");
@@ -758,6 +790,7 @@
         // load the actions into the wireframe
         try {
             for (const action of ctActions) {
+                // alert(ctActions);
                 let tool = {};
                 if (action.toolID) {
                     tool = await dbQuery("GET", "tool/" + action.toolID);
@@ -803,7 +836,8 @@
                     action.round,
                     action.pID,
                     action.action_type || "",
-                    actionArray
+                    actionArray,
+                    action.taID || "0"
                 );
             }
         } catch (err) { }
@@ -826,11 +860,10 @@
         } catch (err) { }
 
 
-        function sendToCoordinate(round, participant, actionType, actionArray) {
+        function sendToCoordinate(round, participant, actionType, actionArray, taID) {
             try {
                 if (
-                    (actionArray[4] != "-" && actionType == "other") ||
-                    (actionArray[4] != "-" && actionType != "other")
+                    (actionArray[4] != "-")
                 ) {
                     let y = mainContainer.querySelector(
                         `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
@@ -855,8 +888,10 @@
                     );
                     action += 1;
                 } while (x.innerHTML !== "");
+                x.classList.add("hovertwin");
+                x.setAttribute("data-hover-id", taID || "0")
                 x.innerHTML = actionArray[0];
-                x.nextSibling.innerHTML = actionArray[1];
+                x.nextSibling.innerHTML = actionArray[1]
                 x.nextSibling.nextSibling.innerHTML = actionArray[2];
                 x.nextSibling.nextSibling.nextSibling.innerHTML =
                     actionArray[3];
@@ -941,6 +976,45 @@
         // fill values for dropdown
         fillDropdown(encounterCode);
         // document.addEventListener("click", encounterClickListener);
+
+        // Get all elements with the specified data-hover-id attribute
+        const elements = document.querySelectorAll('[data-hover-id]');
+
+        // Attach hover event listeners to each element
+        elements.forEach(element => {
+            element.addEventListener('mouseenter', handleMouseEnter);
+            element.addEventListener('mouseleave', handleMouseLeave);
+        });
+
+        function handleMouseEnter(event) {
+            // Get the data-hover-id attribute value of the current element
+            const hoverId = event.target.getAttribute('data-hover-id');
+
+            // Find all elements with the same data-hover-id attribute
+            const twinElements = document.querySelectorAll(`[data-hover-id="${hoverId}"]`);
+
+            // Apply the hover effect to all twin elements
+            twinElements.forEach(twinElement => {
+                twinElement.classList.add('hovered');
+            });
+        }
+
+        function handleMouseLeave(event) {
+            // Get the data-hover-id attribute value of the current element
+            const hoverId = event.target.getAttribute('data-hover-id');
+
+            // Find all elements with the same data-hover-id attribute
+            const twinElements = document.querySelectorAll(`[data-hover-id="${hoverId}"]`);
+
+            // Remove the hover effect from all twin elements
+            twinElements.forEach(twinElement => {
+                twinElement.classList.remove('hovered');
+            });
+        }
+
+
+
+
     }
 
     async function modalActions() {
@@ -1266,178 +1340,178 @@
             // alert(condition.end_pID);
             // alert(participantID);
             // alert(condition.pID);
-            if (condition.end_round == currentRound && condition.end_pID == participantID) { 
+            if (condition.end_round == currentRound && condition.end_pID == participantID) {
 
             } else {
-            let conditionParticipant = condition.pID;
-            let startHTML = document.querySelector(
-                '[data-round="' +
-                condition.start_round +
-                '"] [data-section="1"] [data-participant="' +
-                condition.pID +
-                '"]'
-            );
-            let start = startHTML.getAttribute("data-nav");
-
-            let endHTML = document.querySelector(
-                '[data-round="' +
-                condition.end_round +
-                '"] [data-section="1"] [data-participant="' +
-                condition.end_pID +
-                '"]'
-            );
-            let end =
-                endHTML instanceof Element
-                    ? endHTML.getAttribute("data-nav")
-                    : "1000";
-
-            if (
-                parseInt(dataNavSelected) >= parseInt(start) &&
-                parseInt(dataNavSelected) <= parseInt(end)
-            ) {
-                let checkbox = document.createElement("input");
-                checkbox.setAttribute("type", "checkbox");
-                checkbox.setAttribute("name", "conditions");
-                checkbox.setAttribute(
-                    "data-participant-affected",
-                    condition.affected_pID
+                let conditionParticipant = condition.pID;
+                let startHTML = document.querySelector(
+                    '[data-round="' +
+                    condition.start_round +
+                    '"] [data-section="1"] [data-participant="' +
+                    condition.pID +
+                    '"]'
                 );
-                checkbox.setAttribute("data-cpid", condition.taID);
-                checkbox.classList.add("pointer");
-                checkbox.setAttribute("id", "b" + condition.affected_pID);
-                let span = document.createElement("span");
-                if (condition.concentration == 1) {
-                    span.textContent = "C";
-                    span.classList.add("concentration");
-                    span.classList.add("savingThrow");
-                }
-                if (condition.holding == 1) {
-                    span.textContent = "H";
-                    span.classList.add("holding");
-                    // span.classList.add("savingThrow");
-                }
-                let label = document.createElement("label");
-                label.setAttribute("for", "b" + condition.affected_pID);
-                label.classList.add("pointer");
+                let start = startHTML.getAttribute("data-nav");
 
-                let causer = ctApp.find((participant) => {
-                    return condition.pID == participant.pID;
-                });
-                let causerName =
-                    causer.character_name +
-                    (causer.numeric_value != null
-                        ? " #" + causer.numeric_value
-                        : "");
-                if (
-                    condition.pID == causer.pID &&
-                    condition.concentration == 1
-                ) {
-                    causerName =
-                        "<span class='concentration'>" + causerName + "</span>";
-                }
-                let affected = ctApp.find((participant) => {
-                    return parseInt(condition.affected_pID) == participant.pID;
-                }).character_name;
-                let numeric = ctApp.find((participant) => {
-                    return parseInt(condition.affected_pID) == participant.pID;
-                }).numeric_value;
+                let endHTML = document.querySelector(
+                    '[data-round="' +
+                    condition.end_round +
+                    '"] [data-section="1"] [data-participant="' +
+                    condition.end_pID +
+                    '"]'
+                );
+                let end =
+                    endHTML instanceof Element
+                        ? endHTML.getAttribute("data-nav")
+                        : "1000";
 
-                label.innerHTML =
-                    condition.condition_name +
-                    ": " +
-                    causerName +
-                    " => <b>" +
-                    affected +
-                    (numeric ? " #" + numeric : "") +
-                    "</b> / " +
-                    condition.description;
-                label.prepend(span);
-                let br6 = document.createElement("br");
-                divModalBottom.appendChild(checkbox);
-                divModalBottom.appendChild(label);
-                divModalBottom.appendChild(br6);
-                // if target is concentrating, put a yellow-highlighted C next to their name
                 if (
-                    condition.concentration == 1 &&
-                    !divRight.querySelector(
-                        ".p" + condition.pID + " .concentration"
-                    )
+                    parseInt(dataNavSelected) >= parseInt(start) &&
+                    parseInt(dataNavSelected) <= parseInt(end)
                 ) {
-                    let concentrationSpan = document.createElement("span");
-                    concentrationSpan.textContent = "C";
-                    concentrationSpan.classList.add("concentration");
-                    let html = divRight.querySelector(".p" + condition.pID);
-                    html.innerHTML += concentrationSpan.outerHTML;
+                    let checkbox = document.createElement("input");
+                    checkbox.setAttribute("type", "checkbox");
+                    checkbox.setAttribute("name", "conditions");
+                    checkbox.setAttribute(
+                        "data-participant-affected",
+                        condition.affected_pID
+                    );
+                    checkbox.setAttribute("data-cpid", condition.taID);
+                    checkbox.classList.add("pointer");
+                    checkbox.setAttribute("id", "b" + condition.affected_pID);
+                    let span = document.createElement("span");
+                    if (condition.concentration == 1) {
+                        span.textContent = "C";
+                        span.classList.add("concentration");
+                        span.classList.add("savingThrow");
+                    }
+                    if (condition.holding == 1) {
+                        span.textContent = "H";
+                        span.classList.add("holding");
+                        // span.classList.add("savingThrow");
+                    }
+                    let label = document.createElement("label");
+                    label.setAttribute("for", "b" + condition.affected_pID);
+                    label.classList.add("pointer");
+
+                    let causer = ctApp.find((participant) => {
+                        return condition.pID == participant.pID;
+                    });
+                    let causerName =
+                        causer.character_name +
+                        (causer.numeric_value != null
+                            ? " #" + causer.numeric_value
+                            : "");
+                    if (
+                        condition.pID == causer.pID &&
+                        condition.concentration == 1
+                    ) {
+                        causerName =
+                            "<span class='concentration'>" + causerName + "</span>";
+                    }
+                    let affected = ctApp.find((participant) => {
+                        return parseInt(condition.affected_pID) == participant.pID;
+                    }).character_name;
+                    let numeric = ctApp.find((participant) => {
+                        return parseInt(condition.affected_pID) == participant.pID;
+                    }).numeric_value;
+
+                    label.innerHTML =
+                        condition.condition_name +
+                        ": " +
+                        causerName +
+                        " => <b>" +
+                        affected +
+                        (numeric ? " #" + numeric : "") +
+                        "</b> / " +
+                        condition.description;
+                    label.prepend(span);
+                    let br6 = document.createElement("br");
+                    divModalBottom.appendChild(checkbox);
+                    divModalBottom.appendChild(label);
+                    divModalBottom.appendChild(br6);
+                    // if target is concentrating, put a yellow-highlighted C next to their name
+                    if (
+                        condition.concentration == 1 &&
+                        !divRight.querySelector(
+                            ".p" + condition.pID + " .concentration"
+                        )
+                    ) {
+                        let concentrationSpan = document.createElement("span");
+                        concentrationSpan.textContent = "C";
+                        concentrationSpan.classList.add("concentration");
+                        let html = divRight.querySelector(".p" + condition.pID);
+                        html.innerHTML += concentrationSpan.outerHTML;
+                    }
                 }
             }
-        }
 
 
         });
 
-    container.appendChild(divModalBottom);
+        container.appendChild(divModalBottom);
 
-    let buttonContainer = document.createElement("div");
-    buttonContainer.classList.add("button_container");
-    let submit = document.createElement("button");
-    submit.innerText = "SUBMIT";
-    submit.setAttribute("onclick", "submitAction()");
-    submit.classList.add("button");
-    let submitGoToCondition = document.createElement("button");
-    submitGoToCondition.innerText = "SUBMIT + go to CONDITIONS";
-    submitGoToCondition.classList.add("button");
-    submitGoToCondition.setAttribute("onclick", "submitAction('1')");
+        let buttonContainer = document.createElement("div");
+        buttonContainer.classList.add("button_container");
+        let submit = document.createElement("button");
+        submit.innerText = "SUBMIT";
+        submit.setAttribute("onclick", "submitAction()");
+        submit.classList.add("button");
+        let submitGoToCondition = document.createElement("button");
+        submitGoToCondition.innerText = "SUBMIT + go to CONDITIONS";
+        submitGoToCondition.classList.add("button");
+        submitGoToCondition.setAttribute("onclick", "submitAction('1')");
 
-    buttonContainer.appendChild(submit);
-    buttonContainer.appendChild(submitGoToCondition);
-    container.appendChild(buttonContainer);
+        buttonContainer.appendChild(submit);
+        buttonContainer.appendChild(submitGoToCondition);
+        container.appendChild(buttonContainer);
 
-    modal.innerHTML = container.outerHTML;
+        modal.innerHTML = container.outerHTML;
 
-    await document.removeEventListener("click", clickEventListener);
-    document.addEventListener("click", clickEventListener);
+        await document.removeEventListener("click", clickEventListener);
+        document.addEventListener("click", clickEventListener);
 
-    // Attach the event listener to the modal
-    modal.addEventListener("click", modalClickListener);
+        // Attach the event listener to the modal
+        modal.addEventListener("click", modalClickListener);
 
-    modal.addEventListener("input", function (e) {
-        if (e.target.parentElement.classList.contains("conSaveParent")) {
-            let concentrationStuff =
-                e.target.parentNode.querySelectorAll(".concentration");
-            concentrationStuff.forEach((participant) => {
-                let z = participant.parentElement;
-                if (
-                    participant.parentNode.previousSibling.value != "" &&
-                    participant.parentNode.previousSibling.value != "0" &&
-                    participant.parentNode.previousSibling.value != "00" &&
-                    participant.parentNode.previousSibling.value != "000"
-                ) {
-                    try {
-                        let x = z.querySelector(".conSavingThrowCheck");
-                        z.removeChild(x);
-                    } catch (err) { }
-                    let input =
-                        participant.parentNode.previousSibling.value;
-                    if (input / 2 <= 10) {
-                        input = 10;
+        modal.addEventListener("input", function (e) {
+            if (e.target.parentElement.classList.contains("conSaveParent")) {
+                let concentrationStuff =
+                    e.target.parentNode.querySelectorAll(".concentration");
+                concentrationStuff.forEach((participant) => {
+                    let z = participant.parentElement;
+                    if (
+                        participant.parentNode.previousSibling.value != "" &&
+                        participant.parentNode.previousSibling.value != "0" &&
+                        participant.parentNode.previousSibling.value != "00" &&
+                        participant.parentNode.previousSibling.value != "000"
+                    ) {
+                        try {
+                            let x = z.querySelector(".conSavingThrowCheck");
+                            z.removeChild(x);
+                        } catch (err) { }
+                        let input =
+                            participant.parentNode.previousSibling.value;
+                        if (input / 2 <= 10) {
+                            input = 10;
+                        } else {
+                            input = Math.floor(input / 2);
+                        }
+                        let span3 = document.createElement("span");
+                        if (parseInt(input)) {
+                            span3.classList.add("conSavingThrowCheck");
+                            span3.innerHTML = `DC CON ${input}`;
+                        }
+                        participant.parentNode.appendChild(span3);
                     } else {
-                        input = Math.floor(input / 2);
+                        try {
+                            let x = z.querySelector(".conSavingThrowCheck");
+                            z.removeChild(x);
+                        } catch (err) { }
                     }
-                    let span3 = document.createElement("span");
-                    if (parseInt(input)) {
-                        span3.classList.add("conSavingThrowCheck");
-                        span3.innerHTML = `DC CON ${input}`;
-                    }
-                    participant.parentNode.appendChild(span3);
-                } else {
-                    try {
-                        let x = z.querySelector(".conSavingThrowCheck");
-                        z.removeChild(x);
-                    } catch (err) { }
-                }
-            });
-        }
-    });
+                });
+            }
+        });
     }
 
     async function submitAction(forceCondition = 0) {
@@ -1710,7 +1784,7 @@
                 let x = ctApp.find((participant) => {
                     return participant.pID == affectee
                 })
-                string += index < conditionsToTurnOff[condition].affectees.length ? " [" + x.character_name + "]" + (x.numeric_value ? " #" + x.numeric_value : "") : ""
+                string += index < conditionsToTurnOff[condition].affectees.length ? " [" + x.character_name + (x.numeric_value ? " &num;" + x.numeric_value : "") + "]" : ""
             })
             if (notes == "-") {
                 notes = string
@@ -1718,10 +1792,9 @@
                 notes += " | " + string
             }
         })
+        disableConditionsString = disableConditionsString || "-";
 
-        if (disableConditionsString == "") {
-            disableConditionsString = "-";
-        }
+
         let hit = 0;
         if (
             targetHits.find((item) => {
@@ -1730,7 +1803,6 @@
         ) {
             hit = 1;
         }
-
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
         await dbQuery("GET", dataAction);
         let round = currentRound;
@@ -1786,7 +1858,8 @@
                 concentrationNext,
                 conditionName,
                 holding,
-                holdingOneRound
+                holdingOneRound,
+                nextAID
             );
         }
     }
@@ -1796,7 +1869,8 @@
         concentration,
         conditionName,
         holding,
-        holdingOneRound
+        holdingOneRound,
+        nextAID
     ) {
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
@@ -2046,7 +2120,7 @@
         let submit = document.createElement("button");
         submit.classList.add("pointer");
         submit.innerText = "SUBMIT";
-        submit.setAttribute("onclick", "submitCondition()");
+        submit.setAttribute("onclick", `submitCondition(${nextAID})`);
 
         container.appendChild(div17);
 
@@ -2129,7 +2203,7 @@
         modal.innerHTML = container.outerHTML;
     }
 
-    async function submitCondition() {
+    async function submitCondition(nextAID) {
         let html = document.querySelector(".selected");
         let currentRound = html.getAttribute("data-round");
         let pID = html.getAttribute("data-participant");
@@ -2205,7 +2279,7 @@
         await dbQuery("GET", dataConditionsAffectees);
 
         // send condition info
-        let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${taID}/${conditionEndsPID}/${newCpID}/${concentration}`;
+        let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${taID}/${conditionEndsPID}/${newCpID}/${concentration}/${nextAID}`;
         await dbQuery("GET", dataConditions);
 
         load_encounter(0, dataNav);
@@ -2570,7 +2644,8 @@
         concentration,
         conditionName,
         holding,
-        holdingOneRound
+        holdingOneRound,
+        nextAID
     ) {
         if (affected == "turn") {
             concentration == 0;
@@ -2580,7 +2655,8 @@
             concentration,
             conditionName,
             holding,
-            holdingOneRound
+            holdingOneRound,
+            nextAID
         );
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
