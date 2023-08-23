@@ -861,6 +861,7 @@
 
 
         function sendToCoordinate(round, participant, actionType, actionArray, taID) {
+            alert(taID)
             try {
                 if (
                     (actionArray[4] != "-")
@@ -888,8 +889,10 @@
                     );
                     action += 1;
                 } while (x.innerHTML !== "");
-                x.classList.add("hovertwin");
-                x.setAttribute("data-hover-id", taID || "0")
+                if (taID != "0") {
+                    x.classList.add("hovertwin");
+                    x.setAttribute("data-hover-id", taID || "0")
+                }
                 x.innerHTML = actionArray[0];
                 x.nextSibling.innerHTML = actionArray[1]
                 x.nextSibling.nextSibling.innerHTML = actionArray[2];
