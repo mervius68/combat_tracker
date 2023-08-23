@@ -290,7 +290,7 @@ app.get("/targetsHP/:target_pID", (req, res) => {
 });
 
 app.get(
-    "/addCondition/:eID/:creator/:taID/:end_pID/:newCpID/:concentration",
+    "/addCondition/:eID/:creator/:taID/:end_pID/:newCpID/:concentration/:nextAID",
     (req, res) => {
         let eID = req.params.eID;
         let creator = req.params.creator;
@@ -298,10 +298,11 @@ app.get(
         let end_pID = req.params.end_pID;
         let newCpID = req.params.newCpID;
         let concentration = req.params.concentration;
+        let nextAID = req.params.nextAID;
 
         let sql = `INSERT into ct_tbl_condition
-                (eID, pID, taID, cpID, concentration)
-                values ('${eID}', '${creator}', '${taID}', '${newCpID}', '${concentration}')
+                (aID, eID, pID, taID, cpID, concentration)
+                values ('${nextAID}', '${eID}', '${creator}', '${taID}', '${newCpID}', '${concentration}')
             `;
         let query = db.run(sql, [], (err, results) => {
             if (err) {
