@@ -873,8 +873,8 @@
                         y.nextSibling.nextSibling.nextSibling.innerHTML +
                         (y.nextSibling.nextSibling.nextSibling.innerHTML == ""
                             ? ""
-                            : " | ") + `<span class='hovertwin' data-hover-id='${taID}'>'` +
-                        actionArray[4] +  `</span>` + 
+                            : " | ") +
+                        actionArray[4] + 
                         " ";
                 }
             } catch (err) { }
@@ -1949,7 +1949,6 @@
         let h6 = document.createElement("h3");
         h6.innerHTML = "Condition Affectee(s)";
         topMiddleDiv.appendChild(h6);
-
         // build the affectees checkboxes
         let affecteePosition;
         let affecteesCount = 0;
@@ -2279,8 +2278,9 @@
 
         // send condition affectee info
         let dataConditionsAffectees = `addConditionAffectees/${taID}/${startRound}/${endRound}/${affecteesString}/${end_pID}`;
+  
         await dbQuery("GET", dataConditionsAffectees);
-
+        
         // send condition info
         let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${taID}/${conditionEndsPID}/${newCpID}/${concentration}/${nextAID}`;
         await dbQuery("GET", dataConditions);
