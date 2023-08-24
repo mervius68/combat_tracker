@@ -1,9 +1,6 @@
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
-
 const app = express();
-let ctApp;
-
 const db = new sqlite3.Database(
     "./combat.db",
     sqlite3.OPEN_READWRITE,
@@ -25,19 +22,6 @@ app.get("/selected_encounter/:eID", (req, res) => {
     let sql = `SELECT *
                 FROM tbl_encounter
                 WHERE eID = ${eID}
-    `;
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            throw err;
-        }
-        // console.log(results)
-        res.send(results);
-    });
-});
-
-app.get("/encounters/", (req, res) => {
-    let sql = `SELECT *
-                FROM tbl_encounter
     `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -93,22 +77,6 @@ app.get("/hpsByRound/:encounter", (req, res) => {
 
 app.get("/damages/:encounter", (req, res) => {
     let encounter = req.params.encounter;
-    let sql = `SELECT *
-                FROM ct_tbl_target
-                WHERE eID = ${encounter} ORDER BY round ;
-                `;
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        res.send(results);
-    });
-});
-
-app.get("/hitPointsByParticipant/:encounter/:pID", (req, res) => {
-    let encounter = req.params.encounter;
-    let pID = req.params.pID;
     let sql = `SELECT *
                 FROM ct_tbl_target
                 WHERE eID = ${encounter} ORDER BY round ;
@@ -205,8 +173,6 @@ app.get(
         (targetID, eID, round, pID, target_pID, damage, new_hp, temp_hp)
         values ('${nextTargetID}', '${encounter}', '${round}', '${pID}', '${target_pID}', '${damage}', '${newHP}', 0);
     `;
-
-        // if target
         let query = db.all(sql, (err, results) => {
             if (err) {
                 console.log(err);
@@ -321,7 +287,6 @@ app.get("/getNextTAID", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results[0] || { taID: 0 });
     });
 });
@@ -351,8 +316,6 @@ app.get(
     }
 );
 
-
-
 app.get("/newConditionPoolItem/:conditionName/:description", (req, res) => {
     let conditionName = req.params.conditionName;
     let description = req.params.description
@@ -380,7 +343,6 @@ app.get("/terminate/:targeted_pID/:round", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -396,13 +358,11 @@ app.get("/revive/:targeted_pID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
 
 app.get("/endConditions/:pID/:round/:taID", (req, res) => {
-    console.log("hiya!")
     let pID = req.params.pID;
     let round = req.params.round;
     let taID = req.params.taID;
@@ -414,7 +374,6 @@ app.get("/endConditions/:pID/:round/:taID", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -435,16 +394,11 @@ app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState/:taid", (
         where taID = '${taid}'
             `;
     }
-    // console.log(sql);
-    // console.log(round);
-    // console.log(affecteeID);
-    // console.log(conditionState);
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send({});
     });
 });
@@ -460,61 +414,6 @@ app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
             console.log(err);
             throw err;
         }
-        res.send(results);
-    });
-});
-
-app.get("/participantActions/:encounter/:round", (req, res) => {
-    let encounter = req.params.encounter;
-    let round = req.params.round;
-    let sql = `SELECT *
-                FROM ct_tbl_action
-                WHERE eID = "${encounter}" AND rID = "${round}" ORDER BY rID, pID;
-                `;
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        // console.log("results: " + results[0].hp);
-        res.send(results);
-    });
-});
-
-app.get("/hitPoints/:encounter/:round", (req, res) => {
-    let encounter = req.params.encounter;
-    let round = req.params.round;
-    let sql = `SELECT *
-                FROM ct_tbl_hp
-                WHERE eID = "${encounter}" AND rID = "${round}" ORDER BY rID, pID;
-                `;
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        // console.log("results: " + results[0].hp);
-        res.send(results);
-    });
-});
-
-app.get("/turns/", (req, res) => {
-    let sql = `SELECT *
-                FROM ct_tbl_encounter
-                     JOIN ct_tbl_round       ON ct_tbl_round.eID       = ct_tbl_encounter.eID
-                LEFT JOIN ct_tbl_turn        ON ct_tbl_round.rID       = ct_tbl_turn.rID 
-                LEFT JOIN ct_tbl_action      ON ct_tbl_action.targetID      = ct_tbl_turn.targetID
-                     JOIN ct_tbl_participant ON ct_tbl_turn.pID        = ct_tbl_participant.pID
-                LEFT JOIN ct_tbl_tool        ON ct_tbl_action.toolID   = ct_tbl_tool.toolID
-                LEFT JOIN ct_tbl_condition   ON ct_tbl_action.aID      = ct_tbl_condition.aID
-                    
-                WHERE ct_tbl_encounter.eID = 1 ORDER BY aID ASC;
-    `;
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            throw err;
-        }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -561,7 +460,6 @@ app.get("/tool/:toolID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -577,7 +475,6 @@ app.get("/participantTools/:chID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -596,7 +493,6 @@ app.get("/conditionsInEffect/:eID/:round", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -615,7 +511,6 @@ app.get("/anyoneStillAffected/:conditionID/:round", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -633,7 +528,6 @@ app.get("/getConditionsForCtApp/:eID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -648,7 +542,6 @@ app.get("/getNextcpID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -664,7 +557,6 @@ app.get("/target/:targetID/", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -682,7 +574,6 @@ app.get("/targets/:targetID/", (req, res) => {
                 console.log(err);
                 throw err;
             }
-            // console.log(results);
             res.send(results);
         });
     } else {

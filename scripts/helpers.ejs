@@ -2261,7 +2261,7 @@
         }).value;
 
         // get next cpID
-        let latestConditionID = await dbQuery("GET", "getNextcpID");
+        let latestConditionID = await dbQuery("GET", "getNextcpID/");
         let newCpID = parseInt(latestConditionID[0]?.cpID || 0) + 1;
 
         // send info to tbl_condition_pool
