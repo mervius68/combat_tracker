@@ -538,6 +538,7 @@ app.get("/actionsConditions/:encounter", (req, res) => {
     let encounter = req.params.encounter;
     let sql = `SELECT * 
         FROM ct_tbl_condition
+        LEFT JOIN ct_tbl_condition_affectee ON ct_tbl_condition.taID = ct_tbl_condition_affectee.taID
                 WHERE eID = ${encounter};
                 `;
     let query = db.all(sql, [], (err, results) => {

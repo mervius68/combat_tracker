@@ -861,7 +861,6 @@
 
 
         function sendToCoordinate(round, participant, actionType, actionArray, taID) {
-
             try {
                 if (
                     (actionArray[4] != "-")
@@ -873,8 +872,8 @@
                         y.nextSibling.nextSibling.nextSibling.innerHTML +
                         (y.nextSibling.nextSibling.nextSibling.innerHTML == ""
                             ? ""
-                            : " | ") +
-                        actionArray[4] + 
+                            : " | ") + // taID != "0" ? `<span class='hovertwin' data-hover-id='${taID}'>` : "" +
+                        actionArray[4] + // taID != "0" ? `</span>` : "" +
                         " ";
                 }
             } catch (err) { }
