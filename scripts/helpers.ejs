@@ -1177,6 +1177,7 @@
             actionsRadio.setAttribute(
                 "data-holding",
                 action == "grapple" ||
+                    action == "disarm" ||
                     action == "help" ||
                     action == "ready" ||
                     action == "shove"
@@ -1195,6 +1196,7 @@
             let span2;
             if (
                 action == "grapple" ||
+                action == "disarm" || 
                 action == "help" ||
                 action == "ready" ||
                 action == "shove"
@@ -1778,10 +1780,9 @@
 
         }
         await processConditions();
-
         Object.keys(conditionsToTurnOff).forEach((condition) => {
 
-            let string = conditionsToTurnOff[condition].creator + "&apos;s " + conditionsToTurnOff[condition].condition_name + " ends for "
+            let string = conditionsToTurnOff[condition].creator + (conditionsToTurnOff[condition].numeric_value ? " #" + conditionsToTurnOff[condition].numeric_value : "") + "&apos;s " + conditionsToTurnOff[condition].condition_name + " ends for "
             conditionsToTurnOff[condition].affectees.forEach((affectee, index) => {
                 let x = ctApp.find((participant) => {
                     return participant.pID == affectee
