@@ -144,9 +144,7 @@ app.get(
         let targetHP = req.params.targetHP;
         let toolID = req.params.tool; // may be toolID or descriptive string (e.g. disengage)
         let actionString = req.params.action_type || "";
-        if (actionString == "-") {
-            actionString = "";
-        }
+        actionString = (actionString === "-") ? "" : actionString;
         if (isNaN(parseInt(toolID))) {
             actionString = toolID;
             toolID = "";

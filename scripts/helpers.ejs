@@ -1196,7 +1196,7 @@
             let span2;
             if (
                 action == "grapple" ||
-                action == "disarm" || 
+                action == "disarm" ||
                 action == "help" ||
                 action == "ready" ||
                 action == "shove"
@@ -2217,7 +2217,8 @@
             document.querySelector(".conditionsText").value;
         conditionDescription = conditionDescription
             .replace("'", "&apos;")
-            .replace("#", "&num;");
+            .replace("#", "&num;")
+            .replace("/", "&sol;");
         let startRoundHTML = document.querySelector(".beginRound");
         let endRoundHTML = document.querySelector(".endRound");
         let concentrationHTML = document.getElementsByName("concentration");
@@ -2248,18 +2249,10 @@
         end_pID = end_pID.substring(1);
 
         let conditionEndsPID = Array.from(conditionEndsHTML)
-            .find((item) => {
-                return item.checked == true;
-            })
-            .id.substring(1);
-
-        let startRound = Array.from(startRoundHTML).find((item) => {
-            return item.selected == true;
-        }).value;
-
-        let endRound = Array.from(endRoundHTML).find((item) => {
-            return item.selected == true;
-        }).value;
+            .find(item => item.checked)
+            .id.slice(1);
+        let startRound = Array.from(startRoundHTML).find(item => item.selected).value;
+        let endRound = Array.from(endRoundHTML).find(item => item.selected).value;
 
         // get next cpID
         let latestConditionID = await dbQuery("GET", "getNextcpID/");
@@ -2278,9 +2271,9 @@
 
         // send condition affectee info
         let dataConditionsAffectees = `addConditionAffectees/${taID}/${startRound}/${endRound}/${affecteesString}/${end_pID}`;
-  
+
         await dbQuery("GET", dataConditionsAffectees);
-        
+
         // send condition info
         let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${taID}/${conditionEndsPID}/${newCpID}/${concentration}/${nextAID}`;
         await dbQuery("GET", dataConditions);
@@ -2298,18 +2291,13 @@
         return unpackdbReturn;
 
         function makePromise(httpReqType, httpReqString) {
-            httpReqString = httpReqString;
-            let request = new Promise((resolve, reject) => {
-                let xhr = new XMLHttpRequest();
-                xhr.open(httpReqType, "../" + httpReqString, true);
-                xhr.onload = () => {
-                    const text = xhr.responseText;
-                    resolve(text);
-                };
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open(httpReqType, `../${httpReqString}`, true);
+                xhr.onload = () => resolve(xhr.responseText);
                 xhr.onerror = () => resolve("Request Failed");
                 xhr.send();
             });
-            return request;
         }
     }
 
@@ -2341,10 +2329,7 @@
             let div5 = document.createElement("div");
             div5.classList.add("section");
             div5.classList.add("header");
-            div5.classList.add(
-                actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
-            );
+            div5.classList.add(actionType + (actionType == "attack" && j % 2 == 0 ? "_alt" : "") );
             div5.classList.add("center");
             div5.textContent =
                 actionType.charAt(0).toUpperCase() +
@@ -2353,28 +2338,19 @@
             let div6 = document.createElement("div");
             div6.classList.add("section");
             div6.classList.add("header");
-            div6.classList.add(
-                actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
-            );
+            div6.classList.add(actionType + (actionType == "attack" && j % 2 == 0 ? "_alt" : ""));
             div6.classList.add("center");
             div6.textContent = "Hit?";
             let div7 = document.createElement("div");
             div7.classList.add("section");
             div7.classList.add("header");
-            div7.classList.add(
-                actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
-            );
+            div7.classList.add(actionType + (actionType == "attack" && j % 2 == 0 ? "_alt" : ""));
             div7.classList.add("center");
             div7.textContent = "Target(s)";
             let div8 = document.createElement("div");
             div8.classList.add("section");
             div8.classList.add("header");
-            div8.classList.add(
-                actionType +
-                (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
-            );
+            div8.classList.add(actionType + (actionType == "attack" && j % 2 == 0 ? "_alt" : ""));
             div8.classList.add("center");
             div8.textContent = "hp";
             section2.appendChild(div5);
@@ -2384,32 +2360,20 @@
             ctApp.forEach((participant) => {
                 let div9 = document.createElement("div");
                 div9.classList.add("section");
-                div9.classList.add(
-                    actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
-                );
+                div9.classList.add(actionType + (actionType == "attack" && j % 2 == 0 ? "_alt" : ""));
                 div9.classList.add("center");
                 div9.setAttribute("data-participant", participant.pID);
                 let div10 = document.createElement("div");
                 div10.classList.add("section");
-                div10.classList.add(
-                    actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
-                );
+                div10.classList.add(actionType + (actionType === "attack" && j % 2 === 0 ? "_alt" : ""));
                 div10.classList.add("center");
                 let div11 = document.createElement("div");
                 div11.classList.add("section");
-                div11.classList.add(
-                    actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
-                );
+                div11.classList.add(actionType + (actionType === "attack" && j % 2 === 0 ? "_alt" : ""));
                 div11.classList.add("center");
                 let div12 = document.createElement("div");
                 div12.classList.add("section");
-                div12.classList.add(
-                    actionType +
-                    (actionType == "attack" && j % 2 == 0 ? "_alt" : "")
-                );
+                div12.classList.add(actionType + (actionType === "attack" && j % 2 === 0 ? "_alt" : ""));
                 div12.classList.add("center");
                 section2.appendChild(div9);
                 section2.appendChild(div10);
@@ -2473,16 +2437,6 @@
         document.addEventListener("keydown", keydownEventListener);
         document.addEventListener("click", clickEventListener);
 
-        // document.addEventListener("click", function (event) {
-        //     if (event.target.classList.contains("modal_text_inputs")) {
-        //         if (event.target.previousSibling.value == "") {
-        //             event.target.previousSibling.value = "x"
-        //         } else if (event.target.previousSibling.value == "x") {
-        //             event.target.previousSibling.value = ""
-        //         }
-        //     }
-        // })
-
         document.addEventListener("click", function (event) {
             if (event.target.getAttribute("data-nav")) {
                 let myElement = document.querySelectorAll(".selected");
@@ -2518,13 +2472,6 @@
 
         let participantsHeader = document.createElement("h2");
         participantsHeader.innerText = "Participants";
-        // choose participants
-
-        // assign initiative
-
-        // app.js:
-        // insert encounter into db with encounterID
-        // insert participants with encounterID and initiative
 
         let x = document.getElementById("modal-body");
         x.innerHTML = modalContainer.outerHTML;
@@ -2587,7 +2534,6 @@
                         });
                     }
                 }
-                // newTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start'})
                 newTarget.scrollIntoViewIfNeeded(true);
             }
         }
@@ -2627,7 +2573,6 @@
                         });
                     }
                 }
-                // newTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start'})
                 newTarget.scrollIntoViewIfNeeded(true);
             }
         }
@@ -2651,7 +2596,7 @@
         nextAID
     ) {
         if (affected == "turn") {
-            concentration == 0;
+            concentration = 0;
         }
         modalConditions(
             affected,
@@ -2668,14 +2613,6 @@
     }
 
     const clickEventListener = function (event) {
-        // alert(event.target.outerHTML);
-        // if (event.target.classList.contains("modal_text_inputs")) {
-        //     if (event.target.previousSibling.innerHTML == "") {
-        //         event.target.previousSibling.innerHTML = "x"
-        //     } else if (event.target.previousSibling.innerHTML == "x") {
-        //         event.target.previousSibling.innerHTML = ""
-        //     }
-        // }
         if (event.target.getAttribute("data-nav")) {
             let myElement = document.querySelectorAll(".selected");
             let nav = myElement[0].getAttribute("data-nav");
