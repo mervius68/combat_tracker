@@ -1332,7 +1332,7 @@
         //         index ===
         //         self.findIndex((t) => t.conditionID === obj.conditionID)
         // );
-
+        qqq = conditionsInEffect;
         conditionsInEffect.forEach((condition) => {
 
             // if...
@@ -1742,14 +1742,15 @@
 
 
             ctApp.forEach((participant) => {
-                Object.keys(conditionsToTurnOff).forEach((condition) => {
+                Object.keys(conditionsToTurnOff).forEach(async (condition) => {
 
                     if (!conditionsToTurnOff[condition]["condition_name"]) {
                         conditionsToTurnOff[condition]["condition_name"] = getConditionNameById(condition);
-                        const creator = ctApp.filter((participant) => {
+                        const creator = await ctApp.filter((participant) => {
                             return participant.pID == getCreatorById(condition);
                         });
                         conditionsToTurnOff[condition]["creator"] = creator.length > 0 ? creator[0].character_name : null;
+                        conditionsToTurnOff[condition]["creator_numeric"] = creator[0].numeric_value ? creator[0].numeric_value : null;
                     }
 
 
@@ -1781,8 +1782,7 @@
         }
         await processConditions();
         Object.keys(conditionsToTurnOff).forEach((condition) => {
-
-            let string = conditionsToTurnOff[condition].creator + (conditionsToTurnOff[condition].numeric_value ? " #" + conditionsToTurnOff[condition].numeric_value : "") + "&apos;s " + conditionsToTurnOff[condition].condition_name + " ends for "
+            let string = conditionsToTurnOff[condition].creator + (conditionsToTurnOff[condition].creator_numeric ? " &num;" + conditionsToTurnOff[condition].creator_numeric : "") + "&apos;s " + conditionsToTurnOff[condition].condition_name + " ends for "
             conditionsToTurnOff[condition].affectees.forEach((affectee, index) => {
                 let x = ctApp.find((participant) => {
                     return participant.pID == affectee
@@ -1797,7 +1797,6 @@
         })
         disableConditionsString = disableConditionsString || "-";
 
-
         let hit = 0;
         if (
             targetHits.find((item) => {
@@ -1807,6 +1806,7 @@
             hit = 1;
         }
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
+        
         await dbQuery("GET", dataAction);
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
@@ -1846,7 +1846,7 @@
                 )
             }
         });
-
+        
 
 
         load_encounter(0, dataNav);
