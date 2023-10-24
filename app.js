@@ -346,6 +346,21 @@ app.get("/terminate/:targeted_pID/:round", (req, res) => {
     });
 });
 
+app.get("/arrangeParticipantsByInit/:pID/:numeric_value", (req, res) => {
+    let pID = req.params.pID;
+    let numeric_value = req.params.numeric_value;
+    let sql = `UPDATE ct_tbl_participant SET numeric_value = '${numeric_value}'
+        where pID = '${pID}'
+            `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
 app.get("/revive/:targeted_pID/", (req, res) => {
     let targeted_pID = req.params.targeted_pID;
     let round = req.params.round;
