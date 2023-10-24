@@ -561,7 +561,7 @@
                                 break;
                             }
                         }
-
+                        
                         if (
                             (parseInt(condition.concentration) == 1 &&
                                 parseInt(condition.start_round) <= i &&
@@ -607,7 +607,7 @@
                                 "data-causerID",
                                 condition.pID
                             );
-
+                            
                             toolTipHTML.setAttribute("data-this-round", i);
                             toolTipHTML.innerText = "C";
                             toolTipHTML.classList.add("hovertwin");
@@ -627,6 +627,73 @@
                             turn.nextSibling.nextSibling.innerHTML +=
                                 toolTipHTML.outerHTML;
                         }
+
+                        if (
+                            (parseInt(condition.holding) == 1 &&
+                                parseInt(condition.start_round) <= i &&
+                                parseInt(endRound) >= i &&
+                                affectedInitLower == true) ||
+                            (parseInt(condition.holding) == 1 &&
+                                parseInt(condition.start_round) <= i &&
+                                parseInt(endRound) >= i &&
+                                affectedInitLower == false)
+                        ) {
+                            // get the participants who are affected by this condition.taID
+                            let affectees = await dbQuery(
+                                "GET",
+                                "getAffectees/" + condition.taID + "/" + i
+                            );
+                            let affecteesString = "";
+                            affectees.forEach((affectee, index) => {
+                                affecteesString +=
+                                    affectee.character_name +
+                                    (affectee.numeric_value
+                                        ? " #" + affectee.numeric_value
+                                        : "") +
+                                    (index != affectees.length - 1 ? ", " : "");
+                            });
+
+                            let toolTipHTML = document.createElement("span");
+                            toolTipHTML.classList.add("tooltip");
+                            toolTipHTML.classList.add("concentration");
+                            toolTipHTML.setAttribute(
+                                "data-condition-id",
+                                condition.conditionID
+                            );
+                            // console.log(condition.conditionID + " " + i)
+                            toolTipHTML.setAttribute(
+                                "data-affected-id",
+                                condition.affected_pID
+                            );
+                            toolTipHTML.setAttribute(
+                                "data-taid",
+                                condition.taID
+                            );
+                            toolTipHTML.setAttribute(
+                                "data-causerID",
+                                condition.pID
+                            );
+                            
+                            toolTipHTML.setAttribute("data-this-round", i);
+                            toolTipHTML.innerText = "H";
+                            toolTipHTML.classList.add("hovertwin");
+                            toolTipHTML.setAttribute("data-hover-id", condition.taID);
+                            let toolTipText = document.createElement("span");
+                            toolTipText.classList.add("tooltiptext");
+                            toolTipText.innerHTML =
+                                condition.description.toUpperCase() +
+                                "<br><br>" +
+                                participant.character_name +
+                                (participant.numeric_value
+                                    ? " #" + participant.numeric_value
+                                    : "") +
+                                " <span class='arrow-container'></span> " +
+                                affecteesString;
+                            toolTipHTML.appendChild(toolTipText);
+                            turn.nextSibling.nextSibling.innerHTML +=
+                                toolTipHTML.outerHTML;
+                        }
+
                     });
 
                     // if participant is affected by a condition, show icon with tooltip
