@@ -2289,6 +2289,7 @@
         let startRoundHTML = document.querySelector(".beginRound");
         let endRoundHTML = document.querySelector(".endRound");
         let concentrationHTML = document.getElementsByName("concentration");
+        let holdingHTML = document.getElementsByName("holding");
 
         let causerPID;
         causerPID = Array.from(causerHTML).find((causer) => {
@@ -2298,6 +2299,13 @@
         concentration = Array.from(concentrationHTML).find(
             (concentrationValue) => {
                 return concentrationValue.checked == true;
+            }
+        ).value;
+
+        let holding;
+        holding = Array.from(holdingHTML).find(
+            (holdingValue) => {
+                return holdingValue.checked == true;
             }
         ).value;
 
@@ -2342,7 +2350,7 @@
         await dbQuery("GET", dataConditionsAffectees);
 
         // send condition info
-        let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${taID}/${conditionEndsPID}/${newCpID}/${concentration}/${nextAID}`;
+        let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${taID}/${conditionEndsPID}/${newCpID}/${concentration}/${holding}/${nextAID}`;
         await dbQuery("GET", dataConditions);
 
         load_encounter(0, dataNav);
