@@ -83,12 +83,22 @@
             })`;
 
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
+        const characterNameCounts = originalParticipants.reduce((acc, obj) => {
+          
+                if (!acc[obj.character_name]) {
+                    acc[obj.character_name] = [obj];
+                } else {
+                    acc[obj.character_name].push(obj);
+                }
+            
+            return acc;
+        }, {});
 
-        // rearrange the numeric_values so that they ascend according to descending initiative
-        const filteredParticipants = originalParticipants.filter(obj => Number.isInteger(obj.numeric_value));
-        const characterNamesWithIntegerNumericValue = [... new Set(filteredParticipants.map(obj => obj.character_name))];
+        const duplicatedCharacterNames = Object.keys(characterNameCounts).filter(
+            (characterName) => characterNameCounts[characterName].length > 1
+        );
 
-        const orderedCharacterObjects = characterNamesWithIntegerNumericValue.map(characterName => {
+        const orderedCharacterObjects = duplicatedCharacterNames.map(characterName => {
             const characterObjects = originalParticipants.filter(obj => obj.character_name === characterName);
             characterObjects.sort((a, b) => b.init - a.init); // Sort in descending order by "init"
             return characterObjects;
@@ -98,7 +108,7 @@
             collection.sort((a, b) => b.init - a.init)
         });
         ppp = orderedCharacterObjects;
-        
+
         await orderedCharacterObjects.forEach(async (objects) => {
             await objects.forEach(async (obj, index) => {
                 await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1))
@@ -924,14 +934,15 @@
                     });
                 } catch (err) { }
 
-                let actionArray = [];
+                let actionArray = {};
 
-                actionArray[0] = tool || "";
-                actionArray[1] =
+                actionArray.tool = tool || "";
+                actionArray.hit =
                     action.hit == 1 ? "<b>✅</b>" : "";
                 actionArray[2] = targetString || "";
                 actionArray[3] = damageString || "";
                 actionArray[4] = action.notes || "";
+                actionArray.end = action.end_note || "";
                 await sendToCoordinate(
                     action.round,
                     action.pID,
@@ -968,7 +979,12 @@
                     let y = mainContainer.querySelector(
                         `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
                     );
-                    y.nextSibling.nextSibling.nextSibling.innerHTML =
+                    let y_drop = y;
+                    let y_start = y.nextSibling;
+                    let y_notes = y.nextSibling.nextSibling.nextSibling
+                    let y_end = y.nextSibling.nextSibling;
+                    y_end.innerHTML = actionArray.end;
+                    y_notes.innerHTML =
                         y.nextSibling.nextSibling.nextSibling.innerHTML +
                         (y.nextSibling.nextSibling.nextSibling.innerHTML == ""
                             ? ""
@@ -992,8 +1008,8 @@
                     x.classList.add("hovertwin");
                     x.setAttribute("data-hover-id", taID || "0")
                 }
-                x.innerHTML = actionArray[0];
-                x.nextSibling.innerHTML = actionArray[1]
+                x.innerHTML = actionArray.tool;
+                x.nextSibling.innerHTML = actionArray.hit
                 x.nextSibling.nextSibling.innerHTML = actionArray[2];
                 x.nextSibling.nextSibling.nextSibling.innerHTML =
                     actionArray[3];
