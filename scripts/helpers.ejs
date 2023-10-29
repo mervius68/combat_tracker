@@ -61,15 +61,10 @@
         } else if (encounterCode == 1) {
             // get encounterID from selected value in dropdown
             let html = document
-                .querySelector(".indexDrpDwn")
+                .querySelector(".initDropdown")
                 .getAttribute("value");
         }
         if (encounterID == 0) {
-            // initiate modal to request info for new encounter:
-            // name of the encounter;
-            // participants;
-            // initiative
-
             new_encounter(encounterID);
         }
         let encounter = await dbQuery(
@@ -84,13 +79,13 @@
 
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
         const characterNameCounts = originalParticipants.reduce((acc, obj) => {
-          
-                if (!acc[obj.character_name]) {
-                    acc[obj.character_name] = [obj];
-                } else {
-                    acc[obj.character_name].push(obj);
-                }
-            
+
+            if (!acc[obj.character_name]) {
+                acc[obj.character_name] = [obj];
+            } else {
+                acc[obj.character_name].push(obj);
+            }
+
             return acc;
         }, {});
 
@@ -107,7 +102,6 @@
         orderedCharacterObjects.forEach((collection) => {
             collection.sort((a, b) => b.init - a.init)
         });
-        ppp = orderedCharacterObjects;
 
         await orderedCharacterObjects.forEach(async (objects) => {
             await objects.forEach(async (obj, index) => {
@@ -934,20 +928,21 @@
                     });
                 } catch (err) { }
 
-                let actionArray = {};
-
-                actionArray.tool = tool || "";
-                actionArray.hit =
+                let actionObject = {};
+                actionObject.tool = tool || "";
+                actionObject.hit =
                     action.hit == 1 ? "<b>✅</b>" : "";
-                actionArray[2] = targetString || "";
-                actionArray[3] = damageString || "";
-                actionArray[4] = action.notes || "";
-                actionArray.end = action.end_note || "";
+                actionObject.targetName = targetString || "";
+                actionObject.damage = damageString || "";
+                actionObject.notes = action.notes || "";
+                actionObject.end = action.end_note || "";
+                actionObject.start = action.start_note || "";
+
                 await sendToCoordinate(
                     action.round,
                     action.pID,
                     action.action_type || "",
-                    actionArray,
+                    actionObject,
                     action.taID || "0"
                 );
             }
@@ -971,26 +966,38 @@
         } catch (err) { }
 
 
-        function sendToCoordinate(round, participant, actionType, actionArray, taID) {
+        function sendToCoordinate(round, participant, actionType, actionObject, taID) {
             try {
+                let y = mainContainer.querySelector(
+                    `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
+                );
+                let y_drop = y;
+                let y_start = y.nextSibling;
+                let y_notes = y.nextSibling.nextSibling.nextSibling
+                let y_end = y.nextSibling.nextSibling;
+
                 if (
-                    (actionArray[4] != "-")
+                    (actionObject.notes && actionObject.notes != "-")
                 ) {
-                    let y = mainContainer.querySelector(
-                        `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
-                    );
-                    let y_drop = y;
-                    let y_start = y.nextSibling;
-                    let y_notes = y.nextSibling.nextSibling.nextSibling
-                    let y_end = y.nextSibling.nextSibling;
-                    y_end.innerHTML = actionArray.end;
                     y_notes.innerHTML =
                         y.nextSibling.nextSibling.nextSibling.innerHTML +
                         (y.nextSibling.nextSibling.nextSibling.innerHTML == ""
                             ? ""
                             : " | ") + // taID != "0" ? `<span class='hovertwin' data-hover-id='${taID}'>` : "" +
-                        actionArray[4] + // taID != "0" ? `</span>` : "" +
+                        actionObject.notes + // taID != "0" ? `</span>` : "" +
                         " ";
+                }
+
+                if (actionObject.start && actionObject.start != "-") {
+                    y_start.innerHTML = actionObject.start;
+                }
+
+                if (actionObject.end && actionObject.end != "-") {
+                    y_end.innerHTML = actionObject.end;
+                }
+
+                if (actionObject.drop && actionObject.drop != "-") {
+                    y_drop.innerHTML = actionObject.drop;
                 }
             } catch (err) { }
 
@@ -1008,11 +1015,11 @@
                     x.classList.add("hovertwin");
                     x.setAttribute("data-hover-id", taID || "0")
                 }
-                x.innerHTML = actionArray.tool;
-                x.nextSibling.innerHTML = actionArray.hit
-                x.nextSibling.nextSibling.innerHTML = actionArray[2];
+                x.innerHTML = actionObject.tool;
+                x.nextSibling.innerHTML = actionObject.hit
+                x.nextSibling.nextSibling.innerHTML = actionObject.targetName;
                 x.nextSibling.nextSibling.nextSibling.innerHTML =
-                    actionArray[3];
+                    actionObject.damage;
             } catch (err) { }
         }
 
@@ -1092,7 +1099,8 @@
         document.addEventListener("contextmenu", contextMenuListener);
 
         // fill values for dropdown
-        fillDropdown(encounterCode);
+        // fillDropdown(encounterCode);
+        fillInitDropdown();
         // document.addEventListener("click", encounterClickListener);
 
         // Get all elements with the specified data-hover-id attribute
@@ -1431,8 +1439,28 @@
         notes.setAttribute("name", "notes");
         notes.classList.add("notes_text");
 
+        let notesLabelStart = document.createElement("h3");
+        notesLabelStart.innerText = "Start";
+        let notesStart = document.createElement("textarea");
+        notesStart.setAttribute("rows", "1");
+        notesStart.setAttribute("cols", "30");
+        notesStart.setAttribute("name", "notes_start");
+        notesStart.classList.add("notes_text");
+
+        let notesLabelEnd = document.createElement("h3");
+        notesLabelEnd.innerText = "End";
+        let notesEnd = document.createElement("textarea");
+        notesEnd.setAttribute("rows", "1");
+        notesEnd.setAttribute("cols", "30");
+        notesEnd.setAttribute("name", "notes_end");
+        notesEnd.classList.add("notes_text");
+
         divRight.appendChild(notesLabel);
         divRight.appendChild(notes);
+        // divRight.appendChild(notesLabelStart);
+        // divRight.appendChild(notesStart);
+        // divRight.appendChild(notesLabelEnd);
+        // divRight.appendChild(notesEnd);
 
         divModalTop.appendChild(divRight);
         container.appendChild(divModalTop);
@@ -2509,31 +2537,45 @@
         return round;
     }
 
-    async function fillDropdown(encounterID) {
-        let encounters = await dbQuery("GET", "encounters");
-        let html = document.querySelector(".indexDrpDwn");
-        let container = document.createElement("div");
-
-        encounters.forEach((encounter, index) => {
-            let option = document.createElement("option");
-            option.setAttribute("value", encounter.eID);
-            option.innerText =
-                "(" +
-                encounter.eID +
-                ") " +
-                encounter.campaign +
-                ": " +
-                encounter.location +
-                " (" +
-                encounter.description +
-                ")";
-            if (encounterID == encounter.eID) {
-                option.setAttribute("selected", "true");
-            } else if (encounterID == 0 && index == encounters.length - 1) {
-                option.setAttribute("selected", "true");
+    async function fillInitDropdown() {
+        // get an array of unique participant names where pc = 0
+        let names = [];
+        ctApp.forEach((participant) => {
+            if (participant.pc === 0) {
+                names.push(participant.character_name)
             }
-            html.appendChild(option);
+        })
+        let uniqueCombatantNames = [...new Set(names)]
+        
+
+        let select = document.querySelector(".initDropdown");
+        // let container = document.createElement("div");
+        let option = document.createElement("option");
+        option.setAttribute("value", "Party");
+        option.innerText = "Party"
+        select.appendChild(option);
+
+        uniqueCombatantNames.forEach((combatant, index) => {
+            let option2 = document.createElement("option")
+            option2.setAttribute("value", combatant);
+            option2.innerText = combatant;
+            select.appendChild(option2);            
         });
+        div.appendChild(select);
+        select.appendChild(div);
+    }
+
+    function init_modal() {
+        let initDropdown = document.querySelector(".initDropdown")
+        let selectedOptionText;
+        for (let i = 0; i < initDropdown.options.length; i++) {
+            if (initDropdown.options[i].selected) {
+                selectedOptionText = initDropdown.options[i].text;
+                break; // Exit the loop when the selected option is found
+            }
+        }
+        // alert(selectedOptionText);
+        launchInitModal(selectedOptionText) 
     }
 
     function resizeSections() {
@@ -2730,6 +2772,14 @@
             holdingOneRound,
             nextAID
         );
+        let modal = document.querySelector(".modal");
+        let closeModal = document.querySelector(".close-modal");
+        modal.style.display = "block";
+        closeModalBox(closeModal);
+    }
+
+     function launchInitModal(selectedOptionText) {
+
         let modal = document.querySelector(".modal");
         let closeModal = document.querySelector(".close-modal");
         modal.style.display = "block";

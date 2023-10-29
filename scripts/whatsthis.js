@@ -14,7 +14,7 @@
         } else if (encounterCode == 1) {
             // get encounterID from selected value in dropdown
             let html = document
-                .querySelector(".indexDrpDwn")
+                .querySelector(".initDropdown")
                 .getAttribute("value");
         }
         if (encounterID == 0) {
@@ -1786,7 +1786,7 @@
 
     async function fillDropdown(encounterID) {
         let encounters = await dbQuery("GET", "encounters");
-        let html = document.querySelector(".indexDrpDwn");
+        let html = document.querySelector(".initDropdown");
         let container = document.createElement("div");
 
         encounters.forEach((encounter, index) => {
