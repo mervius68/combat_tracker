@@ -2435,6 +2435,36 @@
         modal.style.display = "none";
     }
 
+    async function modalInit() {
+        let modal = document.querySelector("#modal-body");
+        let dropdown = document.querySelector(".initDropdown");
+        let selectedOptionValue = dropdown.options[dropdown.selectedIndex].value;
+
+        if (selectedOptionValue == "Party") {
+            // get the character_names and their pID
+            let partyParticipants = ctApp.filter((participant) => {
+                return participant.pc == 1
+            })
+
+
+            // write the HTML that fits
+            let container = document.createElement("div");
+            container.classList.add("modal-body");
+        } else {
+            // determine which participants in ctApp have character_name that matches selectedOptionValue
+            let creatureParticipants = ctApp.filter((participant) => {
+                return participant.character_name == selectedOptionValue
+            })
+
+            // get their pIDs and init_modifiers
+
+
+            // write the HTML that fits
+            let container = document.createElement("div");
+            container.classList.add("modal-body");
+        }
+    }
+
     async function dbQuery(httpReqType, httpReqString) {
         // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
         let dbReturn = makePromise(httpReqType, httpReqString);
@@ -2546,12 +2576,13 @@
             }
         })
         let uniqueCombatantNames = [...new Set(names)]
-        
+
 
         let select = document.querySelector(".initDropdown");
         // let container = document.createElement("div");
         let option = document.createElement("option");
         option.setAttribute("value", "Party");
+        option.setAttribute("selected", "selected");
         option.innerText = "Party"
         select.appendChild(option);
 
@@ -2559,10 +2590,11 @@
             let option2 = document.createElement("option")
             option2.setAttribute("value", combatant);
             option2.innerText = combatant;
-            select.appendChild(option2);            
+            select.appendChild(option2);
         });
         div.appendChild(select);
         select.appendChild(div);
+
     }
 
     function init_modal() {
@@ -2574,8 +2606,8 @@
                 break; // Exit the loop when the selected option is found
             }
         }
-        // alert(selectedOptionText);
-        launchInitModal(selectedOptionText) 
+        modalInit()
+        launchInitModal(selectedOptionText)
     }
 
     function resizeSections() {
@@ -2627,6 +2659,27 @@
                 }
             }
         });
+
+        // Get a reference to the initiative dropdown element
+        let dropdown = document.querySelector(".initDropdown");
+        // Add an event listener to the initiative dropdown to detect changes
+        dropdown.addEventListener("change", function () {
+            // Loop through the options to find the selected one
+            let options = dropdown.options;
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].selected) {
+                    // Remove the selected attribute from all options
+                    for (let j = 0; j < options.length; j++) {
+                        options[j].removeAttribute("selected");
+                    }
+                    // Add the selected attribute to the currently selected option
+                    options[i].setAttribute("selected", "selected");
+                    break; // Exit the loop when the selected option is found
+                }
+            }
+        });
+
+
     }
 
     function new_encounter(encounterID) {
@@ -2772,7 +2825,7 @@
         pushModal()
     }
 
-     function launchInitModal(selectedOptionText) {
+    function launchInitModal(selectedOptionText) {
 
         pushModal()
     }
