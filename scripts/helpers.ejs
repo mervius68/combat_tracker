@@ -1623,7 +1623,7 @@
         modal.addEventListener("click", modalClickListener);
 
         modal.addEventListener("input", function (e) {
-            ppp = e.target;
+
             if (e.target.parentElement.classList.contains("conSaveParent")) {
                 let concentrationStuff =
                     e.target.parentNode.querySelectorAll(".concentration");
@@ -2521,64 +2521,32 @@
         }
 
         modal.addEventListener("input", function (e) {
-            ppp = e.target.parentElement;
-
-            var inputElement = e.target;
-            var parentDiv = inputElement.parentElement;
-            var strongElement = parentDiv.querySelector('strong');
-
-            var inputValue = inputElement.value.trim(); // Trim leading/trailing white spaces
-
+            let inputElement = e.target;
+            let parentDiv = inputElement.parentElement;
+            let strongElement = parentDiv.querySelector('strong');
+            let inputValue = inputElement.value.trim(); // Trim leading/trailing white spaces
             if (inputValue === "") {
                 strongElement.innerText = "0";
             } else {
-                var parsedValue = parseInt(inputValue, 10);
-                var initModifier = parseInt(inputElement.getAttribute('data-init-modifier'), 10);
-                var newValue = parsedValue + initModifier;
+                let parsedValue = parseInt(inputValue, 10);
+                let initModifier = parseInt(inputElement.getAttribute('data-init-modifier'), 10);
+                let newValue = parsedValue + initModifier;
                 strongElement.innerText = newValue;
             }
-
-
-
-
-
-            // if (e.target.parentElement.classList.contains("conSaveParent")) {
-            //     let concentrationStuff =
-            //         e.target.parentNode.querySelectorAll(".concentration");
-            //     concentrationStuff.forEach((participant) => {
-            //         let z = participant.parentElement;
-            //         if (
-            //             participant.parentNode.previousSibling.value != "" &&
-            //             participant.parentNode.previousSibling.value != "0" &&
-            //             participant.parentNode.previousSibling.value != "00" &&
-            //             participant.parentNode.previousSibling.value != "000"
-            //         ) {
-            //             try {
-            //                 let x = z.querySelector(".conSavingThrowCheck");
-            //                 z.removeChild(x);
-            //             } catch (err) { }
-            //             let input =
-            //                 participant.parentNode.previousSibling.value;
-            //             if (input / 2 <= 10) {
-            //                 input = 10;
-            //             } else {
-            //                 input = Math.floor(input / 2);
-            //             }
-            //             let span3 = document.createElement("span");
-            //             if (parseInt(input)) {
-            //                 span3.classList.add("conSavingThrowCheck");
-            //                 span3.innerHTML = `DC CON ${input}`;
-            //             }
-            //             participant.parentNode.appendChild(span3);
-            //         } else {
-            //             try {
-            //                 let x = z.querySelector(".conSavingThrowCheck");
-            //                 z.removeChild(x);
-            //             } catch (err) { }
-            //         }
-            //     });
-            // }
         });
+    }
+
+    function submitInitModal() {
+        // Assuming you have a NodeList, for example:
+        let nodeList = document.querySelectorAll('input[type="text"] + span + strong');
+
+        let strongValuesArray = Array.from(nodeList).map(function (element) {
+            return element.innerText;
+        });
+
+        // Now strongValuesArray contains the innerText values of the <strong> elements
+
+        ppp = strongValuesArray;
     }
 
     async function dbQuery(httpReqType, httpReqString) {
