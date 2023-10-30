@@ -311,6 +311,11 @@ button {
     height: 25px;
     font-size: 1.2em;
     width: max-content;
+   
+}
+
+button + button {
+    margin: 0px 0px 0px 10px;
 }
 
 /* Modal boxes */

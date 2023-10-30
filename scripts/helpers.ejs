@@ -1623,6 +1623,7 @@
         modal.addEventListener("click", modalClickListener);
 
         modal.addEventListener("input", function (e) {
+            ppp = e.target;
             if (e.target.parentElement.classList.contains("conSaveParent")) {
                 let concentrationStuff =
                     e.target.parentNode.querySelectorAll(".concentration");
@@ -2478,24 +2479,106 @@
                 div2.classList.add("line")
                 let input = document.createElement("input");
                 input.setAttribute("type", "text");
+                input.setAttribute("data-init-modifier", creature.init_modifier);
                 // input.setAttribute("value", creature.pID);
                 input.setAttribute("maxLength", "2");
                 let span = document.createElement("span");
-                span.innerText = " + " + creature.init_modifier + " = ";
+                span.innerText = (creature.init_modifier >= 0 ? " + " : " - ") + Math.abs(creature.init_modifier) + " = ";
                 let strong = document.createElement("strong");
-                strong.setAttribute("data-init-result", creature.pID);
-                ppp = initModifier;
-
+                strong.setAttribute("data-init-pid", creature.pID);
                 strong.innerText = "0";
+
                 div2.appendChild(input);
                 div2.appendChild(span);
                 div2.appendChild(strong);
                 div.appendChild(div2);
             })
-
             container.appendChild(div);
+
+            let br = document.createElement("br");
+            container.appendChild(br);
+            let br2 = document.createElement("br");
+
+            let button = document.createElement("button");
+            button.setAttribute("onclick", "submitInitModal()")
+            button.innerText = "SUBMIT";
+            button.classList.add("center")
+
+            let button2 = document.createElement("button");
+            button2.setAttribute("onclick", "closeModal()")
+            button2.innerText = "CLOSE";
+            button2.classList.add("center");
+
+            let div3 = document.createElement("div");
+            div3.classList.add("center")
+
+            div3.appendChild(button)
+            div3.appendChild(button2)
+            container.appendChild(div3);
+            container.appendChild(br2);
+
             modal.innerHTML = container.outerHTML;
         }
+
+        modal.addEventListener("input", function (e) {
+            ppp = e.target.parentElement;
+
+            var inputElement = e.target;
+            var parentDiv = inputElement.parentElement;
+            var strongElement = parentDiv.querySelector('strong');
+
+            var inputValue = inputElement.value.trim(); // Trim leading/trailing white spaces
+
+            if (inputValue === "") {
+                strongElement.innerText = "0";
+            } else {
+                var parsedValue = parseInt(inputValue, 10);
+                var initModifier = parseInt(inputElement.getAttribute('data-init-modifier'), 10);
+                var newValue = parsedValue + initModifier;
+                strongElement.innerText = newValue;
+            }
+
+
+
+
+
+            // if (e.target.parentElement.classList.contains("conSaveParent")) {
+            //     let concentrationStuff =
+            //         e.target.parentNode.querySelectorAll(".concentration");
+            //     concentrationStuff.forEach((participant) => {
+            //         let z = participant.parentElement;
+            //         if (
+            //             participant.parentNode.previousSibling.value != "" &&
+            //             participant.parentNode.previousSibling.value != "0" &&
+            //             participant.parentNode.previousSibling.value != "00" &&
+            //             participant.parentNode.previousSibling.value != "000"
+            //         ) {
+            //             try {
+            //                 let x = z.querySelector(".conSavingThrowCheck");
+            //                 z.removeChild(x);
+            //             } catch (err) { }
+            //             let input =
+            //                 participant.parentNode.previousSibling.value;
+            //             if (input / 2 <= 10) {
+            //                 input = 10;
+            //             } else {
+            //                 input = Math.floor(input / 2);
+            //             }
+            //             let span3 = document.createElement("span");
+            //             if (parseInt(input)) {
+            //                 span3.classList.add("conSavingThrowCheck");
+            //                 span3.innerHTML = `DC CON ${input}`;
+            //             }
+            //             participant.parentNode.appendChild(span3);
+            //         } else {
+            //             try {
+            //                 let x = z.querySelector(".conSavingThrowCheck");
+            //                 z.removeChild(x);
+            //             } catch (err) { }
+            //         }
+            //     });
+            // }
+        });
     }
 
     async function dbQuery(httpReqType, httpReqString) {
@@ -2640,7 +2723,8 @@
             }
         }
         modalInit()
-        launchInitModal(selectedOptionText)
+        pushModal()
+        // launchInitModal(selectedOptionText)
     }
 
     function resizeSections() {
