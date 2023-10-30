@@ -183,10 +183,11 @@ hr {
 }
 
 .arrow-container::before {
-    content: "\2192"; /* Unicode character for right arrow */
+    content: "\2192";
+    /* Unicode character for right arrow */
     font-size: 1.6em;
-  }
-  
+}
+
 
 .concentration {
     background-color: yellow;
@@ -450,10 +451,12 @@ h3 {
     flex: 1 0 0 33%;
     width: 33%;
 }
+
 .topMiddleDiv {
     flex: 0 1 0 33%;
     width: 33%;
 }
+
 .topRightDiv {
     flex: 0 0 1 33%;
     width: 33%;
@@ -531,11 +534,36 @@ h3 {
     transition: background-color 0.3s ease-in-out, outline 0.3s ease-in-out;
     cursor: pointer;
 }
-  
-  
-  .hovered {
+
+
+.hovered {
     /* background-color: white; */
     outline: 10px black solid;
     z-index: 5;
-  }
-  
+}
+
+.line {
+    margin: 10px 0;
+    /* Add space between each line */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    height: 25px;
+}
+
+.line input {
+    width: 40px;
+    font-size: 16px; /* Adjust the font size for the text field as needed */
+    height: 25px; 
+    /* Adjust the input field width as needed */
+}
+
+.line span {
+    margin: 0 10px;
+    /* Add space between elements in each line */
+}
+
+.line strong {
+    font-weight: bold;
+}

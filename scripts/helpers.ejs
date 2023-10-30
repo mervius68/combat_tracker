@@ -2455,13 +2455,46 @@
             let creatureParticipants = ctApp.filter((participant) => {
                 return participant.character_name == selectedOptionValue
             })
-
+            let initModifier = creatureParticipants[0].init_modifier
             // get their pIDs and init_modifiers
 
 
             // write the HTML that fits
             let container = document.createElement("div");
             container.classList.add("modal-body");
+            let div = document.createElement("div");
+            div.classList.add("modal-content");
+            let h1 = document.createElement("h1");
+            h1.classList.add("center");
+            h1.innerText = "INITIATIVE";
+            let h2 = document.createElement("h2");
+            h2.classList.add("center");
+            h2.innerText = (creatureParticipants.length > 1 ? creatureParticipants.length : "") + " " + creatureParticipants[0].character_name + "(s)"
+            div.appendChild(h1);
+            div.appendChild(h2);
+
+            creatureParticipants.forEach((creature, index) => {
+                let div2 = document.createElement("div");
+                div2.classList.add("line")
+                let input = document.createElement("input");
+                input.setAttribute("type", "text");
+                // input.setAttribute("value", creature.pID);
+                input.setAttribute("maxLength", "2");
+                let span = document.createElement("span");
+                span.innerText = " + " + creature.init_modifier + " = ";
+                let strong = document.createElement("strong");
+                strong.setAttribute("data-init-result", creature.pID);
+                ppp = initModifier;
+
+                strong.innerText = "0";
+                div2.appendChild(input);
+                div2.appendChild(span);
+                div2.appendChild(strong);
+                div.appendChild(div2);
+            })
+
+            container.appendChild(div);
+            modal.innerHTML = container.outerHTML;
         }
     }
 
