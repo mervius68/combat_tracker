@@ -595,11 +595,11 @@
                         }
 
                         if (
-                            (parseInt(condition.concentration) == 1 || parseInt(condition.holding) == 1 &&
+                            ((parseInt(condition.concentration) == 1 || parseInt(condition.holding) == 1) &&
                                 parseInt(condition.start_round) <= i &&
                                 parseInt(endRound) >= i &&
                                 affectedInitLower == true) ||
-                            (parseInt(condition.concentration) == 1 || parseInt(condition.holding) == 1 &&
+                            ((parseInt(condition.concentration) == 1 || parseInt(condition.holding) == 1) &&
                                 parseInt(condition.start_round) <= i &&
                                 parseInt(endRound) >= i &&
                                 affectedInitLower == false)
@@ -2536,17 +2536,41 @@
         });
     }
 
-    function submitInitModal() {
+    async function submitInitModal() {
         // Assuming you have a NodeList, for example:
         let nodeList = document.querySelectorAll('input[type="text"] + span + strong');
 
         let strongValuesArray = Array.from(nodeList).map(function (element) {
             return element.innerText;
         });
-
         // Now strongValuesArray contains the innerText values of the <strong> elements
 
-        ppp = strongValuesArray;
+        const initialOrderPids = Array.from(nodeList).map(function (element) {
+            return element.getAttribute('data-init-pid')
+        })
+
+        // sort strongValuesArray in descending order
+        let sortedValues = strongValuesArray.slice().sort((a, b) => b - a);
+        let indexMapping = strongValuesArray.map((_, index) => index)
+            .sort((a, b) => strongValuesArray[b] - strongValuesArray[a]);
+        
+        const newOrderPids = indexMapping.map(index => initialOrderPids[index]);
+        const reorderedNumericValues = Array.from({ length: sortedValues.length }, (_, index) => index + 1);
+
+        let stringToSend = ""
+        initialOrderPids.forEach((creature, index) => {
+            stringToSend += (index > 0 ? " | " : "") + newOrderPids[index] + ", " + reorderedNumericValues[index] + ", " + sortedValues[index]
+        })
+        aaa = initialOrderPids;
+        bbb = newOrderPids;
+        ccc = reorderedNumericValues;
+        ddd = sortedValues;
+        eee = stringToSend;
+
+        // await dbQuery("GET", `orderInitiative/${stringToSend}`)
+        // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
+
+        
     }
 
     async function dbQuery(httpReqType, httpReqString) {
