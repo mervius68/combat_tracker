@@ -557,11 +557,18 @@ h3 {
     height: 25px;
 }
 
-.line input {
+.line input, strong {
     width: 40px;
-    font-size: 16px; /* Adjust the font size for the text field as needed */
+    font-size: 20px; /* Adjust the font size for the text field as needed */
     height: 25px; 
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 5px;
     /* Adjust the input field width as needed */
+}
+
+strong {
+    font-size: 20px;
 }
 
 .line span {

@@ -526,10 +526,11 @@
 
                     // show character name
                     let characterDisplay = "";
+                    ppp = typeof participant.numeric_value
                     if (participant.join_round <= i && participant.dead_round >= i) {
                         characterDisplay =
                             participant.character_name +
-                            (participant.numeric_value == null
+                            (participant.numeric_value == "" || "null"
                                 ? ""
                                 : " #" + participant.numeric_value);
                     } else {
@@ -2437,9 +2438,18 @@
     }
 
     async function modalInit() {
-        let modal = document.querySelector("#modal-body");
-        let dropdown = document.querySelector(".initDropdown");
-        let selectedOptionValue = dropdown.options[dropdown.selectedIndex].value;
+        const modal = document.querySelector("#modal-body");
+        const dropdown = document.querySelector(".initDropdown");
+        const selectedOptionValue = dropdown.options[dropdown.selectedIndex].value;
+
+        const container = document.createElement("div");
+        container.classList.add("modal-body");
+        let div = document.createElement("div");
+        div.classList.add("modal-content");
+        let h1 = document.createElement("h1");
+        h1.classList.add("center");
+        h1.innerText = "INITIATIVE";
+        div.appendChild(h1);
 
         if (selectedOptionValue == "Party") {
             // get the character_names and their pID
@@ -2447,31 +2457,69 @@
                 return participant.pc == 1
             })
 
-
             // write the HTML that fits
-            let container = document.createElement("div");
-            container.classList.add("modal-body");
+
+            const h2 = document.createElement("h2");
+            h2.classList.add("center");
+            h2.innerText = "Our Heroes!"
+            div.appendChild(h2);
+
+            partyParticipants.forEach((participant, index) => {
+                const div2 = document.createElement("div");
+                div2.classList.add("line");
+                const input = document.createElement("input");
+                input.setAttribute("type", "text");
+                input.setAttribute("maxLength", "2");
+                input.setAttribute("data-init-pid", participant.pID);
+                const span = document.createElement("span");
+                span.innerText = participant.character_name;
+                div2.appendChild(input);
+                div2.appendChild(span);
+                div.appendChild(div2);
+            })
+            container.appendChild(div);
+
+            const br = document.createElement("br");
+            container.appendChild(br);
+            const br2 = document.createElement("br");
+
+            const button = document.createElement("button");
+            button.setAttribute("onclick", "submitInitModal(1)")
+            button.innerText = "SUBMIT";
+            button.classList.add("center")
+
+            const button2 = document.createElement("button");
+            button2.setAttribute("onclick", "closeModal()")
+            button2.innerText = "CLOSE";
+            button2.classList.add("center");
+
+            let div3 = document.createElement("div");
+            div3.classList.add("center")
+
+            div3.appendChild(button)
+            div3.appendChild(button2)
+            container.appendChild(div3);
+            container.appendChild(br2);
+
+            modal.innerHTML = container.outerHTML;
         } else {
             // determine which participants in ctApp have character_name that matches selectedOptionValue
-            let creatureParticipants = ctApp.filter((participant) => {
+            const creatureParticipants = ctApp.filter((participant) => {
                 return participant.character_name == selectedOptionValue
             })
-            let initModifier = creatureParticipants[0].init_modifier
-            // get their pIDs and init_modifiers
-
+            // get their init_modifiers
+            const initModifier = creatureParticipants[0].init_modifier
 
             // write the HTML that fits
-            let container = document.createElement("div");
-            container.classList.add("modal-body");
-            let div = document.createElement("div");
-            div.classList.add("modal-content");
-            let h1 = document.createElement("h1");
-            h1.classList.add("center");
-            h1.innerText = "INITIATIVE";
-            let h2 = document.createElement("h2");
+            const h2 = document.createElement("h2");
             h2.classList.add("center");
-            h2.innerText = (creatureParticipants.length > 1 ? creatureParticipants.length : "") + " " + creatureParticipants[0].character_name + "(s)"
-            div.appendChild(h1);
+            h2.innerText = (
+                creatureParticipants.length > 1
+                    ? creatureParticipants.length
+                    : ""
+            )
+                + " "
+                + creatureParticipants[0].character_name + "(s)"
             div.appendChild(h2);
 
             creatureParticipants.forEach((creature, index) => {
@@ -2500,7 +2548,7 @@
             let br2 = document.createElement("br");
 
             let button = document.createElement("button");
-            button.setAttribute("onclick", "submitInitModal()")
+            button.setAttribute("onclick", "submitInitModal(0)")
             button.innerText = "SUBMIT";
             button.classList.add("center")
 
@@ -2518,59 +2566,99 @@
             container.appendChild(br2);
 
             modal.innerHTML = container.outerHTML;
+
+            modal.addEventListener("input", function (e) {
+                let inputElement = e.target;
+                let parentDiv = inputElement.parentElement;
+                let strongElement = parentDiv.querySelector('strong');
+                let inputValue = inputElement.value.trim(); // Trim leading/trailing white spaces
+                if (inputValue === "") {
+                    strongElement.innerText = "0";
+                } else {
+                    let parsedValue = parseInt(inputValue, 10);
+                    let initModifier = parseInt(inputElement.getAttribute('data-init-modifier'), 10);
+                    let newValue = parsedValue + initModifier;
+                    strongElement.innerText = newValue;
+                }
+            });
         }
 
-        modal.addEventListener("input", function (e) {
-            let inputElement = e.target;
-            let parentDiv = inputElement.parentElement;
-            let strongElement = parentDiv.querySelector('strong');
-            let inputValue = inputElement.value.trim(); // Trim leading/trailing white spaces
-            if (inputValue === "") {
-                strongElement.innerText = "0";
-            } else {
-                let parsedValue = parseInt(inputValue, 10);
-                let initModifier = parseInt(inputElement.getAttribute('data-init-modifier'), 10);
-                let newValue = parsedValue + initModifier;
-                strongElement.innerText = newValue;
-            }
-        });
+
     }
 
-    async function submitInitModal() {
-        // Assuming you have a NodeList, for example:
-        let nodeList = document.querySelectorAll('input[type="text"] + span + strong');
+    async function submitInitModal(PC) {
 
-        let strongValuesArray = Array.from(nodeList).map(function (element) {
-            return element.innerText;
-        });
-        // Now strongValuesArray contains the innerText values of the <strong> elements
+        if (PC == 0) {
+            // Assuming you have a NodeList, for example:
+            let nodeList = document.querySelectorAll('input[type="text"] + span + strong');
 
-        const initialOrderPids = Array.from(nodeList).map(function (element) {
-            return element.getAttribute('data-init-pid')
-        })
+            let strongValuesArray = Array.from(nodeList).map(function (element) {
+                return element.innerText;
+            });
+            // Now strongValuesArray contains the innerText values of the <strong> elements
 
-        // sort strongValuesArray in descending order
-        let sortedValues = strongValuesArray.slice().sort((a, b) => b - a);
-        let indexMapping = strongValuesArray.map((_, index) => index)
-            .sort((a, b) => strongValuesArray[b] - strongValuesArray[a]);
-        
-        const newOrderPids = indexMapping.map(index => initialOrderPids[index]);
-        const reorderedNumericValues = Array.from({ length: sortedValues.length }, (_, index) => index + 1);
+            const initialOrderPids = Array.from(nodeList).map(function (element) {
+                return element.getAttribute('data-init-pid')
+            })
 
-        let stringToSend = ""
-        initialOrderPids.forEach((creature, index) => {
-            stringToSend += (index > 0 ? " | " : "") + newOrderPids[index] + ", " + reorderedNumericValues[index] + ", " + sortedValues[index]
-        })
-        aaa = initialOrderPids;
-        bbb = newOrderPids;
-        ccc = reorderedNumericValues;
-        ddd = sortedValues;
-        eee = stringToSend;
+            // sort strongValuesArray in descending order
+            let sortedValues = strongValuesArray.slice().sort((a, b) => b - a);
+            let indexMapping = strongValuesArray.map((_, index) => index)
+                .sort((a, b) => strongValuesArray[b] - strongValuesArray[a]);
 
-        // await dbQuery("GET", `orderInitiative/${stringToSend}`)
-        // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
+            const newOrderPids = indexMapping.map(index => initialOrderPids[index]);
+            const reorderedNumericValues = Array.from({ length: sortedValues.length }, (_, index) => index + 1);
 
-        
+            let stringToSend = ""
+            initialOrderPids.forEach((creature, index) => {
+                stringToSend += (index > 0 ? " | " : "") + newOrderPids[index] + ", " + reorderedNumericValues[index] + ", " + sortedValues[index]
+            })
+            aaa = initialOrderPids;
+            bbb = newOrderPids;
+            ccc = reorderedNumericValues;
+            ddd = sortedValues;
+            eee = stringToSend;
+
+            await dbQuery("GET", `orderInitiative/${stringToSend}`)
+            // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
+        } else {
+            // Assuming you have a NodeList, for example:
+            let nodeList = document.querySelectorAll('input[type="text"]');
+
+            let strongValuesArray = Array.from(nodeList).map(function (element) {
+                return element.value;
+            });
+            // Now strongValuesArray contains the innerText values of the <strong> elements
+
+            const initialOrderPids = Array.from(nodeList).map(function (element) {
+                return element.getAttribute('data-init-pid')
+            })
+
+            // sort strongValuesArray in descending order
+            let sortedValues = strongValuesArray.slice().sort((a, b) => b - a);
+            let indexMapping = strongValuesArray.map((_, index) => index)
+                .sort((a, b) => strongValuesArray[b] - strongValuesArray[a]);
+
+            const newOrderPids = indexMapping.map(index => initialOrderPids[index]);
+
+            let stringToSend = ""
+            initialOrderPids.forEach((creature, index) => {
+                stringToSend += (index > 0 ? " | " : "") + newOrderPids[index] + ", " + "0" + ", " + sortedValues[index]
+            })
+            aaa = initialOrderPids;
+            bbb = newOrderPids;
+            ddd = sortedValues;
+            eee = stringToSend;
+
+            await dbQuery("GET", `orderInitiative/${stringToSend}`)
+            // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
+
+
+        }
+
+        let html = document.querySelector(".selected");
+        let dataNav = html.getAttribute("data-nav");
+        load_encounter(0, dataNav);
     }
 
     async function dbQuery(httpReqType, httpReqString) {
@@ -2687,6 +2775,7 @@
 
 
         let select = document.querySelector(".initDropdown");
+        select.innerHTML = "";
         // let container = document.createElement("div");
         let option = document.createElement("option");
         option.setAttribute("value", "Party");
