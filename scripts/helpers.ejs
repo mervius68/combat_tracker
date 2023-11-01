@@ -530,7 +530,8 @@
                     if (participant.join_round <= i && participant.dead_round >= i) {
                         characterDisplay =
                             participant.character_name +
-                            (participant.numeric_value == "" || "null"
+                            // (participant.numeric_value == "" || participant.numeric_value == "null"
+                            (["null",""].includes(participant.numeric_value)
                                 ? ""
                                 : " #" + participant.numeric_value);
                     } else {
