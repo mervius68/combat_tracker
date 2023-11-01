@@ -403,40 +403,40 @@ app.post('/orderInitiative', (req, res) => {
     
 });
 
-app.get("/orderInitiative/:valuesString", (req, res) => {
-    const valuesString = req.params.valuesString;
-    const rows = valuesString.split(' | ');
-    const numericValueUpdates = [];
-    const initUpdates = [];
+// app.get("/orderInitiative/:valuesString", (req, res) => {
+//     const valuesString = req.params.valuesString;
+//     const rows = valuesString.split(' | ');
+//     const numericValueUpdates = [];
+//     const initUpdates = [];
 
-    for (const row of rows) {
-        const [pID, numeric_value, init] = row.split(', ');
-        numericValueUpdates.push(`WHEN pID = ${pID} THEN '${numeric_value == 0 ? '' : numeric_value}'`);
-        initUpdates.push(`WHEN pID = ${pID} THEN '${init}'`);
-    }
+//     for (const row of rows) {
+//         const [pID, numeric_value, init] = row.split(', ');
+//         numericValueUpdates.push(`WHEN pID = ${pID} THEN '${numeric_value == 0 ? '' : numeric_value}'`);
+//         initUpdates.push(`WHEN pID = ${pID} THEN '${init}'`);
+//     }
 
-    // Generate the SQL query
-    const sql = `
-    UPDATE ct_tbl_participant
-    SET numeric_value = CASE
-      ${numericValueUpdates.join('\n')}
-      ELSE numeric_value
-    END,
-    init = CASE
-      ${initUpdates.join('\n')}
-      ELSE init
-    END
-    WHERE pID IN (${rows.map(row => row.split(', ')[0]).join(', ')});
-        `;
+//     // Generate the SQL query
+//     const sql = `
+//     UPDATE ct_tbl_participant
+//     SET numeric_value = CASE
+//       ${numericValueUpdates.join('\n')}
+//       ELSE numeric_value
+//     END,
+//     init = CASE
+//       ${initUpdates.join('\n')}
+//       ELSE init
+//     END
+//     WHERE pID IN (${rows.map(row => row.split(', ')[0]).join(', ')});
+//         `;
 
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        res.send({});
-    });
-});
+//     let query = db.all(sql, [], (err, results) => {
+//         if (err) {
+//             console.log(err);
+//             throw err;
+//         }
+//         res.send({});
+//     });
+// });
 
 app.get("/revive/:targeted_pID/", (req, res) => {
     let targeted_pID = req.params.targeted_pID;

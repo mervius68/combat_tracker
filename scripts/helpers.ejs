@@ -2506,6 +2506,11 @@
             container.appendChild(br2);
 
             modal.innerHTML = container.outerHTML;
+            setTimeout(() => {
+                let cursorField = document.querySelector('input[data-init-pid]')
+                cursorField.focus();
+            }, 90)
+
         } else {
             // determine which participants in ctApp have character_name that matches selectedOptionValue
             const creatureParticipants = ctApp.filter((participant) => {
@@ -2570,6 +2575,12 @@
             container.appendChild(br2);
 
             modal.innerHTML = container.outerHTML;
+
+            modal.innerHTML = container.outerHTML;
+            setTimeout(() => {
+                let cursorField = document.querySelector('input[data-init-modifier]')
+                cursorField.focus();
+            }, 90)
 
             modal.addEventListener("input", function (e) {
                 let inputElement = e.target;
