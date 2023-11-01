@@ -9,6 +9,7 @@ const db = new sqlite3.Database(
     }
 );
 
+app.use(express.json());
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
@@ -359,6 +360,47 @@ app.get("/arrangeParticipantsByInit/:pID/:numeric_value", (req, res) => {
         }
         res.send(results);
     });
+});
+
+app.post('/orderInitiative', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+    // Process the data and build your SQL query
+    const numericValueUpdates = [];
+    const initUpdates = [];
+    const pIDs = [];
+
+    requestData.forEach((row) => {
+        const { pID, numeric_value, init } = row;
+        numericValueUpdates.push(`WHEN pID = ${pID} THEN '${numeric_value == 0 ? '' : numeric_value}'`);
+        initUpdates.push(`WHEN pID = ${pID} THEN '${init}'`);
+        pIDs.push(pID);
+    });
+
+    // Generate the SQL query
+    const sql = `
+      UPDATE ct_tbl_participant
+      SET numeric_value = CASE
+        ${numericValueUpdates.join('\n')}
+        ELSE numeric_value
+      END,
+      init = CASE
+        ${initUpdates.join('\n')}
+        ELSE init
+      END
+      WHERE pID IN (${pIDs.join(', ')});
+    `;
+    
+    // Execute the SQL query and handle the response (you'll need to set up your database connection)
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.json({ message: 'Data updated successfully' });
+    });
+
+    // Respond with a success message
+    
 });
 
 app.get("/orderInitiative/:valuesString", (req, res) => {

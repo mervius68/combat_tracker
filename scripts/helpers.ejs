@@ -531,7 +531,7 @@
                         characterDisplay =
                             participant.character_name +
                             // (participant.numeric_value == "" || participant.numeric_value == "null"
-                            (["null",""].includes(participant.numeric_value)
+                            (["null", ""].includes(participant.numeric_value)
                                 ? ""
                                 : " #" + participant.numeric_value);
                     } else {
@@ -1098,6 +1098,9 @@
         window.addEventListener("click", () => {
             showContextMenu(false);
         });
+        // document.addEventListener("click", (e) => {
+        //     alert(e.target.parentElement.parentElement.outerHTML);
+        // });
         document.addEventListener("contextmenu", contextMenuListener);
 
         // fill values for dropdown
@@ -2614,13 +2617,24 @@
             initialOrderPids.forEach((creature, index) => {
                 stringToSend += (index > 0 ? " | " : "") + newOrderPids[index] + ", " + reorderedNumericValues[index] + ", " + sortedValues[index]
             })
-            aaa = initialOrderPids;
-            bbb = newOrderPids;
-            ccc = reorderedNumericValues;
-            ddd = sortedValues;
-            eee = stringToSend;
 
-            await dbQuery("GET", `orderInitiative/${stringToSend}`)
+            let postData = initialOrderPids.map((creature, index) => ({
+                pID: newOrderPids[index],
+                numeric_value: "", // Set this to the appropriate value or an empty string
+                init: sortedValues[index],
+            }));
+
+            await dbQueryPost("orderInitiative", postData)
+                .then((data) => {
+                    console.log(data); // Handle the response from the server
+                })
+                .catch((error) => {
+                    // Handle errors here
+                });
+
+
+            // await dbQuery("GET", `orderInitiative/${stringToSend}`)
+
             // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
         } else {
             // Assuming you have a NodeList, for example:
@@ -2646,14 +2660,20 @@
             initialOrderPids.forEach((creature, index) => {
                 stringToSend += (index > 0 ? " | " : "") + newOrderPids[index] + ", " + "0" + ", " + sortedValues[index]
             })
-            aaa = initialOrderPids;
-            bbb = newOrderPids;
-            ddd = sortedValues;
-            eee = stringToSend;
 
-            await dbQuery("GET", `orderInitiative/${stringToSend}`)
-            // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
+            let postData = initialOrderPids.map((creature, index) => ({
+                pID: newOrderPids[index],
+                numeric_value: "", // Set this to the appropriate value or an empty string
+                init: sortedValues[index],
+            }));
 
+            await dbQueryPost("orderInitiative", postData)
+                .then((data) => {
+                    console.log(data); // Handle the response from the server
+                })
+                .catch((error) => {
+                    // Handle errors here
+                });
 
         }
 
@@ -2679,6 +2699,29 @@
             });
         }
     }
+
+    async function dbQueryPost(httpReqString, requestData) {
+        try {
+            const response = await fetch(`../${httpReqString}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            if (response.ok) {
+                const responseData = await response.json();
+                return responseData;
+            } else {
+                throw new Error('Request Failed');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            throw error; // Rethrow the error for handling in the caller
+        }
+    }
+
 
     function findLargestSubarray(arr) {
         let largestSubarray = arr[0];
