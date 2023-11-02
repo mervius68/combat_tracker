@@ -2498,6 +2498,7 @@
             const button2 = document.createElement("button");
             button2.setAttribute("onclick", "closeModal()")
             button2.innerText = "CLOSE";
+            button2.classList.add("close-modal")
             button2.classList.add("center");
 
             let div3 = document.createElement("div");
@@ -2569,7 +2570,8 @@
             button.classList.add("center")
 
             let button2 = document.createElement("button");
-            button2.setAttribute("onclick", "closeModal()")
+            button2.setAttribute("onclick", "closeModalBox()")
+            button2.classList.add("close-modal")
             button2.innerText = "CLOSE";
             button2.classList.add("center");
 
@@ -2604,7 +2606,13 @@
                 }
             });
         }
-
+        const cm = document.querySelector(".modal-content");
+        function showContextMenu(show = true) {
+            cm.style.display = show ? "block" : "none";
+        }
+        // window.addEventListener("click", () => {
+        //     showContextMenu(false);
+        // });
 
     }
 
@@ -3086,15 +3094,18 @@
     }
 
     function launchInitModal(selectedOptionText) {
-
         pushModal()
     }
 
     function pushModal() {
         let modal = document.querySelector(".modal");
-        let closeModal = document.querySelector(".close-modal");
+        let closeModalButtons = document.querySelectorAll(".close-modal");
         modal.style.display = "block";
-        closeModalBox(closeModal);
+
+        // Add the event listener or perform actions for each close button
+        closeModalButtons.forEach(function (closeModal) {
+            closeModalBox(closeModal);
+        });
     }
 
     const clickEventListener = function (event) {
