@@ -2467,6 +2467,8 @@
             h2.classList.add("center");
             h2.innerText = "Our Heroes!"
             div.appendChild(h2);
+            const div4 = document.createElement("div");
+            div4.classList.add("center-div-align-left");
 
             partyParticipants.forEach((participant, index) => {
                 const div2 = document.createElement("div");
@@ -2479,8 +2481,9 @@
                 span.innerText = participant.character_name;
                 div2.appendChild(input);
                 div2.appendChild(span);
-                div.appendChild(div2);
+                div4.appendChild(div2);
             })
+            div.appendChild(div4)
             container.appendChild(div);
 
             const br = document.createElement("br");
@@ -2531,6 +2534,9 @@
                 + creatureParticipants[0].character_name + "(s)"
             div.appendChild(h2);
 
+            const divOpponents = document.createElement("div");
+            divOpponents.classList.add("center-div-align-left");
+
             creatureParticipants.forEach((creature, index) => {
                 let div2 = document.createElement("div");
                 div2.classList.add("line")
@@ -2548,8 +2554,9 @@
                 div2.appendChild(input);
                 div2.appendChild(span);
                 div2.appendChild(strong);
-                div.appendChild(div2);
+                divOpponents.appendChild(div2);
             })
+            div.appendChild(divOpponents);
             container.appendChild(div);
 
             let br = document.createElement("br");
@@ -2583,10 +2590,10 @@
             }, 90)
 
             modal.addEventListener("input", function (e) {
-                let inputElement = e.target;
-                let parentDiv = inputElement.parentElement;
+                const inputElement = e.target;
+                const parentDiv = inputElement.parentElement;
                 let strongElement = parentDiv.querySelector('strong');
-                let inputValue = inputElement.value.trim(); // Trim leading/trailing white spaces
+                const inputValue = inputElement.value.trim(); // Trim leading/trailing white spaces
                 if (inputValue === "") {
                     strongElement.innerText = "0";
                 } else {

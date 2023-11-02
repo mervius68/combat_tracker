@@ -71,6 +71,11 @@ body {
     text-align: center;
 }
 
+.center-div-align-left {
+    margin: auto;
+    width: max-content;
+}
+
 .align_right {
     text-align: right;
 }
@@ -554,7 +559,7 @@ h3 {
     /* Add space between each line */
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: left;
     font-size: 25px;
     height: 25px;
 }
@@ -565,7 +570,7 @@ h3 {
     height: 25px; 
     box-sizing: border-box;
     overflow: hidden;
-    padding: 5px;
+    padding: 0px 5px;
     /* Adjust the input field width as needed */
 }
 
