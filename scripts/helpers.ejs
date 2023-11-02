@@ -526,7 +526,6 @@
 
                     // show character name
                     let characterDisplay = "";
-                    ppp = typeof participant.numeric_value
                     if (participant.join_round <= i && participant.dead_round >= i) {
                         characterDisplay =
                             participant.character_name +
@@ -1106,6 +1105,7 @@
         // fill values for dropdown
         // fillDropdown(encounterCode);
         fillInitDropdown();
+        fillDBDropdown();
         // document.addEventListener("click", encounterClickListener);
 
         // Get all elements with the specified data-hover-id attribute
@@ -1146,7 +1146,30 @@
 
 
 
+
     }
+
+    async function writeToDatabase(optionText) {
+        const requestData = { option: optionText };
+
+        try {
+            const responseData = await dbQueryPost('your-server-endpoint', requestData);
+            console.log('Data written to the file on the server:', responseData);
+        } catch (error) {
+            console.error('Failed to write data to the file:', error);
+        }
+        
+        let html = document.querySelector(".selected");
+        let dataNav = html.getAttribute("data-nav");
+        load_encounter(0, dataNav);
+    }
+
+    async function restart_server() {
+        const databaseOptions = document.getElementById('databaseOptions');
+        const writeToDatabaseButton = document.getElementById('writeToDatabaseButton');
+        const selectedOption = databaseOptions.options[databaseOptions.selectedIndex].text;
+        writeToDatabase(selectedOption);
+    };
 
     async function modalActions() {
         let modal = document.querySelector("#modal-body");
@@ -2543,7 +2566,7 @@
                 div2.classList.add("line")
                 let input = document.createElement("input");
                 input.setAttribute("type", "text");
-                input.setAttribute("data-init-modifier", creature.init_modifier);
+                input.setAttribute("data-init-modifier", creature.init_modifier || 0);
                 // input.setAttribute("value", creature.pID);
                 input.setAttribute("maxLength", "2");
                 let span = document.createElement("span");
@@ -2831,6 +2854,23 @@
             });
         }
         return round;
+    }
+
+    async function fillDBDropdown() {
+        let dbList = await dbQuery("GET", "available-databases")
+
+        let select = document.querySelector(".dbDropdown");
+        select.innerHTML = "";
+
+
+        dbList.databases.forEach((db) => {
+            const option = document.createElement("option");
+            option.setAttribute("value", db);
+            option.innerText = db;
+            select.appendChild(option);
+        })
+
+
     }
 
     async function fillInitDropdown() {

@@ -20,7 +20,11 @@
         <button class="button newBtn" onclick="load_encounter()">New</button>
         <select class="dropdown initDropdown">
         </select>
-        <button class="button latestBtn" onclick="init_modal()">Initiative</button>
+        <button class="button" onclick="init_modal()">Initiative</button>
+        <select id="databaseOptions" class="dropdown dbDropdown">
+        </select>
+        <button id="writeToDatabaseButton" class="button" onclick="restart_server()">Select Database</button>
+
         <h2 class="round_header_text">Round 1</h2>
         <div class="ct_round_container">
             <div class="ct_round" data-round="1">

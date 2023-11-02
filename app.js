@@ -1,13 +1,31 @@
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
+const fs = require("fs");
+const path = require("path");
 const app = express();
+
+const databaseFolder = "databases"; // Name of the folder
+
+// Get the full path to the folder
+const folderPath = path.join(__dirname, databaseFolder);
+
+// Read the contents of database.txt in the folder
+const databaseName = fs.readFileSync(path.join(folderPath, "database.txt"), "utf8").trim();
+
+// Construct the path to the database file
+const dbPath = path.join(folderPath, `${databaseName}.db`);
+
 const db = new sqlite3.Database(
-    "./combat.db",
-    sqlite3.OPEN_READWRITE,
-    (err) => {
-        if (err) return console.error(err.message);
-    }
+  dbPath,
+  sqlite3.OPEN_READWRITE,
+  (err) => {
+    if (err) return console.error(err.message);
+  }
 );
+
+// Now, the code reads the database name from the database.txt file
+// located in the combat_databases folder.
+
 
 app.use(express.json());
 app.use(express.static("public"));
@@ -31,6 +49,42 @@ app.get("/selected_encounter/:eID", (req, res) => {
         res.send(results);
     });
 });
+
+app.post('/your-server-endpoint', (req, res) => {
+    // Get the data sent from the client
+    const data = req.body.option; // Assuming you expect JSON with a property 'option'
+
+    // Define the file path where you want to write the data
+    const filePath = 'databases/database.txt';
+
+    // Write the data to the file (overwrite existing content)
+    fs.writeFileSync(filePath, data, 'utf-8');
+
+    // Send a JSON response to the client
+    res.status(200).json({ message: 'Data written to the file.' });
+    
+});
+
+
+app.get('/available-databases', (req, res) => {
+    // Read the contents of the /databases folder
+    fs.readdir(databaseFolder, (err, files) => {
+      if (err) {
+        console.error('Error reading the /databases folder:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+  
+      // Filter for .db files
+      const dbFiles = files.filter(file => path.extname(file) === '.db');
+  
+      // Extract just the database names
+      const databaseNames = dbFiles.map(file => path.parse(file).name);
+  
+      // Send the list of available databases as a JSON response
+      res.json({ databases: databaseNames });
+    });
+  });
 
 app.get("/latest_eID/", (req, res) => {
     let sql = `SELECT *
