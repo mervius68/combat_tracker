@@ -2858,7 +2858,6 @@
 
     async function fillDBDropdown() {
         let dbList = await dbQuery("GET", "available-databases")
-
         let select = document.querySelector(".dbDropdown");
         select.innerHTML = "";
 
@@ -2867,6 +2866,9 @@
             const option = document.createElement("option");
             option.setAttribute("value", db);
             option.innerText = db;
+            if (dbList.database_current == db) {
+                option.setAttribute("selected", "selected")
+            }
             select.appendChild(option);
         })
 

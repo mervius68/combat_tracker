@@ -82,7 +82,7 @@ app.get('/available-databases', (req, res) => {
       const databaseNames = dbFiles.map(file => path.parse(file).name);
   
       // Send the list of available databases as a JSON response
-      res.json({ databases: databaseNames });
+      res.json({ databases: databaseNames, database_current: databaseName });
     });
   });
 
