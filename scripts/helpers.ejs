@@ -78,14 +78,15 @@
             })`;
 
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
-        const characterNameCounts = originalParticipants.reduce((acc, obj) => {
 
+        // set ctApp to originalParticipants before using reduce method on originalParticipants
+        ctApp = [...originalParticipants]
+        const characterNameCounts = originalParticipants.reduce((acc, obj) => {
             if (!acc[obj.character_name]) {
                 acc[obj.character_name] = [obj];
             } else {
                 acc[obj.character_name].push(obj);
             }
-
             return acc;
         }, {});
 
@@ -108,13 +109,6 @@
                 await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1))
             })
         })
-
-        ctApp = await dbQuery("GET", "participants/" + encounterID);
-
-        // await Promise.all(uniqueParticipantNames.map(async (partic) => {
-        //     await dbQuery("GET", "arrangeParticipants/" + partic);
-        // }));
-
 
         // get all the actions of this encounter
         // let ctActions = await dbQuery("GET", "actions/" + encounterID);
@@ -1158,7 +1152,7 @@
         } catch (error) {
             console.error('Failed to write data to the file:', error);
         }
-        
+
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
         load_encounter(0, dataNav);
@@ -1631,8 +1625,12 @@
         buttonContainer.classList.add("button_container");
         let submit = document.createElement("button");
         submit.innerText = "SUBMIT";
+        submit.setAttribute("data-row", dataNavSelected)
+        submit.setAttribute("data-selected-pid", participantID)
+        submit.setAttribute("data-current-round", currentRound);
         submit.setAttribute("onclick", "submitAction()");
         submit.classList.add("button");
+        submit.classList.add("modalSubmit");
         let submitGoToCondition = document.createElement("button");
         submitGoToCondition.innerText = "SUBMIT + go to CONDITIONS";
         submitGoToCondition.classList.add("button");
@@ -1692,17 +1690,24 @@
     }
 
     async function submitAction(forceCondition = 0) {
+
+        // alert(document.querySelector("button[data-row]").getAttribute("data-row"))
+        const data = document.querySelector(".modalSubmit");
+        const dataNav = data.getAttribute("data-row");
+        const curretRound = data.getAttribute("data-current-round");
+        const pID = data.getAttribute("data-selected-pid");
+
         // get html of selected row
-        let html = document.querySelector(".selected");
+        // let html = document.querySelector(".selected");
 
         // define current round
-        let currentRound = html.getAttribute("data-round");
+        // let currentRound = html.getAttribute("data-round");
 
         // who is committing the action?
-        let pID = html.getAttribute("data-participant");
+        // let pID = html.getAttribute("data-participant");
 
         // which row of the combat tracker is selected/active?
-        let dataNav = html.getAttribute("data-nav");
+        // let dataNav = html.getAttribute("data-nav");
 
         let holdingOneRound = 0;
         // determine next available action number
@@ -1978,8 +1983,9 @@
         ) {
             hit = 1;
         }
-        let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
+        alert("boop")
 
+        let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}/${dataNav}`;
         await dbQuery("GET", dataAction);
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
@@ -2050,7 +2056,7 @@
     ) {
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
-        let dataNavSelected = html.getAttribute("data-nav");
+        // let dataNavSelected = html.getAttribute("data-nav");
         let participantID = html.getAttribute("data-participant");
         // let causerObject = ctApp.find((participant) => {
         //     return participantID == participant.pID
@@ -2861,12 +2867,11 @@
         let select = document.querySelector(".dbDropdown");
         select.innerHTML = "";
 
-
         dbList.databases.forEach((db) => {
             const option = document.createElement("option");
             option.setAttribute("value", db);
             option.innerText = db;
-            if (dbList.database_current == db) {
+            if (dbList.database_current === db) {
                 option.setAttribute("selected", "selected")
             }
             select.appendChild(option);
@@ -2918,6 +2923,10 @@
         modalInit()
         pushModal()
         // launchInitModal(selectedOptionText)
+    }
+
+    function identify_latest() {
+
     }
 
     function resizeSections() {
