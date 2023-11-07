@@ -11,7 +11,7 @@ const folderPath = path.join(__dirname, databaseFolder);
 
 // Read the contents of database.txt in the folder
 const databaseName = fs.readFileSync(path.join(folderPath, "database.txt"), "utf8").trim();
-
+if (!databaseName) databaseName = "combat_template"
 // Construct the path to the database file
 const dbPath = path.join(folderPath, `${databaseName}.db`);
 
@@ -66,6 +66,8 @@ app.post('/your-server-endpoint', (req, res) => {
 });
 
 
+
+
 app.get('/available-databases', (req, res) => {
     // Read the contents of the /databases folder
     fs.readdir(databaseFolder, (err, files) => {
@@ -93,6 +95,20 @@ app.get("/latest_eID/", (req, res) => {
     `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
+app.get("/getLatestActionRow", (req, res) => {
+    let sql = `SELECT row
+                FROM ct_tbl_action
+                ORDER BY row DESC limit 1;
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
             throw err;
         }
         res.send(results);
@@ -279,8 +295,8 @@ app.get(
         let target_pIDArray = target_pID.split(" ").map;
 
         let sql = `INSERT into ct_tbl_action
-                    (eID, round, pID, targetID, hit, action_type, action, toolID, notes)
-                    values (${encounter}, ${round}, ${pID}, ${nextTargetID}, '${hit}', '${actionCategory}', '${actionString}', '${toolID}', '${notes}');
+                    (eID, round, pID, targetID, hit, action_type, action, toolID, notes, row)
+                    values (${encounter}, ${round}, ${pID}, ${nextTargetID}, '${hit}', '${actionCategory}', '${actionString}', '${toolID}', '${notes}', '${row}');
                 `;
         let query = db.all(sql, (err, results) => {
             if (err) {

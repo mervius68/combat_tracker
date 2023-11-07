@@ -47,7 +47,6 @@
     }
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
-        // document.removeEventListener("click", clickEventListener);
         try {
             document.removeEventListener("contextmenu", contextMenuListener);
         } catch (err) { }
@@ -524,7 +523,7 @@
                         characterDisplay =
                             participant.character_name +
                             // (participant.numeric_value == "" || participant.numeric_value == "null"
-                            (["null", ""].includes(participant.numeric_value)
+                            (["null", "", " ", "0", 0].includes(participant.numeric_value)
                                 ? ""
                                 : " #" + participant.numeric_value);
                     } else {
@@ -1091,16 +1090,12 @@
         window.addEventListener("click", () => {
             showContextMenu(false);
         });
-        // document.addEventListener("click", (e) => {
-        //     alert(e.target.parentElement.parentElement.outerHTML);
-        // });
         document.addEventListener("contextmenu", contextMenuListener);
 
         // fill values for dropdown
         // fillDropdown(encounterCode);
         fillInitDropdown();
         fillDBDropdown();
-        // document.addEventListener("click", encounterClickListener);
 
         // Get all elements with the specified data-hover-id attribute
         const elements = document.querySelectorAll('[data-hover-id]');
@@ -1691,23 +1686,10 @@
 
     async function submitAction(forceCondition = 0) {
 
-        // alert(document.querySelector("button[data-row]").getAttribute("data-row"))
         const data = document.querySelector(".modalSubmit");
         const dataNav = data.getAttribute("data-row");
-        const curretRound = data.getAttribute("data-current-round");
+        const currentRound = data.getAttribute("data-current-round");
         const pID = data.getAttribute("data-selected-pid");
-
-        // get html of selected row
-        // let html = document.querySelector(".selected");
-
-        // define current round
-        // let currentRound = html.getAttribute("data-round");
-
-        // who is committing the action?
-        // let pID = html.getAttribute("data-participant");
-
-        // which row of the combat tracker is selected/active?
-        // let dataNav = html.getAttribute("data-nav");
 
         let holdingOneRound = 0;
         // determine next available action number
@@ -1983,9 +1965,8 @@
         ) {
             hit = 1;
         }
-        alert("boop")
-
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}/${dataNav}`;
+        alert(dataAction);
         await dbQuery("GET", dataAction);
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
@@ -2525,7 +2506,7 @@
             button.classList.add("center")
 
             const button2 = document.createElement("button");
-            button2.setAttribute("onclick", "closeModal()")
+            button2.setAttribute("onclick", "closeModalBox()")
             button2.innerText = "CLOSE";
             button2.classList.add("close-modal")
             button2.classList.add("center");
@@ -2639,9 +2620,6 @@
         function showContextMenu(show = true) {
             cm.style.display = show ? "block" : "none";
         }
-        // window.addEventListener("click", () => {
-        //     showContextMenu(false);
-        // });
 
     }
 
@@ -2922,11 +2900,6 @@
         }
         modalInit()
         pushModal()
-        // launchInitModal(selectedOptionText)
-    }
-
-    function identify_latest() {
-
     }
 
     function resizeSections() {
@@ -2954,27 +2927,30 @@
         document.addEventListener("keydown", keydownEventListener);
         document.addEventListener("click", clickEventListener);
 
-        document.addEventListener("click", function (event) {
+        document.addEventListener("click", async function (event) {
             if (event.target.getAttribute("data-nav")) {
-                let myElement = document.querySelectorAll(".selected");
-                let nav = myElement[0].getAttribute("data-nav");
-                let targetNum = Number(nav) + 1;
-                let newTarget;
-                if (nav < cellCountVertical - 1) {
-                    myElement.forEach((ele) => {
-                        ele.classList.remove("selected");
-                    });
-                    newTarget = document.querySelector(
-                        '[data-nav="' + targetNum + '"]'
-                    );
-                    event.target.classList.add("selected");
-                    event.target.nextSibling.classList.add("selected");
-                    event.target.nextSibling.nextSibling.classList.add(
-                        "selected"
-                    );
-                    event.target.nextSibling.nextSibling.nextSibling.classList.add(
-                        "selected"
-                    );
+                const outOfRange = await checkOutOfRange("2", event);
+                if (!outOfRange) {
+                    let myElement = document.querySelectorAll(".selected");
+                    let nav = myElement[0].getAttribute("data-nav");
+                    let targetNum = Number(nav) + 1;
+                    let newTarget;
+                    if (nav < cellCountVertical - 1) {
+                        myElement.forEach((ele) => {
+                            ele.classList.remove("selected");
+                        });
+                        newTarget = document.querySelector(
+                            '[data-nav="' + targetNum + '"]'
+                        );
+                        event.target.classList.add("selected");
+                        event.target.nextSibling.classList.add("selected");
+                        event.target.nextSibling.nextSibling.classList.add(
+                            "selected"
+                        );
+                        event.target.nextSibling.nextSibling.nextSibling.classList.add(
+                            "selected"
+                        );
+                    }
                 }
             }
         });
@@ -3032,92 +3008,136 @@
         });
     }
 
-    const keydownEventListener = function (event) {
+    async function checkOutOfRange(modifier, event) {
+        let lastActionRow = await dbQuery("GET", "getLatestActionRow");
+        let myElement = event.target
+        let nav = myElement.getAttribute("data-nav");
+        // alert(nav + " vs. " + lastActionRow[0].row)
+        // if (nav > lastActionRow[0].row + modifier) {
+        if (nav - lastActionRow[0].row >= modifier) {
+            // build a modal that asks if you're okay with being out of range
+            // if the user is okay with it, return false
+            return new Promise((resolve) => {
+                let modal = document.querySelector("#modal-body");
+                let content = `
+                
+                        <p>Warning: The row you've tried to select is potentially out of range! Would you like to continue anyway?</p>
+                        <div class="line center-div-align-left">
+                        <button id="continueButton" class="close-modal" onclick="closeModalBox()">Yes</button>
+                        <button id="cancelButton" class="close-modal" onclick="closeModalBox()">Cancel</button>
+                </div>
+            `
+                modal.innerHTML = content;
+                pushModal();
+
+                document.getElementById("continueButton").addEventListener("click", function () {
+                    // Add your code to execute if the user chose to continue
+                    resolve(false)
+                });
+
+                document.getElementById("cancelButton").addEventListener("click", function () {
+                    // Add your code to execute if the user chose to cancel
+                    resolve(true);
+                });
+            })
+
+
+        }
+
+
+
+    }
+
+
+    const keydownEventListener = async function (event) {
         if (event.key === "ArrowDown") {
-            let myElement = document.querySelectorAll(".selected");
-            let nav = myElement[0].getAttribute("data-nav");
-            let targetNum = Number(nav) + 1;
-            let newTarget;
-            if (nav < cellCountVertical - 1) {
-                myElement.forEach((ele) => {
-                    ele.classList.remove("selected");
-                });
-                newTarget = document.querySelector(
-                    '[data-nav="' + targetNum + '"]'
-                );
-                newTarget.classList.add("selected");
-                newTarget.nextSibling.classList.add("selected");
-                newTarget.nextSibling.nextSibling.classList.add("selected");
-                newTarget.nextSibling.nextSibling.nextSibling.classList.add(
-                    "selected"
-                );
-                if (newTarget.classList.contains("selected")) {
-                    if (
-                        newTarget.parentElement.parentElement.classList.contains(
-                            "sometimes_hidden"
-                        ) &&
-                        newTarget.classList.contains("selected")
-                    ) {
-                        let p = document.querySelectorAll(".sometimes_hidden");
-                        p.forEach((element) => {
-                            element.classList.remove("hidden");
-                        });
-                    } else {
-                        let p = document.querySelectorAll(".sometimes_hidden");
-                        p.forEach((element) => {
-                            element.classList.add("hidden");
-                        });
+            const outOfRange = await checkOutOfRange("1", event);
+            if (!outOfRange) {
+                let myElement = document.querySelectorAll(".selected");
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) + 1;
+                let newTarget;
+                if (nav < cellCountVertical - 1) {
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    newTarget.classList.add("selected");
+                    newTarget.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
+                    if (newTarget.classList.contains("selected")) {
+                        if (
+                            newTarget.parentElement.parentElement.classList.contains(
+                                "sometimes_hidden"
+                            ) &&
+                            newTarget.classList.contains("selected")
+                        ) {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.remove("hidden");
+                            });
+                        } else {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.add("hidden");
+                            });
+                        }
                     }
+                    newTarget.scrollIntoViewIfNeeded(true);
                 }
-                newTarget.scrollIntoViewIfNeeded(true);
+
             }
-        }
-        if (event.key === "ArrowUp") {
-            let myElement = document.querySelectorAll(".selected");
-            let nav = myElement[0].getAttribute("data-nav");
-            let targetNum = Number(nav) - 1;
-            let newTarget;
-            if (nav != 1) {
-                myElement.forEach((ele) => {
-                    ele.classList.remove("selected");
-                });
-                newTarget = document.querySelector(
-                    '[data-nav="' + targetNum + '"]'
-                );
-                newTarget.classList.add("selected");
-                newTarget.nextSibling.classList.add("selected");
-                newTarget.nextSibling.nextSibling.classList.add("selected");
-                newTarget.nextSibling.nextSibling.nextSibling.classList.add(
-                    "selected"
-                );
-                if (newTarget.classList.contains("selected")) {
-                    if (
-                        newTarget.parentElement.parentElement.classList.contains(
-                            "sometimes_hidden"
-                        ) &&
-                        newTarget.classList.contains("selected")
-                    ) {
-                        let p = document.querySelectorAll(".sometimes_hidden");
-                        p.forEach((element) => {
-                            element.classList.remove("hidden");
-                        });
-                    } else {
-                        let p = document.querySelectorAll(".sometimes_hidden");
-                        p.forEach((element) => {
-                            element.classList.add("hidden");
-                        });
+        } else if (event.key === "ArrowUp") {
+            const outOfRange = await checkOutOfRange("3", event);
+            if (!outOfRange) {
+                let myElement = document.querySelectorAll(".selected");
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) - 1;
+                let newTarget;
+                if (nav != 1) {
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    newTarget.classList.add("selected");
+                    newTarget.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
+                    if (newTarget.classList.contains("selected")) {
+                        if (
+                            newTarget.parentElement.parentElement.classList.contains(
+                                "sometimes_hidden"
+                            ) &&
+                            newTarget.classList.contains("selected")
+                        ) {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.remove("hidden");
+                            });
+                        } else {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.add("hidden");
+                            });
+                        }
                     }
+                    newTarget.scrollIntoViewIfNeeded(true);
                 }
-                newTarget.scrollIntoViewIfNeeded(true);
             }
-        }
-        if (event.altKey && event.key == "Enter") {
+        } else if (event.altKey && event.key == "Enter") {
             launchActionModal("turn");
-        }
-        if (event.altKey && event.keyCode == 81) {
+        } else if (event.altKey && event.keyCode == 81) {
             launchConditionsModal("turn");
-        }
-        if (event.altKey && event.keyCode == 67) {
+        } else if (event.altKey && event.keyCode == 67) {
             alert("HUZZAH!");
         }
     };
@@ -3159,25 +3179,28 @@
         });
     }
 
-    const clickEventListener = function (event) {
+    const clickEventListener = async function (event) {
         if (event.target.getAttribute("data-nav")) {
-            let myElement = document.querySelectorAll(".selected");
-            let nav = myElement[0].getAttribute("data-nav");
-            let targetNum = Number(nav) + 1;
-            let newTarget;
-            if (nav < cellCountVertical - 1) {
-                myElement.forEach((ele) => {
-                    ele.classList.remove("selected");
-                });
-                newTarget = document.querySelector(
-                    '[data-nav="' + targetNum + '"]'
-                );
-                event.target.classList.add("selected");
-                event.target.nextSibling.classList.add("selected");
-                event.target.nextSibling.nextSibling.classList.add("selected");
-                event.target.nextSibling.nextSibling.nextSibling.classList.add(
-                    "selected"
-                );
+            const outOfRange = await checkOutOfRange("2", event);
+            if (!outOfRange) {
+                let myElement = document.querySelectorAll(".selected");
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) + 1;
+                let newTarget;
+                if (nav < cellCountVertical - 1) {
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    event.target.classList.add("selected");
+                    event.target.nextSibling.classList.add("selected");
+                    event.target.nextSibling.nextSibling.classList.add("selected");
+                    event.target.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
+                }
             }
         }
     };
