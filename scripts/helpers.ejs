@@ -1966,7 +1966,7 @@
             hit = 1;
         }
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}/${dataNav}`;
-        alert(dataAction);
+        // alert(dataAction);
         await dbQuery("GET", dataAction);
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
