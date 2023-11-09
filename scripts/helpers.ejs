@@ -151,10 +151,11 @@
 
         // calculate # of rounds
         let ct_damages = await dbQuery("GET", "damages/" + encounterID);
+        let ct_actions = await dbQuery("GET", "actions/" + encounterID);
         let damageRounds = 1;
         try {
             damageRounds =
-                ct_damages?.reduce((max, obj) => {
+                ct_actions?.reduce((max, obj) => {
                     return obj.round > max.round ? obj : max;
                 }).round || 1;
         } catch (err) { }
@@ -483,7 +484,7 @@
                     // show AC on the combat tracker for this participant
                     turn.innerText =
                         participant.ac +
-                        (participant.ac_secondary == null
+                        ([null, "", " "].includes(participant.ac_secondary)
                             ? ""
                             : " / " + participant.ac_secondary);
 
@@ -524,7 +525,7 @@
                         characterDisplay =
                             participant.character_name +
                             // (participant.numeric_value == "" || participant.numeric_value == "null"
-                            (["null", ""].includes(participant.numeric_value)
+                            (["null", "", 0, "0"].includes(participant.numeric_value)
                                 ? ""
                                 : " #" + participant.numeric_value);
                     } else {
@@ -1983,7 +1984,6 @@
         ) {
             hit = 1;
         }
-        alert("boop")
 
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}/${dataNav}`;
         await dbQuery("GET", dataAction);
