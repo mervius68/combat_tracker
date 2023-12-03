@@ -482,7 +482,7 @@
                     // show AC on the combat tracker for this participant
                     turn.innerText =
                         participant.ac +
-                        (participant.ac_secondary == null
+                        (participant.ac_secondary == null || participant.ac_secondary == ""
                             ? ""
                             : " / " + participant.ac_secondary);
 
