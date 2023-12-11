@@ -2929,8 +2929,8 @@
 
         document.addEventListener("click", async function (event) {
             if (event.target.getAttribute("data-nav")) {
-                const outOfRange = await checkOutOfRange("2", event);
-                if (!outOfRange) {
+                // const outOfRange = await checkOutOfRange("2", event);
+                // if (!outOfRange) {
                     let myElement = document.querySelectorAll(".selected");
                     let nav = myElement[0].getAttribute("data-nav");
                     let targetNum = Number(nav) + 1;
@@ -2951,7 +2951,7 @@
                             "selected"
                         );
                     }
-                }
+                // }
             }
         });
 
@@ -3051,8 +3051,8 @@
 
     const keydownEventListener = async function (event) {
         if (event.key === "ArrowDown") {
-            const outOfRange = await checkOutOfRange("1", event);
-            if (!outOfRange) {
+            // const outOfRange = await checkOutOfRange("1", event);
+            // if (!outOfRange) {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) + 1;
@@ -3091,10 +3091,10 @@
                     newTarget.scrollIntoViewIfNeeded(true);
                 }
 
-            }
+            // }
         } else if (event.key === "ArrowUp") {
-            const outOfRange = await checkOutOfRange("3", event);
-            if (!outOfRange) {
+            // const outOfRange = await checkOutOfRange("3", event);
+            // if (!outOfRange) {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) - 1;
@@ -3132,7 +3132,7 @@
                     }
                     newTarget.scrollIntoViewIfNeeded(true);
                 }
-            }
+            // }
         } else if (event.altKey && event.key == "Enter") {
             launchActionModal("turn");
         } else if (event.altKey && event.keyCode == 81) {
