@@ -3181,8 +3181,8 @@
 
     const clickEventListener = async function (event) {
         if (event.target.getAttribute("data-nav")) {
-            const outOfRange = await checkOutOfRange("2", event);
-            if (!outOfRange) {
+            // const outOfRange = await checkOutOfRange("2", event);
+            // if (!outOfRange) {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) + 1;
@@ -3201,7 +3201,7 @@
                         "selected"
                     );
                 }
-            }
+            // }
         }
     };
 </script>
