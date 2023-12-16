@@ -120,7 +120,7 @@ app.get("/participants/:encounter", (req, res) => {
     let sql = `SELECT *
                 FROM ct_tbl_participant
                 JOIN tbl_character ON ct_tbl_participant.chID = tbl_character.chID
-                WHERE ct_tbl_participant.eID = ${encounter} ORDER BY init DESC, character_name, numeric_value ASC;
+                WHERE ct_tbl_participant.eID = ${encounter} ORDER BY init DESC, secondary_init DESC, character_name, numeric_value ASC;
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
