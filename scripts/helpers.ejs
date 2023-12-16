@@ -2484,11 +2484,13 @@
                 const div2 = document.createElement("div");
                 div2.classList.add("line");
                 const input = document.createElement("input");
+                input.classList.add("initValues")
                 input.setAttribute("type", "text");
                 input.setAttribute("maxLength", "2");
                 input.setAttribute("data-init-pid", participant.pID);
 
                 const input2 = document.createElement("input");
+                input2.classList.add("secondaryInitValues")
                 input2.classList.add("secondaryInitOff")
                 input2.setAttribute("type", "text");
                 input2.setAttribute("maxLength", "2");
@@ -2751,7 +2753,10 @@
             // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
         } else {
             // Assuming you have a NodeList, for example:
-            let nodeList = document.querySelectorAll('input[type="text"]');
+            let nodeList = document.querySelectorAll('.initValues');
+            let secondaryNodeList = document.querySelectorAll(".secondaryInitValues:not(.secondaryInitOff)");
+            xxx = secondaryNodeList;
+            // let nodeList = document.querySelectorAll('input[type="text"]');
 
             let strongValuesArray = Array.from(nodeList).map(function (element) {
                 return element.value;
