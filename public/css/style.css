@@ -141,6 +141,10 @@ body {
     height: max-content;
 }
 
+.secondaryInitOff {
+    visibility: hidden;
+}
+
 .dropdown {
     font-size: 1.5em;
     padding: .2em;
@@ -571,6 +575,7 @@ h3 {
     box-sizing: border-box;
     overflow: hidden;
     padding: 0px 5px;
+    margin-left: 5px;
     /* Adjust the input field width as needed */
 }
 

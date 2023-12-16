@@ -2487,9 +2487,17 @@
                 input.setAttribute("type", "text");
                 input.setAttribute("maxLength", "2");
                 input.setAttribute("data-init-pid", participant.pID);
+
+                const input2 = document.createElement("input");
+                input2.classList.add("secondaryInitOff")
+                input2.setAttribute("type", "text");
+                input2.setAttribute("maxLength", "2");
+                input2.setAttribute("data-init-pid-secondary", participant.pID);
+
                 const span = document.createElement("span");
                 span.innerText = participant.character_name;
                 div2.appendChild(input);
+                div2.appendChild(input2);
                 div2.appendChild(span);
                 div4.appendChild(div2);
             })
@@ -2524,6 +2532,88 @@
                 let cursorField = document.querySelector('input[data-init-pid]')
                 cursorField.focus();
             }, 90)
+
+            modal.addEventListener("input", function (e) {
+                // Get all left input elements
+                const leftInputs = document.querySelectorAll('[data-init-pid]');
+
+                // Create a Set to store encountered values
+                const encounteredValues = new Set();
+                const duplicatedNumbers = new Set();
+
+                // Iterate through each left input element
+                leftInputs.forEach(leftInput => {
+                    // Get the value of the left input
+                    const leftInputValue = leftInput.value.trim();
+
+                    // Check if the value is not empty
+                    if (leftInputValue !== '') {
+                        // Check if the value has been encountered before
+                        if (encounteredValues.has(leftInputValue)) {
+                            // If yes, add it to the Set of duplicated numbers
+                            duplicatedNumbers.add(leftInputValue);
+                        } else {
+                            // If not, add it to the Set of encountered values
+                            encounteredValues.add(leftInputValue);
+                        }
+                    }
+                });
+
+                // Log the array of duplicated numbers to the console
+                console.log('Duplicated Numbers:', Array.from(duplicatedNumbers));
+
+                // Iterate through each left input element
+                leftInputs.forEach(leftInput => {
+                    // Get the value of the left input
+                    const leftInputValue = leftInput.value.trim();
+
+                    // Check if the value is in the duplicatedNumbers array
+                    if (duplicatedNumbers.has(leftInputValue)) {
+                        // Get the value of data-init-pid for the matching left input
+                        const dataInitPidValue = leftInput.getAttribute('data-init-pid');
+
+                        // Select all elements with data-init-pid-secondary matching the value
+                        const secondaryInitOffElements = document.querySelectorAll(`[data-init-pid-secondary="${dataInitPidValue}"]`);
+
+                        // Remove the secondaryInitOff class from matching elements
+                        secondaryInitOffElements.forEach(element => {
+                            element.classList.remove('secondaryInitOff');
+                        });
+                    }
+                });
+
+                // Iterate through each left input element
+                leftInputs.forEach(leftInput => {
+                    // Get the value of the left input
+                    const leftInputValue = leftInput.value.trim();
+
+                    // Check if the value is NOT in the duplicatedNumbers array
+                    if (!duplicatedNumbers.has(leftInputValue)) {
+                        // Get the value of data-init-pid for the matching left input
+                        const dataInitPidValue = leftInput.getAttribute('data-init-pid');
+
+                        // Select all elements with data-init-pid-secondary matching the value
+                        const secondaryInitOffElements = document.querySelectorAll(`[data-init-pid-secondary="${dataInitPidValue}"]`);
+
+                        // Add the secondaryInitOff class to matching elements
+                        secondaryInitOffElements.forEach(element => {
+                            element.classList.add('secondaryInitOff');
+                        });
+                    }
+                });
+
+
+
+                // if (inputValue === "") {
+                //     strongElement.innerText = "0";
+                // } else {
+                //     let parsedValue = parseInt(inputValue, 10);
+                //     let initModifier = parseInt(inputElement.getAttribute('data-init-modifier'), 10);
+                //     let newValue = parsedValue + initModifier;
+                //     strongElement.innerText = newValue;
+                // }
+                // const allInputs = e.target.parentElement;
+            });
 
         } else {
             // determine which participants in ctApp have character_name that matches selectedOptionValue
@@ -2602,6 +2692,7 @@
             }, 90)
 
             modal.addEventListener("input", function (e) {
+
                 const inputElement = e.target;
                 const parentDiv = inputElement.parentElement;
                 let strongElement = parentDiv.querySelector('strong');
@@ -2614,6 +2705,7 @@
                     let newValue = parsedValue + initModifier;
                     strongElement.innerText = newValue;
                 }
+                const allInputs = e.target.parentElement;
             });
         }
         const cm = document.querySelector(".modal-content");
@@ -2931,26 +3023,26 @@
             if (event.target.getAttribute("data-nav")) {
                 // const outOfRange = await checkOutOfRange("2", event);
                 // if (!outOfRange) {
-                    let myElement = document.querySelectorAll(".selected");
-                    let nav = myElement[0].getAttribute("data-nav");
-                    let targetNum = Number(nav) + 1;
-                    let newTarget;
-                    if (nav < cellCountVertical - 1) {
-                        myElement.forEach((ele) => {
-                            ele.classList.remove("selected");
-                        });
-                        newTarget = document.querySelector(
-                            '[data-nav="' + targetNum + '"]'
-                        );
-                        event.target.classList.add("selected");
-                        event.target.nextSibling.classList.add("selected");
-                        event.target.nextSibling.nextSibling.classList.add(
-                            "selected"
-                        );
-                        event.target.nextSibling.nextSibling.nextSibling.classList.add(
-                            "selected"
-                        );
-                    }
+                let myElement = document.querySelectorAll(".selected");
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) + 1;
+                let newTarget;
+                if (nav < cellCountVertical - 1) {
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    event.target.classList.add("selected");
+                    event.target.nextSibling.classList.add("selected");
+                    event.target.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
+                    event.target.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
+                }
                 // }
             }
         });
@@ -3053,85 +3145,85 @@
         if (event.key === "ArrowDown") {
             // const outOfRange = await checkOutOfRange("1", event);
             // if (!outOfRange) {
-                let myElement = document.querySelectorAll(".selected");
-                let nav = myElement[0].getAttribute("data-nav");
-                let targetNum = Number(nav) + 1;
-                let newTarget;
-                if (nav < cellCountVertical - 1) {
-                    myElement.forEach((ele) => {
-                        ele.classList.remove("selected");
-                    });
-                    newTarget = document.querySelector(
-                        '[data-nav="' + targetNum + '"]'
-                    );
-                    newTarget.classList.add("selected");
-                    newTarget.nextSibling.classList.add("selected");
-                    newTarget.nextSibling.nextSibling.classList.add("selected");
-                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
-                        "selected"
-                    );
-                    if (newTarget.classList.contains("selected")) {
-                        if (
-                            newTarget.parentElement.parentElement.classList.contains(
-                                "sometimes_hidden"
-                            ) &&
-                            newTarget.classList.contains("selected")
-                        ) {
-                            let p = document.querySelectorAll(".sometimes_hidden");
-                            p.forEach((element) => {
-                                element.classList.remove("hidden");
-                            });
-                        } else {
-                            let p = document.querySelectorAll(".sometimes_hidden");
-                            p.forEach((element) => {
-                                element.classList.add("hidden");
-                            });
-                        }
+            let myElement = document.querySelectorAll(".selected");
+            let nav = myElement[0].getAttribute("data-nav");
+            let targetNum = Number(nav) + 1;
+            let newTarget;
+            if (nav < cellCountVertical - 1) {
+                myElement.forEach((ele) => {
+                    ele.classList.remove("selected");
+                });
+                newTarget = document.querySelector(
+                    '[data-nav="' + targetNum + '"]'
+                );
+                newTarget.classList.add("selected");
+                newTarget.nextSibling.classList.add("selected");
+                newTarget.nextSibling.nextSibling.classList.add("selected");
+                newTarget.nextSibling.nextSibling.nextSibling.classList.add(
+                    "selected"
+                );
+                if (newTarget.classList.contains("selected")) {
+                    if (
+                        newTarget.parentElement.parentElement.classList.contains(
+                            "sometimes_hidden"
+                        ) &&
+                        newTarget.classList.contains("selected")
+                    ) {
+                        let p = document.querySelectorAll(".sometimes_hidden");
+                        p.forEach((element) => {
+                            element.classList.remove("hidden");
+                        });
+                    } else {
+                        let p = document.querySelectorAll(".sometimes_hidden");
+                        p.forEach((element) => {
+                            element.classList.add("hidden");
+                        });
                     }
-                    newTarget.scrollIntoViewIfNeeded(true);
                 }
+                newTarget.scrollIntoViewIfNeeded(true);
+            }
 
             // }
         } else if (event.key === "ArrowUp") {
             // const outOfRange = await checkOutOfRange("3", event);
             // if (!outOfRange) {
-                let myElement = document.querySelectorAll(".selected");
-                let nav = myElement[0].getAttribute("data-nav");
-                let targetNum = Number(nav) - 1;
-                let newTarget;
-                if (nav != 1) {
-                    myElement.forEach((ele) => {
-                        ele.classList.remove("selected");
-                    });
-                    newTarget = document.querySelector(
-                        '[data-nav="' + targetNum + '"]'
-                    );
-                    newTarget.classList.add("selected");
-                    newTarget.nextSibling.classList.add("selected");
-                    newTarget.nextSibling.nextSibling.classList.add("selected");
-                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
-                        "selected"
-                    );
-                    if (newTarget.classList.contains("selected")) {
-                        if (
-                            newTarget.parentElement.parentElement.classList.contains(
-                                "sometimes_hidden"
-                            ) &&
-                            newTarget.classList.contains("selected")
-                        ) {
-                            let p = document.querySelectorAll(".sometimes_hidden");
-                            p.forEach((element) => {
-                                element.classList.remove("hidden");
-                            });
-                        } else {
-                            let p = document.querySelectorAll(".sometimes_hidden");
-                            p.forEach((element) => {
-                                element.classList.add("hidden");
-                            });
-                        }
+            let myElement = document.querySelectorAll(".selected");
+            let nav = myElement[0].getAttribute("data-nav");
+            let targetNum = Number(nav) - 1;
+            let newTarget;
+            if (nav != 1) {
+                myElement.forEach((ele) => {
+                    ele.classList.remove("selected");
+                });
+                newTarget = document.querySelector(
+                    '[data-nav="' + targetNum + '"]'
+                );
+                newTarget.classList.add("selected");
+                newTarget.nextSibling.classList.add("selected");
+                newTarget.nextSibling.nextSibling.classList.add("selected");
+                newTarget.nextSibling.nextSibling.nextSibling.classList.add(
+                    "selected"
+                );
+                if (newTarget.classList.contains("selected")) {
+                    if (
+                        newTarget.parentElement.parentElement.classList.contains(
+                            "sometimes_hidden"
+                        ) &&
+                        newTarget.classList.contains("selected")
+                    ) {
+                        let p = document.querySelectorAll(".sometimes_hidden");
+                        p.forEach((element) => {
+                            element.classList.remove("hidden");
+                        });
+                    } else {
+                        let p = document.querySelectorAll(".sometimes_hidden");
+                        p.forEach((element) => {
+                            element.classList.add("hidden");
+                        });
                     }
-                    newTarget.scrollIntoViewIfNeeded(true);
                 }
+                newTarget.scrollIntoViewIfNeeded(true);
+            }
             // }
         } else if (event.altKey && event.key == "Enter") {
             launchActionModal("turn");
@@ -3183,24 +3275,24 @@
         if (event.target.getAttribute("data-nav")) {
             // const outOfRange = await checkOutOfRange("2", event);
             // if (!outOfRange) {
-                let myElement = document.querySelectorAll(".selected");
-                let nav = myElement[0].getAttribute("data-nav");
-                let targetNum = Number(nav) + 1;
-                let newTarget;
-                if (nav < cellCountVertical - 1) {
-                    myElement.forEach((ele) => {
-                        ele.classList.remove("selected");
-                    });
-                    newTarget = document.querySelector(
-                        '[data-nav="' + targetNum + '"]'
-                    );
-                    event.target.classList.add("selected");
-                    event.target.nextSibling.classList.add("selected");
-                    event.target.nextSibling.nextSibling.classList.add("selected");
-                    event.target.nextSibling.nextSibling.nextSibling.classList.add(
-                        "selected"
-                    );
-                }
+            let myElement = document.querySelectorAll(".selected");
+            let nav = myElement[0].getAttribute("data-nav");
+            let targetNum = Number(nav) + 1;
+            let newTarget;
+            if (nav < cellCountVertical - 1) {
+                myElement.forEach((ele) => {
+                    ele.classList.remove("selected");
+                });
+                newTarget = document.querySelector(
+                    '[data-nav="' + targetNum + '"]'
+                );
+                event.target.classList.add("selected");
+                event.target.nextSibling.classList.add("selected");
+                event.target.nextSibling.nextSibling.classList.add("selected");
+                event.target.nextSibling.nextSibling.nextSibling.classList.add(
+                    "selected"
+                );
+            }
             // }
         }
     };
