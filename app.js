@@ -438,12 +438,18 @@ app.post('/orderInitiative', (req, res) => {
     // Process the data and build your SQL query
     const numericValueUpdates = [];
     const initUpdates = [];
+    const secondaryInitUpdates = []; // New array for secondary_init updates
     const pIDs = [];
 
     requestData.forEach((row) => {
-        const { pID, numeric_value, init } = row;
+        const { pID, numeric_value, init, secondary_init } = row;
+
+        // Check if secondary_init is undefined or empty, and set a default value if needed
+        const finalSecondaryInit = secondary_init === undefined || secondary_init.trim() === '' ? '1' : secondary_init;
+
         numericValueUpdates.push(`WHEN pID = ${pID} THEN '${numeric_value == 0 ? '' : numeric_value}'`);
         initUpdates.push(`WHEN pID = ${pID} THEN '${init}'`);
+        secondaryInitUpdates.push(`WHEN pID = ${pID} THEN '${finalSecondaryInit}'`); // Add secondary_init update
         pIDs.push(pID);
     });
 
@@ -457,6 +463,10 @@ app.post('/orderInitiative', (req, res) => {
       init = CASE
         ${initUpdates.join('\n')}
         ELSE init
+      END,
+      secondary_init = CASE
+        ${secondaryInitUpdates.join('\n')}
+        ELSE secondary_init
       END
       WHERE pID IN (${pIDs.join(', ')});
     `;
@@ -471,8 +481,9 @@ app.post('/orderInitiative', (req, res) => {
     });
 
     // Respond with a success message
-    
 });
+
+
 
 // app.get("/orderInitiative/:valuesString", (req, res) => {
 //     const valuesString = req.params.valuesString;

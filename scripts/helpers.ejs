@@ -2751,21 +2751,19 @@
             // await dbQuery("GET", `orderInitiative/${stringToSend}`)
 
             // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
-        } else {
-            // Assuming you have a NodeList, for example:
+        } else { // if PC == 1
             let nodeList = document.querySelectorAll('.initValues');
             let secondaryNodeList = document.querySelectorAll(".secondaryInitValues:not(.secondaryInitOff)");
             xxx = secondaryNodeList;
-            // let nodeList = document.querySelectorAll('input[type="text"]');
 
             let strongValuesArray = Array.from(nodeList).map(function (element) {
                 return element.value;
             });
-            // Now strongValuesArray contains the innerText values of the <strong> elements
 
+            // Now strongValuesArray contains the input values
             const initialOrderPids = Array.from(nodeList).map(function (element) {
-                return element.getAttribute('data-init-pid')
-            })
+                return element.getAttribute('data-init-pid');
+            });
 
             // sort strongValuesArray in descending order
             let sortedValues = strongValuesArray.slice().sort((a, b) => b - a);
@@ -2774,16 +2772,26 @@
 
             const newOrderPids = indexMapping.map(index => initialOrderPids[index]);
 
-            let stringToSend = ""
-            initialOrderPids.forEach((creature, index) => {
-                stringToSend += (index > 0 ? " | " : "") + newOrderPids[index] + ", " + "0" + ", " + sortedValues[index]
-            })
+            // Create a mapping of data-init-pid to secondary_init values
+            const secondaryInitValuesMap = {};
+            secondaryNodeList.forEach(element => {
+                const secondaryInitValue = element.value;
+                const secondaryInitPid = element.getAttribute('data-init-pid-secondary');
+                secondaryInitValuesMap[secondaryInitPid] = secondaryInitValue;
+            });
 
-            let postData = initialOrderPids.map((creature, index) => ({
-                pID: newOrderPids[index],
-                numeric_value: "", // Set this to the appropriate value or an empty string
-                init: sortedValues[index],
-            }));
+            let stringToSend = "";
+            const postData = initialOrderPids.map((creature, index) => {
+                const secondaryInitValue = secondaryInitValuesMap[newOrderPids[index]];
+                stringToSend += (index > 0 ? " | " : "") + newOrderPids[index] + ", " + "0" + ", " + sortedValues[index];
+
+                return {
+                    pID: newOrderPids[index],
+                    numeric_value: "", // Set this to the appropriate value or an empty string
+                    init: sortedValues[index],
+                    secondary_init: secondaryInitValue, // Add secondary_init to the postData object
+                };
+            });
 
             await dbQueryPost("orderInitiative", postData)
                 .then((data) => {
@@ -2792,6 +2800,7 @@
                 .catch((error) => {
                     // Handle errors here
                 });
+
 
         }
 
