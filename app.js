@@ -479,8 +479,6 @@ app.post('/orderInitiative', (req, res) => {
         }
         res.json({ message: 'Data updated successfully' });
     });
-
-    // Respond with a success message
 });
 
 
