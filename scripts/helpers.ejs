@@ -1031,6 +1031,7 @@
 
         const contextMenuListener = function (e) {
             e.preventDefault();
+            console.log(e.target)
             if (e.target.classList.contains("affected") || e.target.classList.contains("concentration")) {
                 const scrollLeft =
                     window.pageXOffset || document.documentElement.scrollLeft;
@@ -1046,14 +1047,12 @@
                 const top = clickY + menuHeight > maxY ? maxY - menuHeight : clickY;
                 const left = clickX + menuWidth > maxX ? maxX - menuWidth : clickX;
 
+                const contextMenu = document.querySelector(".custom-cm__item")
+                contextMenu.innerHTML = "End This Condition";
+                contextMenu.setAttribute("onclick", "endCondition()");
                 showContextMenu();
-                cm.style.top = top + "px";
-                cm.style.left = left + "px";
-
-                // Rest of your code...
 
                 let cmEnd = document.querySelector(".cmEnd");
-                // alert(e.target.getAttribute("data-condition-id"))
                 cmEnd.setAttribute(
                     "data-cm-condition-id",
                     e.target.getAttribute("data-condition-id")
@@ -1080,21 +1079,21 @@
                         ? "affected"
                         : "concentration"
                 );
-            } 
-            // else if (e.target.classList.contains("attack")) {
-            //     const contextMenu = document.querySelector(".custom-cm__item")
-            //     contextMenu.innerHTML = "Delete This Item";
-            //     alert(e.target.outerHTML)
-            //     contextMenu.setAttribute("onclick", "alert('HI')");
-            //     showContextMenu();
-            // }
+            }
+            else if (e.target.classList.contains("attack")) {
+                const contextMenu = document.querySelector(".custom-cm__item")
+                contextMenu.innerHTML = "Delete This Action-";
+                console.log(e.target.outerHTML)
+                contextMenu.setAttribute("onclick", "alert('HI')");
+                showContextMenu();
+            }
 
         };
 
         function showContextMenu(show = true) {
             cm.style.display = show ? "block" : "none";
             cm.style.left = event.clientX + "px";
-                cm.style.top = event.clientY + "px";
+            cm.style.top = event.clientY + "px";
         }
         window.addEventListener("click", () => {
 
