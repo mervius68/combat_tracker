@@ -1080,14 +1080,24 @@
                         ? "affected"
                         : "concentration"
                 );
-            }
+            } 
+            // else if (e.target.classList.contains("attack")) {
+            //     const contextMenu = document.querySelector(".custom-cm__item")
+            //     contextMenu.innerHTML = "Delete This Item";
+            //     alert(e.target.outerHTML)
+            //     contextMenu.setAttribute("onclick", "alert('HI')");
+            //     showContextMenu();
+            // }
 
         };
 
         function showContextMenu(show = true) {
             cm.style.display = show ? "block" : "none";
+            cm.style.left = event.clientX + "px";
+                cm.style.top = event.clientY + "px";
         }
         window.addEventListener("click", () => {
+
             showContextMenu(false);
         });
         document.addEventListener("contextmenu", contextMenuListener);
