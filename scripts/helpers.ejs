@@ -893,7 +893,7 @@
             navify();
         } catch (err) { }
 
-
+        // function to populate the individual actions
         function sendToCoordinate(round, participant, actionType, actionObject, taID) {
             try {
                 let y = mainContainer.querySelector(
@@ -911,8 +911,8 @@
                         y.nextSibling.nextSibling.nextSibling.innerHTML +
                         (y.nextSibling.nextSibling.nextSibling.innerHTML == ""
                             ? ""
-                            : " | ") + 
-                        `<span data-aid=${actionObject.aID}>${actionObject.notes}</span>` +
+                            : " | ") +
+                        `<span class="notes" data-aid=${actionObject.aID}>${actionObject.notes}</span>` +
                         " ";
                 }
 
@@ -943,7 +943,7 @@
                     x.classList.add("hovertwin");
                     x.setAttribute("data-hover-id", taID || "0")
                 }
-                x.innerHTML = actionObject.tool;
+                x.innerHTML = `<span data-aid=${actionObject.aID}>${actionObject.tool}</span>`;
                 x.nextSibling.innerHTML = actionObject.hit
                 x.nextSibling.nextSibling.innerHTML = actionObject.targetName;
                 x.nextSibling.nextSibling.nextSibling.innerHTML =
@@ -1014,30 +1014,45 @@
                         : "concentration"
                 );
             }
-            else if (e.target.classList.contains("attack")) {
+            else if ((e.target.classList.contains("attack") || e.target.parentElement.classList.contains("attack")) && e.target.innerText !== "") {
                 const contextMenu = document.querySelector(".custom-cm__item")
                 contextMenu.innerHTML = "Delete This Action";
                 console.log(e.target.outerHTML)
                 contextMenu.setAttribute("onclick", "alert('HI')");
                 showContextMenu();
             }
-            else if (e.target.classList.contains("bonus")) {
+            else if ((e.target.classList.contains("bonus") || e.target.parentElement.classList.contains("bonus")) && e.target.innerText !== "") {
                 const contextMenu = document.querySelector(".custom-cm__item")
                 contextMenu.innerHTML = "Delete Bonus Action";
                 console.log(e.target.outerHTML)
-                contextMenu.setAttribute("onclick", "alert('HI')");
+                contextMenu.setAttribute("onclick", "alert('Bonus')");
                 showContextMenu();
             }
-            else if (e.target.classList.contains("react")) {
+            else if ((e.target.classList.contains("react") || e.target.parentElement.classList.contains("react")) && e.target.innerText !== "") {
                 const contextMenu = document.querySelector(".custom-cm__item")
                 contextMenu.innerHTML = "Delete Reaction";
                 console.log(e.target.outerHTML)
-                contextMenu.setAttribute("onclick", "alert('HI')");
+                contextMenu.setAttribute("onclick", "alert('Reaction')");
+                showContextMenu();
+            }
+            else if (e.target.classList.contains("notes") && e.target.innerText !== "") {
+                const element = e.target;
+                let dataAidValue;
+                if (element.classList.contains('notes')) {
+                    dataAidValue = element.dataset.aid;
+                    console.log(dataAidValue);
+                }
+                const contextMenu = document.querySelector(".custom-cm__item")
+                contextMenu.innerHTML = "Delete Note ";
+                console.log(element.outerHTML)
+                contextMenu.setAttribute("onclick", "deleteNote(" + dataAidValue + ")");
                 showContextMenu();
             }
             else {
                 console.log(e.target.outerHTML)
             }
+
+
 
         };
 
@@ -2752,6 +2767,7 @@
                     secondary_init: secondaryInitValue, // Add secondary_init to the postData object
                 };
             });
+            xxx = postData;
 
             await dbQueryPost("orderInitiative", postData)
                 .then((data) => {
@@ -3258,4 +3274,20 @@
             // }
         }
     };
+
+    async function deleteNote(dataAidValue) {
+        const data = {
+            aID: dataAidValue
+        }
+        await dbQueryPost("deleteNote", data)
+            .then((data) => {
+                console.log(data); // Handle the response from the server
+            })
+            .catch((error) => {
+                // Handle errors here
+            });
+        let html = document.querySelector(".selected");
+        let dataNav = html.getAttribute("data-nav");
+        load_encounter(0, dataNav);
+    }
 </script>
