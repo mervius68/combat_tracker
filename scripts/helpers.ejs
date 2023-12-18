@@ -658,73 +658,6 @@
                             turn.nextSibling.nextSibling.innerHTML +=
                                 toolTipHTML.outerHTML;
                         }
-
-                        // if (
-                        //     (parseInt(condition.holding) == 1 &&
-                        //         parseInt(condition.start_round) <= i &&
-                        //         parseInt(endRound) >= i &&
-                        //         affectedInitLower == true) ||
-                        //     (parseInt(condition.holding) == 1 &&
-                        //         parseInt(condition.start_round) <= i &&
-                        //         parseInt(endRound) >= i &&
-                        //         affectedInitLower == false)
-                        // ) {
-                        //     // get the participants who are affected by this condition.taID
-                        //     let affectees = await dbQuery(
-                        //         "GET",
-                        //         "getAffectees/" + condition.taID + "/" + i
-                        //     );
-                        //     let affecteesString = "";
-                        //     affectees.forEach((affectee, index) => {
-                        //         affecteesString +=
-                        //             affectee.character_name +
-                        //             (affectee.numeric_value
-                        //                 ? " #" + affectee.numeric_value
-                        //                 : "") +
-                        //             (index != affectees.length - 1 ? ", " : "");
-                        //     });
-
-                        //     let toolTipHTML = document.createElement("span");
-                        //     toolTipHTML.classList.add("tooltip");
-                        //     toolTipHTML.classList.add("concentration");
-                        //     toolTipHTML.setAttribute(
-                        //         "data-condition-id",
-                        //         condition.conditionID
-                        //     );
-                        //     // console.log(condition.conditionID + " " + i)
-                        //     toolTipHTML.setAttribute(
-                        //         "data-affected-id",
-                        //         condition.affected_pID
-                        //     );
-                        //     toolTipHTML.setAttribute(
-                        //         "data-taid",
-                        //         condition.taID
-                        //     );
-                        //     toolTipHTML.setAttribute(
-                        //         "data-causerID",
-                        //         condition.pID
-                        //     );
-
-                        //     toolTipHTML.setAttribute("data-this-round", i);
-                        //     toolTipHTML.innerText = "H";
-                        //     toolTipHTML.classList.add("hovertwin");
-                        //     toolTipHTML.setAttribute("data-hover-id", condition.taID);
-                        //     let toolTipText = document.createElement("span");
-                        //     toolTipText.classList.add("tooltiptext");
-                        //     toolTipText.innerHTML =
-                        //         condition.description.toUpperCase() +
-                        //         "<br><br>" +
-                        //         participant.character_name +
-                        //         (participant.numeric_value
-                        //             ? " #" + participant.numeric_value
-                        //             : "") +
-                        //         " <span class='arrow-container'></span> " +
-                        //         affecteesString;
-                        //     toolTipHTML.appendChild(toolTipText);
-                        //     turn.nextSibling.nextSibling.innerHTML +=
-                        //         toolTipHTML.outerHTML;
-                        // }
-
                     });
 
                     // if participant is affected by a condition, show icon with tooltip
@@ -888,7 +821,7 @@
         // load the actions into the wireframe
         try {
             for (const action of ctActions) {
-                // alert(ctActions);
+                console.log(ctActions);
                 let tool = {};
                 if (action.toolID) {
                     tool = await dbQuery("GET", "tool/" + action.toolID);
@@ -931,6 +864,7 @@
                 actionObject.notes = action.notes || "";
                 actionObject.end = action.end_note || "";
                 actionObject.start = action.start_note || "";
+                actionObject.aID = action.aID || "";
 
                 await sendToCoordinate(
                     action.round,
@@ -977,8 +911,8 @@
                         y.nextSibling.nextSibling.nextSibling.innerHTML +
                         (y.nextSibling.nextSibling.nextSibling.innerHTML == ""
                             ? ""
-                            : " | ") + // taID != "0" ? `<span class='hovertwin' data-hover-id='${taID}'>` : "" +
-                        actionObject.notes + // taID != "0" ? `</span>` : "" +
+                            : " | ") + 
+                        `<span data-aid=${actionObject.aID}>${actionObject.notes}</span>` +
                         " ";
                 }
 
@@ -1082,10 +1016,27 @@
             }
             else if (e.target.classList.contains("attack")) {
                 const contextMenu = document.querySelector(".custom-cm__item")
-                contextMenu.innerHTML = "Delete This Action-";
+                contextMenu.innerHTML = "Delete This Action";
                 console.log(e.target.outerHTML)
                 contextMenu.setAttribute("onclick", "alert('HI')");
                 showContextMenu();
+            }
+            else if (e.target.classList.contains("bonus")) {
+                const contextMenu = document.querySelector(".custom-cm__item")
+                contextMenu.innerHTML = "Delete Bonus Action";
+                console.log(e.target.outerHTML)
+                contextMenu.setAttribute("onclick", "alert('HI')");
+                showContextMenu();
+            }
+            else if (e.target.classList.contains("react")) {
+                const contextMenu = document.querySelector(".custom-cm__item")
+                contextMenu.innerHTML = "Delete Reaction";
+                console.log(e.target.outerHTML)
+                contextMenu.setAttribute("onclick", "alert('HI')");
+                showContextMenu();
+            }
+            else {
+                console.log(e.target.outerHTML)
             }
 
         };
