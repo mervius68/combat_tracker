@@ -1038,15 +1038,30 @@
             else if (e.target.classList.contains("notes") && e.target.innerText !== "") {
                 const element = e.target;
                 let dataAidValue;
+
                 if (element.classList.contains('notes')) {
                     dataAidValue = element.dataset.aid;
                     console.log(dataAidValue);
+
+                    const contextMenu = document.querySelector(".custom-cm__item");
+                    contextMenu.innerHTML = ""; // Clear existing content
+
+                    // Create "Delete Note" option
+                    const deleteOption = document.createElement("div");
+                    deleteOption.textContent = "Delete Note";
+                    deleteOption.addEventListener("click", () => deleteNote(dataAidValue));
+                    contextMenu.appendChild(deleteOption);
+
+                    // Create "Edit Note" option
+                    // const editOption = document.createElement("div");
+                    // editOption.textContent = "Edit Note";
+                    // editOption.addEventListener("click", () => editNote(dataAidValue));
+                    // contextMenu.appendChild(editOption);
+
+                    // Show the context menu
+                    showContextMenu();
                 }
-                const contextMenu = document.querySelector(".custom-cm__item")
-                contextMenu.innerHTML = "Delete Note ";
-                console.log(element.outerHTML)
-                contextMenu.setAttribute("onclick", "deleteNote(" + dataAidValue + ")");
-                showContextMenu();
+
             }
             else {
                 console.log(e.target.outerHTML)
