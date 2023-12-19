@@ -966,6 +966,7 @@
         const contextMenuListener = function (e) {
             e.preventDefault();
             const element = e.target;
+            const dataAidValue = element.dataset.aid;
             const contextMenu = document.querySelector(".custom-cm__item")
             contextMenu.innerText = "";
             if (element.classList.contains("affected") || element.classList.contains("concentration")) {
@@ -1016,19 +1017,17 @@
             }
             else if ((element.classList.contains("attack") || element.parentElement.classList.contains("attack")) && element.innerText !== "") {
                 contextMenu.innerHTML = "Delete This Action";
-                contextMenu.setAttribute("onclick", "alert('HI')");
+                contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
             }
             else if ((element.classList.contains("bonus") || element.parentElement.classList.contains("bonus")) && element.innerText !== "") {
                 contextMenu.innerHTML = "Delete Bonus Action";
-                contextMenu.setAttribute("onclick", "alert('Bonus')");
+                contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
             }
             else if ((element.classList.contains("react") || element.parentElement.classList.contains("react")) && element.innerText !== "") {
                 contextMenu.innerHTML = "Delete Reaction";
-                contextMenu.setAttribute("onclick", "alert('Reaction')");
+                contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
             }
             else if (element.classList.contains("notes") && element.innerText !== "") {
-                const dataAidValue = element.dataset.aid;
-
                 // Create "Delete Note" option
                 const deleteOption = document.createElement("div");
                 deleteOption.textContent = "Delete Note";
@@ -1046,8 +1045,6 @@
                 console.log(e.target.outerHTML)
             }
             showContextMenu()
-
-
         };
 
         function showContextMenu(show = true) {
@@ -3274,6 +3271,22 @@
             aID: dataAidValue
         }
         await dbQueryPost("deleteNote", data)
+            .then((data) => {
+                console.log(data); // Handle the response from the server
+            })
+            .catch((error) => {
+                // Handle errors here
+            });
+        let html = document.querySelector(".selected");
+        let dataNav = html.getAttribute("data-nav");
+        load_encounter(0, dataNav);
+    }
+
+    async function deleteAction(dataAidValue) {
+        const data = {
+            aID: dataAidValue
+        }
+        await dbQueryPost("deleteAction", data)
             .then((data) => {
                 console.log(data); // Handle the response from the server
             })
