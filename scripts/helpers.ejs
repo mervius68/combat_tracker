@@ -965,8 +965,10 @@
 
         const contextMenuListener = function (e) {
             e.preventDefault();
-            console.log(e.target)
-            if (e.target.classList.contains("affected") || e.target.classList.contains("concentration")) {
+            const element = e.target;
+            const contextMenu = document.querySelector(".custom-cm__item")
+            contextMenu.innerText = "";
+            if (element.classList.contains("affected") || element.classList.contains("concentration")) {
                 const scrollLeft =
                     window.pageXOffset || document.documentElement.scrollLeft;
                 const scrollTop =
@@ -981,92 +983,69 @@
                 const top = clickY + menuHeight > maxY ? maxY - menuHeight : clickY;
                 const left = clickX + menuWidth > maxX ? maxX - menuWidth : clickX;
 
-                const contextMenu = document.querySelector(".custom-cm__item")
                 contextMenu.innerHTML = "End This Condition";
                 contextMenu.setAttribute("onclick", "endCondition()");
-                showContextMenu();
 
                 let cmEnd = document.querySelector(".cmEnd");
                 cmEnd.setAttribute(
                     "data-cm-condition-id",
-                    e.target.getAttribute("data-condition-id")
+                    element.getAttribute("data-condition-id")
                 );
                 cmEnd.setAttribute(
                     "data-cm-causer-id",
-                    e.target.getAttribute("data-causerID")
+                    element.getAttribute("data-causerID")
                 );
                 cmEnd.setAttribute(
                     "data-cm-affected-id",
-                    e.target.getAttribute("data-affected-id")
+                    element.getAttribute("data-affected-id")
                 );
                 cmEnd.setAttribute(
                     "data-cm-taid",
-                    e.target.getAttribute("data-taid")
+                    element.getAttribute("data-taid")
                 );
                 cmEnd.setAttribute(
                     "data-cm-round",
-                    e.target.getAttribute("data-this-round")
+                    element.getAttribute("data-this-round")
                 );
                 cmEnd.setAttribute(
                     "data-cm-concentration-or-affected",
-                    e.target.classList.contains("affected")
+                    element.classList.contains("affected")
                         ? "affected"
                         : "concentration"
                 );
             }
-            else if ((e.target.classList.contains("attack") || e.target.parentElement.classList.contains("attack")) && e.target.innerText !== "") {
-                const contextMenu = document.querySelector(".custom-cm__item")
+            else if ((element.classList.contains("attack") || element.parentElement.classList.contains("attack")) && element.innerText !== "") {
                 contextMenu.innerHTML = "Delete This Action";
-                console.log(e.target.outerHTML)
                 contextMenu.setAttribute("onclick", "alert('HI')");
-                showContextMenu();
             }
-            else if ((e.target.classList.contains("bonus") || e.target.parentElement.classList.contains("bonus")) && e.target.innerText !== "") {
-                const contextMenu = document.querySelector(".custom-cm__item")
+            else if ((element.classList.contains("bonus") || element.parentElement.classList.contains("bonus")) && element.innerText !== "") {
                 contextMenu.innerHTML = "Delete Bonus Action";
-                console.log(e.target.outerHTML)
                 contextMenu.setAttribute("onclick", "alert('Bonus')");
-                showContextMenu();
             }
-            else if ((e.target.classList.contains("react") || e.target.parentElement.classList.contains("react")) && e.target.innerText !== "") {
-                const contextMenu = document.querySelector(".custom-cm__item")
+            else if ((element.classList.contains("react") || element.parentElement.classList.contains("react")) && element.innerText !== "") {
                 contextMenu.innerHTML = "Delete Reaction";
-                console.log(e.target.outerHTML)
                 contextMenu.setAttribute("onclick", "alert('Reaction')");
-                showContextMenu();
             }
-            else if (e.target.classList.contains("notes") && e.target.innerText !== "") {
-                const element = e.target;
-                let dataAidValue;
+            else if (element.classList.contains("notes") && element.innerText !== "") {
+                const dataAidValue = element.dataset.aid;
 
-                if (element.classList.contains('notes')) {
-                    dataAidValue = element.dataset.aid;
-                    console.log(dataAidValue);
+                // Create "Delete Note" option
+                const deleteOption = document.createElement("div");
+                deleteOption.textContent = "Delete Note";
+                deleteOption.addEventListener("click", () => deleteNote(dataAidValue));
+                contextMenu.appendChild(deleteOption);
 
-                    const contextMenu = document.querySelector(".custom-cm__item");
-                    contextMenu.innerHTML = ""; // Clear existing content
-
-                    // Create "Delete Note" option
-                    const deleteOption = document.createElement("div");
-                    deleteOption.textContent = "Delete Note";
-                    deleteOption.addEventListener("click", () => deleteNote(dataAidValue));
-                    contextMenu.appendChild(deleteOption);
-
-                    // Create "Edit Note" option
-                    // const editOption = document.createElement("div");
-                    // editOption.textContent = "Edit Note";
-                    // editOption.addEventListener("click", () => editNote(dataAidValue));
-                    // contextMenu.appendChild(editOption);
-
-                    // Show the context menu
-                    showContextMenu();
-                }
+                // Create "Edit Note" option
+                // const editOption = document.createElement("div");
+                // editOption.textContent = "Edit Note";
+                // editOption.addEventListener("click", () => editNote(dataAidValue));
+                // contextMenu.appendChild(editOption);
 
             }
             else {
                 console.log(e.target.outerHTML)
             }
-
+            showContextMenu()
 
 
         };

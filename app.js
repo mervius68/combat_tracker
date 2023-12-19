@@ -501,6 +501,25 @@ app.post('/deleteNote', (req, res) => {
     });
 });
 
+app.post('/deleteAction', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+
+    // Generate the SQL query
+    const sql = `
+      UPDATE ct_tbl_action
+      SET notes = ""
+      WHERE aID = ${requestData.aID}
+    `;
+    
+    // Execute the SQL query and handle the response (you'll need to set up your database connection)
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.json({ message: 'Action deleted successfully' });
+    });
+});
 
 
 // app.get("/orderInitiative/:valuesString", (req, res) => {
