@@ -110,7 +110,9 @@ body {
 }
 
 .selected {
-    background-color: lightsalmon;
+    /* background-color: lightsalmon; */
+    outline: 8px solid black;
+    z-index: 5;
 }
 
 .participantGray {
