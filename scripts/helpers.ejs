@@ -1014,18 +1014,27 @@
                         ? "affected"
                         : "concentration"
                 );
+                showContextMenu()
             }
             else if ((element.classList.contains("attack") || element.parentElement.classList.contains("attack")) && element.innerText !== "") {
-                contextMenu.innerHTML = "Delete This Action";
-                contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
+                // contextMenu.innerHTML = "Delete This Action";
+                // contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
+
+                const deleteActionEl = document.createElement("div");
+                deleteActionEl.textContent = "Delete Action";
+                deleteActionEl.addEventListener("click", () => deleteAction(dataAidValue));
+                contextMenu.appendChild(deleteActionEl);
+                showContextMenu()
             }
             else if ((element.classList.contains("bonus") || element.parentElement.classList.contains("bonus")) && element.innerText !== "") {
                 contextMenu.innerHTML = "Delete Bonus Action";
                 contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
+                showContextMenu()
             }
             else if ((element.classList.contains("react") || element.parentElement.classList.contains("react")) && element.innerText !== "") {
                 contextMenu.innerHTML = "Delete Reaction";
                 contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
+                showContextMenu()
             }
             else if (element.classList.contains("notes") && element.innerText !== "") {
                 // Create "Delete Note" option
@@ -1039,12 +1048,12 @@
                 // editOption.textContent = "Edit Note";
                 // editOption.addEventListener("click", () => editNote(dataAidValue));
                 // contextMenu.appendChild(editOption);
-
+                showContextMenu()
             }
             else {
                 console.log(e.target.outerHTML)
             }
-            showContextMenu()
+            
         };
 
         function showContextMenu(show = true) {
