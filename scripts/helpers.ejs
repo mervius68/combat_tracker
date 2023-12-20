@@ -1016,10 +1016,7 @@
                 );
                 showContextMenu()
             }
-            else if ((element.classList.contains("attack") || element.parentElement.classList.contains("attack")) && element.innerText !== "") {
-                // contextMenu.innerHTML = "Delete This Action";
-                // contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
-
+            else if ((element.classList.contains("attack") || element.classList.contains("attack_alt") || element.parentElement.classList.contains("attack") || element.parentElement.classList.contains("attack_alt")) && element.innerText !== "") {
                 const deleteActionEl = document.createElement("div");
                 deleteActionEl.textContent = "Delete Action";
                 deleteActionEl.addEventListener("click", () => deleteAction(dataAidValue));
