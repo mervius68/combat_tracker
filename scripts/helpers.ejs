@@ -1053,7 +1053,7 @@
             else {
                 console.log(e.target.outerHTML)
             }
-            
+
         };
 
         function showContextMenu(show = true) {
@@ -1828,7 +1828,7 @@
 
         let notesElement = document.querySelector(".notes_text");
         let notes = notesElement.value || "-";
-        notes = notes.replace("'", "&apos;").replace("#", "&num;");
+        notes = notes.replace("'", "&apos;").replace("#", "&num;").replace("?","&quest;")
         if (notes == "") {
             notes = "-";
         }
@@ -2729,7 +2729,6 @@
         } else { // if PC == 1
             let nodeList = document.querySelectorAll('.initValues');
             let secondaryNodeList = document.querySelectorAll(".secondaryInitValues:not(.secondaryInitOff)");
-            xxx = secondaryNodeList;
 
             let strongValuesArray = Array.from(nodeList).map(function (element) {
                 return element.value;
@@ -2767,7 +2766,6 @@
                     secondary_init: secondaryInitValue, // Add secondary_init to the postData object
                 };
             });
-            xxx = postData;
 
             await dbQueryPost("orderInitiative", postData)
                 .then((data) => {
@@ -3292,10 +3290,43 @@
     }
 
     async function deleteAction(dataAidValue) {
+
         const data = {
             aID: dataAidValue
         }
-        await dbQueryPost("deleteAction", data)
+
+        const deleteEm = await dbQuery("GET", "getDeleteActionData/" + dataAidValue)
+        deleteEm.forEach((obj) => {
+            obj.aID = dataAidValue
+        })
+        xxx = deleteEm;
+        const deleteData = {
+            aID: dataAidValue,
+            targetID: deleteEm[0].targetID, 
+            taID: deleteEm[0].taID, 
+            conditionID: deleteEm[0].conditionID
+        }
+        await dbQueryPost("deleteAction", deleteData)
+            .then((data) => {
+                console.log(data); // Handle the response from the server
+            })
+            .catch((error) => {
+                // Handle errors here
+            });
+
+        let updateData = {};
+        deleteEm.forEach((obj, index) => {
+            const object = {
+                tID: obj.tID,
+                damage: obj.damage,
+                target_pID: obj.target_pID
+            }
+            updateData[index] = {
+                object
+            }
+        })
+
+        await dbQueryPost("deleteActionUpdateTargetHPs", updateData)
             .then((data) => {
                 console.log(data); // Handle the response from the server
             })

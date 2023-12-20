@@ -16,11 +16,11 @@ if (!databaseName) databaseName = "combat_template"
 const dbPath = path.join(folderPath, `${databaseName}.db`);
 
 const db = new sqlite3.Database(
-  dbPath,
-  sqlite3.OPEN_READWRITE,
-  (err) => {
-    if (err) return console.error(err.message);
-  }
+    dbPath,
+    sqlite3.OPEN_READWRITE,
+    (err) => {
+        if (err) return console.error(err.message);
+    }
 );
 
 // Now, the code reads the database name from the database.txt file
@@ -62,7 +62,7 @@ app.post('/your-server-endpoint', (req, res) => {
 
     // Send a JSON response to the client
     res.status(200).json({ message: 'Data written to the file.' });
-    
+
 });
 
 
@@ -71,22 +71,22 @@ app.post('/your-server-endpoint', (req, res) => {
 app.get('/available-databases', (req, res) => {
     // Read the contents of the /databases folder
     fs.readdir(databaseFolder, (err, files) => {
-      if (err) {
-        console.error('Error reading the /databases folder:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-        return;
-      }
-  
-      // Filter for .db files
-      const dbFiles = files.filter(file => path.extname(file) === '.db');
-  
-      // Extract just the database names
-      const databaseNames = dbFiles.map(file => path.parse(file).name);
-  
-      // Send the list of available databases as a JSON response
-      res.json({ databases: databaseNames, database_current: databaseName });
+        if (err) {
+            console.error('Error reading the /databases folder:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+            return;
+        }
+
+        // Filter for .db files
+        const dbFiles = files.filter(file => path.extname(file) === '.db');
+
+        // Extract just the database names
+        const databaseNames = dbFiles.map(file => path.parse(file).name);
+
+        // Send the list of available databases as a JSON response
+        res.json({ databases: databaseNames, database_current: databaseName });
     });
-  });
+});
 
 app.get("/latest_eID/", (req, res) => {
     let sql = `SELECT *
@@ -433,6 +433,24 @@ app.get("/arrangeParticipantsByInit/:pID/:numeric_value", (req, res) => {
     });
 });
 
+app.get("/getDeleteActionData/:aID", (req, res) => {
+    let aID = req.params.aID;
+    let sql = `SELECT *
+    FROM ct_tbl_action
+    LEFT JOIN ct_tbl_target ON ct_tbl_action.targetID = ct_tbl_target.targetID
+    LEFT JOIN ct_tbl_condition ON ct_tbl_action.aID = ct_tbl_condition.aID
+    LEFT JOIN ct_tbl_condition_affectee ON ct_tbl_condition.taID = ct_tbl_condition_affectee.taID
+    WHERE ct_tbl_action.aID = ${aID}
+            `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
 app.post('/orderInitiative', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
     // Process the data and build your SQL query
@@ -470,7 +488,7 @@ app.post('/orderInitiative', (req, res) => {
       END
       WHERE pID IN (${pIDs.join(', ')});
     `;
-    
+
     // Execute the SQL query and handle the response (you'll need to set up your database connection)
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -490,7 +508,7 @@ app.post('/deleteNote', (req, res) => {
       SET notes = ""
       WHERE aID = ${requestData.aID}
     `;
-    
+
     // Execute the SQL query and handle the response (you'll need to set up your database connection)
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -503,23 +521,100 @@ app.post('/deleteNote', (req, res) => {
 
 app.post('/deleteAction', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
-
-    // Generate the SQL query
-    const sql = `
-      UPDATE ct_tbl_action
-      SET notes = ""
-      WHERE aID = ${requestData.aID}
+    console.log(requestData);
+    // Generate and execute the first SQL query
+    const sql1 = `
+      DELETE FROM ct_tbl_action
+      WHERE aID = ?;
     `;
-    
-    // Execute the SQL query and handle the response (you'll need to set up your database connection)
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
+
+    db.run(sql1, [requestData.aID], function (err1) {
+        if (err1) {
+            console.log(err1);
+            throw err1;
         }
-        res.json({ message: 'Action deleted successfully' });
+
+        // Generate and execute the second SQL query
+        const sql2 = `
+          DELETE FROM ct_tbl_target
+          WHERE targetID = ?;
+        `;
+
+        db.run(sql2, [requestData.targetID], function (err2) {
+            if (err2) {
+                console.log(err2);
+                throw err2;
+            }
+
+            // Generate and execute the second SQL query
+            const sql3 = `
+              DELETE FROM ct_tbl_condition
+              WHERE conditionID = ?;
+            `;
+
+            db.run(sql3, [requestData.conditionID], function (err3) {
+                if (err3) {
+                    console.log(err3);
+                    throw err3;
+                }
+
+                // Generate and execute the second SQL query
+                const sql4 = `
+                  DELETE FROM ct_tbl_condition_affectee
+                  WHERE taID = ?;
+                `;
+
+                db.run(sql4, [requestData.taID], function (err4) {
+                    if (err4) {
+                        console.log(err4);
+                        throw err4;
+                    }
+
+                    res.json({ message: 'Action deleted successfully' });
+                });
+            })
+        })
     });
 });
+
+
+
+app.post('/deleteActionUpdateTargetHPs', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+
+    // Check if requestData is an object
+    if (typeof requestData === 'object' && requestData !== null) {
+        const keys = Object.keys(requestData);
+
+        // Generate and execute the SQL queries dynamically
+        keys.forEach((key) => {
+            const nestedObject = requestData[key].object; // Access the nested object
+            console.log(nestedObject.damage);
+
+            if (nestedObject.hasOwnProperty('damage') && nestedObject.hasOwnProperty('target_pID') && nestedObject.hasOwnProperty('tID')) {
+                const sql = `
+  UPDATE ct_tbl_target
+  SET new_hp = new_hp + ?
+  WHERE target_pID = ? AND tID > ?
+`;
+
+                // Assuming nestedObject.damage, nestedObject.target_pID, and nestedObject.tID are the correct properties in your objects
+                db.all(sql, [nestedObject.damage, nestedObject.target_pID, nestedObject.tID], (err, results) => {
+                    // Rest of the code
+                });
+
+            }
+        });
+
+        res.json({ message: 'Targets updated successfully' });
+    } else {
+        res.status(400).json({ message: 'Invalid request data' });
+    }
+});
+
+
+
+
 
 
 // app.get("/orderInitiative/:valuesString", (req, res) => {
