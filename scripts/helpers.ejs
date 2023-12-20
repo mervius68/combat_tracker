@@ -1024,13 +1024,17 @@
                 showContextMenu()
             }
             else if ((element.classList.contains("bonus") || element.parentElement.classList.contains("bonus")) && element.innerText !== "") {
-                contextMenu.innerHTML = "Delete Bonus Action";
-                contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
+                const deleteBonusActionEl = document.createElement("div");
+                deleteBonusActionEl.innerHTML = "Delete Bonus Action";
+                deleteBonusActionEl.addEventListener("click", () => deleteAction(dataAidValue));
+                contextMenu.appendChild(deleteBonusActionEl)
                 showContextMenu()
             }
             else if ((element.classList.contains("react") || element.parentElement.classList.contains("react")) && element.innerText !== "") {
-                contextMenu.innerHTML = "Delete Reaction";
-                contextMenu.addEventListener("click", () => deleteAction(dataAidValue));
+                const deleteReactionEl = document.createElement("div");
+                deleteReactionEl.innerHTML = "Delete Reaction";
+                deleteReactionEl.addEventListener("click", () => deleteAction(dataAidValue));
+                contextMenu.appendChild(deleteReactionEl)
                 showContextMenu()
             }
             else if (element.classList.contains("notes") && element.innerText !== "") {

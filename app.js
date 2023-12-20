@@ -521,7 +521,6 @@ app.post('/deleteNote', (req, res) => {
 
 app.post('/deleteAction', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
-    console.log(requestData);
     // Generate and execute the first SQL query
     const sql1 = `
       DELETE FROM ct_tbl_action
@@ -589,15 +588,12 @@ app.post('/deleteActionUpdateTargetHPs', (req, res) => {
         // Generate and execute the SQL queries dynamically
         keys.forEach((key) => {
             const nestedObject = requestData[key].object; // Access the nested object
-            console.log(nestedObject.damage);
-
             if (nestedObject.hasOwnProperty('damage') && nestedObject.hasOwnProperty('target_pID') && nestedObject.hasOwnProperty('tID')) {
                 const sql = `
-  UPDATE ct_tbl_target
-  SET new_hp = new_hp + ?
-  WHERE target_pID = ? AND tID > ?
+                    UPDATE ct_tbl_target
+                    SET new_hp = new_hp + ?
+                    WHERE target_pID = ? AND tID > ?
 `;
-
                 // Assuming nestedObject.damage, nestedObject.target_pID, and nestedObject.tID are the correct properties in your objects
                 db.all(sql, [nestedObject.damage, nestedObject.target_pID, nestedObject.tID], (err, results) => {
                     // Rest of the code
@@ -605,7 +601,6 @@ app.post('/deleteActionUpdateTargetHPs', (req, res) => {
 
             }
         });
-
         res.json({ message: 'Targets updated successfully' });
     } else {
         res.status(400).json({ message: 'Invalid request data' });
