@@ -3338,4 +3338,24 @@
         let dataNav = html.getAttribute("data-nav");
         load_encounter(0, dataNav);
     }
+
+    function add_participants_modal() {
+        modalParticipants()
+        pushModal()
+    }
+
+    async function modalParticipants() {
+        const modal = document.querySelector("#modal-body");
+        const container = document.createElement("div");
+        container.classList.add("modal-body");
+        let div = document.createElement("div");
+        div.classList.add("modal-content");
+
+
+
+        const cm = document.querySelector(".modal-content");
+        function showContextMenu(show = true) {
+            cm.style.display = show ? "block" : "none";
+        }
+    }
 </script>
