@@ -324,10 +324,10 @@ button {
     height: 25px;
     font-size: 1.2em;
     width: max-content;
-   
+
 }
 
-button + button {
+button+button {
     margin: 0px 0px 0px 10px;
 }
 
@@ -570,10 +570,12 @@ h3 {
     height: 25px;
 }
 
-.line input, strong {
+.line input,
+strong {
     width: 40px;
-    font-size: 20px; /* Adjust the font size for the text field as needed */
-    height: 25px; 
+    font-size: 20px;
+    /* Adjust the font size for the text field as needed */
+    height: 25px;
     box-sizing: border-box;
     overflow: hidden;
     padding: 0px 5px;
@@ -592,4 +594,32 @@ strong {
 
 .line strong {
     font-weight: bold;
+}
+
+.participant-container {
+    display: flex;
+    width: 80%;
+    margin: auto;
+}
+
+.left-container {
+    flex: 1;
+    padding: 10px;
+    border-right: 1px solid #ccc;
+}
+
+.right-container {
+    flex: 1;
+    padding: 10px;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+#monsterSelect {
+    font-size: 22px;
+    margin-bottom: 50px;
 }

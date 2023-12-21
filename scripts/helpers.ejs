@@ -561,7 +561,6 @@
                         );
                         let endRound = maxObjects[0]?.end_round;
 
-                        // console.log(affectedThisRound);
                         let affectedInitLower = false;
                         if (
                             affectedThisRound.some(
@@ -620,7 +619,6 @@
                                 "data-condition-id",
                                 condition.conditionID
                             );
-                            // console.log(condition.conditionID + " " + i)
                             toolTipHTML.setAttribute(
                                 "data-affected-id",
                                 condition.affected_pID
@@ -821,7 +819,6 @@
         // load the actions into the wireframe
         try {
             for (const action of ctActions) {
-                console.log(ctActions);
                 let tool = {};
                 if (action.toolID) {
                     tool = await dbQuery("GET", "tool/" + action.toolID);
@@ -1829,7 +1826,7 @@
 
         let notesElement = document.querySelector(".notes_text");
         let notes = notesElement.value || "-";
-        notes = notes.replace("'", "&apos;").replace("#", "&num;").replace("?","&quest;")
+        notes = notes.replace("'", "&apos;").replace("#", "&num;").replace("?", "&quest;")
         if (notes == "") {
             notes = "-";
         }
@@ -3300,11 +3297,10 @@
         deleteEm.forEach((obj) => {
             obj.aID = dataAidValue
         })
-        xxx = deleteEm;
         const deleteData = {
             aID: dataAidValue,
-            targetID: deleteEm[0].targetID, 
-            taID: deleteEm[0].taID, 
+            targetID: deleteEm[0].targetID,
+            taID: deleteEm[0].taID,
             conditionID: deleteEm[0].conditionID
         }
         await dbQueryPost("deleteAction", deleteData)
@@ -3316,17 +3312,27 @@
             });
 
         let updateData = {};
+        let uniqueObjectsSet = new Set();
+
         deleteEm.forEach((obj, index) => {
             const object = {
                 tID: obj.tID,
                 damage: obj.damage,
                 target_pID: obj.target_pID
-            }
-            updateData[index] = {
-                object
-            }
-        })
+            };
 
+            // Create a string representation of the object for easy comparison
+            const objectString = JSON.stringify(object);
+
+            // Check if the object is unique before adding it to updateData
+            if (!uniqueObjectsSet.has(objectString)) {
+                uniqueObjectsSet.add(objectString);
+                updateData[index] = { object };
+            }
+        });
+
+        xxx = updateData;
+        yyy = deleteEm.length;
         await dbQueryPost("deleteActionUpdateTargetHPs", updateData)
             .then((data) => {
                 console.log(data); // Handle the response from the server
@@ -3348,11 +3354,93 @@
         const modal = document.querySelector("#modal-body");
         const container = document.createElement("div");
         container.classList.add("modal-body");
-        let div = document.createElement("div");
+        const div = document.createElement("div");
         div.classList.add("modal-content");
+        const h1 = document.createElement("h1");
+        h1.classList.add("center");
+        h1.innerText = "ADD PARTICIPANTS";
+        div.appendChild(h1);
+        container.appendChild(div);
+
+        const container2 = document.createElement("div");
+        container2.classList.add("participant-container");
+
+        // left container
+        const leftContainer = document.createElement("div");
+        leftContainer.classList.add("left-container");
+        const h3 = document.createElement("h3");
+        h3.innerText = "Character List";
+
+        leftContainer.appendChild(h3);
+
+        // for each list item
+        const div2 = document.createElement("div");
+        div2.classList.add("list-item");
+        const input = document.createElement("input");
+        input.setAttribute("type", "checkbox");
+        input.setAttribute("id", "char1");
+        input.classList.add("character-checkbox");
+        const label = document.createElement("label");
+        label.setAttribute("for", "char1");
+        label.innerText = "Posey";
+        div2.appendChild(input);
+        div2.appendChild(label);
+        leftContainer.appendChild(div2);
+        /////////////////////////////////
+
+        // right container
+        const rightContainer = document.createElement("div");
+        rightContainer.classList.add("right-container");
+        const h32 = document.createElement("h3");
+        h32.innerText = "Opponent List";
+
+        rightContainer.appendChild(h32);
+
+        const monsterContainer = document.createElement("div");
+        monsterContainer.classList.add("monster-input-container")
+
+        const select = document.createElement("select");
+        select.setAttribute("id", "monsterSelect");
+
+        const opponentNames = ["Opponent 1", "Opponent 2", "Opponent 3"];
+
+        opponentNames.forEach((opponentName, index) => {
+            const option = document.createElement("option");
+            option.setAttribute("value", "monster" + opponentNames.indexOf(opponentName));
+            option.innerText = opponentName;
+            select.appendChild(option);
+        })
+
+        // for each opponent...
+
+        /////////////////////////////
+
+        monsterContainer.appendChild(select);
+
+        const btnContainer = document.createElement("div");
+        btnContainer.classList.add("update-close-container");
+        const button1 = document.createElement("button");
+        button1.setAttribute("onclick", "updateParticipantList()");
+        button1.innerText = "ADD";
+        const button2 = document.createElement("button");
+        button2.setAttribute("onclick", "closeParticipantModal()");
+        button2.innerText = "CLOSE";
+
+        btnContainer.appendChild(button1);
+        btnContainer.appendChild(button2);
+
+        leftContainer.appendChild(div2);
+
+        rightContainer.appendChild(h32);
+        rightContainer.appendChild(monsterContainer);
+        rightContainer.appendChild(btnContainer);
 
 
-
+        container2.appendChild(leftContainer)
+        container2.appendChild(rightContainer)
+        div.appendChild(container2);
+        container.appendChild(div);
+        modal.appendChild(container);
         const cm = document.querySelector(".modal-content");
         function showContextMenu(show = true) {
             cm.style.display = show ? "block" : "none";
