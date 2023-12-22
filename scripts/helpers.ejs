@@ -1013,7 +1013,7 @@
                 );
                 showContextMenu()
             }
-            else if ((element.classList.contains("attack") || element.classList.contains("attack_alt") || element.parentElement.classList.contains("attack") || element.parentElement.classList.contains("attack_alt")) && element.innerText !== "") {
+            else if ((element.classList.contains("attack") || element.classList.contains("attack_alt") || element.parentElement.classList.contains("attack") || element.parentElement.classList.contains("attack_alt")) && element.innerText !== "" && (element.hasAttribute("data-participant") || element.parentElement.hasAttribute("data-participant"))) {
                 const deleteActionEl = document.createElement("div");
                 deleteActionEl.textContent = "Delete Action";
                 deleteActionEl.addEventListener("click", () => deleteAction(dataAidValue));
