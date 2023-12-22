@@ -3376,19 +3376,28 @@
 
         leftContainer.appendChild(h3);
 
+        // get a list of the characters who are available, i.e. pc = 1
+        const availablePCs = await dbQuery("GET", "getCharacters?isPC=1");
+        xxx = availablePCs
+
+        let div2;
         // for each list item
-        const div2 = document.createElement("div");
+        availablePCs.forEach((pc, index) => {
+        div2 = document.createElement("div");
         div2.classList.add("list-item");
         const input = document.createElement("input");
         input.setAttribute("type", "checkbox");
-        input.setAttribute("id", "char1");
+        input.setAttribute("id", "char" + index);
+        input.setAttribute("data-participant", pc.chID)
         input.classList.add("character-checkbox");
         const label = document.createElement("label");
-        label.setAttribute("for", "char1");
-        label.innerText = "Posey";
+        label.setAttribute("for", "char" + index);
+        label.innerText = pc.character_name;
         div2.appendChild(input);
         div2.appendChild(label);
         leftContainer.appendChild(div2);
+        })
+        
         /////////////////////////////////
 
         // right container
@@ -3415,6 +3424,8 @@
         })
 
         // for each opponent...
+
+        const opponents = await dbQuery("GET", "getCharacters?isPC=0")
 
         /////////////////////////////
 

@@ -433,6 +433,26 @@ app.get("/arrangeParticipantsByInit/:pID/:numeric_value", (req, res) => {
     });
 });
 
+app.get("/getCharacters", (req, res) => {
+    const isPC = req.query.isPC; // Assuming the client sends a query parameter 'isPC' with values 1 or 0
+
+    // Validate the parameter
+    if (isPC !== '1' && isPC !== '0') {
+        return res.status(400).send("Invalid value for 'isPC' parameter");
+    }
+
+    const sql = `SELECT * FROM tbl_character WHERE pc = ${isPC}`;
+    
+    const query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Internal Server Error");
+        }
+        res.send(results);
+    });
+});
+
+
 app.get("/getDeleteActionData/:aID", (req, res) => {
     let aID = req.params.aID;
     let sql = `SELECT *
@@ -452,7 +472,11 @@ app.get("/getDeleteActionData/:aID", (req, res) => {
 });
 
 app.post('/orderInitiative', (req, res) => {
-    const requestData = req.body; // Parsed JSON data from the request body
+    let requestData = req.body; // Parsed JSON data from the request body
+
+// Remove objects where init is an empty string
+requestData = requestData.filter(row => row.init !== '');
+
     // Process the data and build your SQL query
     const numericValueUpdates = [];
     const initUpdates = [];
