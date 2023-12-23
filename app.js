@@ -441,7 +441,7 @@ app.get("/getCharacters", (req, res) => {
         return res.status(400).send("Invalid value for 'isPC' parameter");
     }
 
-    const sql = `SELECT * FROM tbl_character WHERE pc = ${isPC}`;
+    const sql = `SELECT * FROM tbl_character WHERE pc = ${isPC} ORDER BY character_name`;
     
     const query = db.all(sql, [], (err, results) => {
         if (err) {

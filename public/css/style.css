@@ -3,6 +3,17 @@ body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
+select {
+    font-size: 20px;
+}
+
+input {
+    font-size: 20px;
+    margin-top: 5px;
+}
+
+
+
 .ct_grid4columns {
     display: grid;
     grid-template-columns: repeat(4, auto);
@@ -619,7 +630,24 @@ strong {
     margin-bottom: 8px;
 }
 
-#monsterSelect {
-    font-size: 22px;
-    margin-bottom: 50px;
+.hp-input {
+    width: 30px;
+}
+
+.hideHP {
+    visibility: hidden;
+}
+
+.update-close-container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#hpInputOpp {
+    width: 30px;
+    margin-right: 20px;
+}
+
+.details-container {
+    margin-bottom: 15px;
 }
