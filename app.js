@@ -253,9 +253,8 @@ app.get(
 );
 
 app.get(
-    "/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID/:row",
+    "/submitAction/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID",
     (req, res) => {
-        const row = req.params.row;
         const encounter = req.params.encounter;
         let round = req.params.round;
         let toolID = req.params.tool; // may be toolID or descriptive string (e.g. disengage)
@@ -295,8 +294,8 @@ app.get(
         let target_pIDArray = target_pID.split(" ").map;
 
         let sql = `INSERT into ct_tbl_action
-                    (eID, round, pID, targetID, hit, action_type, action, toolID, notes, row)
-                    values (${encounter}, ${round}, ${pID}, ${nextTargetID}, '${hit}', '${actionCategory}', '${actionString}', '${toolID}', '${notes}', '${row}');
+                    (eID, round, pID, targetID, hit, action_type, action, toolID, notes)
+                    values (${encounter}, ${round}, ${pID}, ${nextTargetID}, '${hit}', '${actionCategory}', '${actionString}', '${toolID}', '${notes}');
                 `;
         let query = db.all(sql, (err, results) => {
             if (err) {

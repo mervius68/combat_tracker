@@ -1938,7 +1938,7 @@
         ) {
             hit = 1;
         }
-        let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}/${dataNav}`;
+        let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
         // alert(dataAction);
         await dbQuery("GET", dataAction);
         let round = currentRound;
@@ -3331,8 +3331,6 @@
             }
         });
 
-        xxx = updateData;
-        yyy = deleteEm.length;
         await dbQueryPost("deleteActionUpdateTargetHPs", updateData)
             .then((data) => {
                 console.log(data); // Handle the response from the server
@@ -3385,7 +3383,7 @@
         const oppInput = document.createElement("input");
         oppInput.setAttribute("type", "checkbox");
         oppInput.setAttribute("id", "toggleSelect")
-        oppInput.classList.add("hp-input");
+        oppInput.classList.add("toggle-participants");
         const oppInputLabel = document.createElement("label");
         oppInputLabel.setAttribute("for", "toggleSelect")
         oppInputLabel.innerText = "SELECT/UNSELECT ALL (toggle) ";
@@ -3406,7 +3404,7 @@
             const hp = document.createElement("input");
             hp.setAttribute("type", "text");
             hp.classList.add("hideHP")
-            // hp.setAttribute("placeholder","Enter HP");
+            hp.value = pc.max_hp
             hp.classList.add("hp-input");
             const input = document.createElement("input");
             input.setAttribute("type", "checkbox");
@@ -3440,11 +3438,12 @@
         const select = document.createElement("select");
         select.setAttribute("id", "monsterSelect");
 
-        const opponentNames = ["Opponent 1", "Opponent 2", "Opponent 3"];
         const opponents = await dbQuery("GET", "getCharacters?isPC=0")
 
+        let firstOppHP = 0;
         // for each opponent...
         opponents.forEach((opponent, index) => {
+            firstOppHP = index == 0 ? opponent.max_hp : firstOppHP;
             const option = document.createElement("option");
             option.setAttribute("value", "monster" + opponent.chID);
             option.setAttribute("data-hp", opponent.max_hp)
@@ -3471,8 +3470,10 @@
         const detailsContainer2 = document.createElement("div");
         detailsContainer2.classList.add("details-container")
         const hpInput = document.createElement("input");
-        hpInput.setAttribute("id","hpInputOpp")
+        hpInput.setAttribute("id", "hpInputOpp")
+        hpInput.value = firstOppHP;
         const hpInputLabel = document.createElement("label");
+        // hpInputLabel.value = document.getElementById("monsterSelect").getAttribute("[data-hp]");
         hpInputLabel.setAttribute("for", "hpInputOpp");
         hpInputLabel.innerText = "HP: "
 
@@ -3525,5 +3526,49 @@
         function showContextMenu(show = true) {
             cm.style.display = show ? "block" : "none";
         }
+
+        const toggler = document.querySelector(".toggle-participants");
+        const participants = document.querySelectorAll(".character-checkbox");
+
+        toggler.addEventListener("change", () => {
+            participants.forEach((participant) => {
+                participant.checked = toggler.checked;
+                toggleHideHP(participant);
+            });
+        });
+
+        participants.forEach((participant) => {
+            participant.addEventListener("change", () => {
+                toggleHideHP(participant);
+            });
+        });
+
+        function toggleHideHP(participant) {
+            const hideHPInputs = [
+                participant.previousElementSibling,
+                participant.previousElementSibling.previousElementSibling
+            ];
+
+            hideHPInputs.forEach((input) => {
+                input.classList.toggle("hideHP", !participant.checked);
+            });
+        }
+
+        // const options = document.querySelectorAll('.monsterSelect option');
+        // Select the elements
+        const monsterSelect = document.getElementById('monsterSelect');
+        const hpInputOpp = document.getElementById('hpInputOpp');
+
+        // Add event listener to the monsterSelect
+        monsterSelect.addEventListener('change', () => {
+            // Get the selected option
+            const selectedOption = monsterSelect.options[monsterSelect.selectedIndex];
+
+            // Update the value of hpInputOpp with the data-hp attribute of the selected option
+            hpInputOpp.value = selectedOption.dataset.hp || '';
+        });
+
+
+
     }
 </script>
