@@ -631,7 +631,7 @@ strong {
 }
 
 .hp-input {
-    width: 30px;
+    width: 35px;
 }
 
 .hideHP {
@@ -644,7 +644,6 @@ strong {
 }
 
 #hpInputOpp {
-    width: 30px;
     margin-right: 20px;
 }
 

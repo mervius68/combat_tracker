@@ -77,6 +77,12 @@
             })`;
 
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
+        const chids = [];
+        let newNames;
+        originalParticipants.forEach((participant) => {
+
+        })
+        // const newNames = await dbQuery("GET", "updateNames/" + )
 
         // set ctApp to originalParticipants before using reduce method on originalParticipants
         ctApp = [...originalParticipants]
@@ -3409,8 +3415,10 @@
             const input = document.createElement("input");
             input.setAttribute("type", "checkbox");
             input.setAttribute("id", "char" + index);
-            input.setAttribute("data-participant", pc.chID)
+            input.setAttribute("data-chid", pc.chID);
+            input.setAttribute("data-ac", pc.ac);
             input.classList.add("character-checkbox");
+            input.setAttribute("data-name", pc.character_name)
             const label = document.createElement("label");
             label.setAttribute("for", "char" + index);
             label.innerText = pc.character_name;
@@ -3440,13 +3448,23 @@
 
         const opponents = await dbQuery("GET", "getCharacters?isPC=0")
 
-        let firstOppHP = 0;
+        const option = document.createElement("option");
+        option.setAttribute("value", "monster0");
+        option.setAttribute("data-hp", "0");
+        option.setAttribute("data-chid", "0");
+        option.setAttribute("data-ac", "0")
+        option.innerText = "None";
+        select.appendChild(option);
+
+        // let firstOppHP = 0;
         // for each opponent...
         opponents.forEach((opponent, index) => {
-            firstOppHP = index == 0 ? opponent.max_hp : firstOppHP;
+            // firstOppHP = index == 0 ? opponent.max_hp : firstOppHP;
             const option = document.createElement("option");
             option.setAttribute("value", "monster" + opponent.chID);
-            option.setAttribute("data-hp", opponent.max_hp)
+            option.setAttribute("data-hp", opponent.max_hp);
+            option.setAttribute("data-chid", opponent.chID);
+            option.setAttribute("data-ac", opponent.ac)
             option.innerText = opponent.character_name;
             select.appendChild(option);
         })
@@ -3471,9 +3489,9 @@
         detailsContainer2.classList.add("details-container")
         const hpInput = document.createElement("input");
         hpInput.setAttribute("id", "hpInputOpp")
-        hpInput.value = firstOppHP;
+        hpInput.classList.add("hp-input")
+        hpInput.value = "";
         const hpInputLabel = document.createElement("label");
-        // hpInputLabel.value = document.getElementById("monsterSelect").getAttribute("[data-hp]");
         hpInputLabel.setAttribute("for", "hpInputOpp");
         hpInputLabel.innerText = "HP: "
 
@@ -3566,9 +3584,67 @@
 
             // Update the value of hpInputOpp with the data-hp attribute of the selected option
             hpInputOpp.value = selectedOption.dataset.hp || '';
+
+            const resetNewName = document.getElementById("detailsInput");
+            resetNewName.value = ""
         });
 
 
 
+    }
+
+    async function updateParticipantList() {
+        // get characters
+        // Select all elements with class "list-item" (excluding the first match) where the child checkbox is checked
+        const selectedCharacters = document.querySelectorAll('.list-item:not(:first-child) input.character-checkbox:checked');
+
+
+
+        let group = []
+        // Do something with the selected elements
+        selectedCharacters.forEach((item, index) => {
+            const currentItem = {
+                chID: item.getAttribute("data-chid"),
+                character_name: item.getAttribute("data-name"),
+                ac: item.getAttribute("data-ac"),
+                max_hp: item.previousElementSibling.value,
+                numeric_value: ""
+            }
+            group.push(currentItem);
+        });
+
+        const monsters = document.querySelector("#monsterSelect")
+        const monsterSelected = monsters.options[monsters.selectedIndex];
+        if (monsterSelected.textContent != "None") {
+            const chID = monsterSelected.getAttribute("data-chid");
+            const ac = monsterSelected.getAttribute("data-ac");
+
+            let participantName = document.querySelector("#detailsInput").value;
+            participantName = participantName == "" ? monsterSelected.textContent : participantName;
+            let hp = document.querySelector("#hpInputOpp").value;
+            let numOpponents = document.querySelector("#numOpp")
+            let number = numOpponents.options[numOpponents.selectedIndex].value;
+
+            // let highestNumericKey = Math.max(...Object.keys(group).map(Number), 0) + 1;
+
+            for (let i = 0; i <= number - 1; i++) {
+                const currentItem = {
+                    chID: chID,
+                    character_name: participantName,
+                    ac: ac,
+                    max_hp: hp,
+                    numeric_value: number > 1 ? i + 1 : ""
+                }
+                group.push(currentItem);
+            }
+        }
+
+
+
+        await dbQueryPost("addParticipants", group)
+
+        let html = document.querySelector(".selected");
+        let dataNav = html.getAttribute("data-nav");
+        load_encounter(0, dataNav);
     }
 </script>

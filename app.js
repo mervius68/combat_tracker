@@ -441,7 +441,7 @@ app.get("/getCharacters", (req, res) => {
     }
 
     const sql = `SELECT * FROM tbl_character WHERE pc = ${isPC} ORDER BY character_name`;
-    
+
     const query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
@@ -473,8 +473,8 @@ app.get("/getDeleteActionData/:aID", (req, res) => {
 app.post('/orderInitiative', (req, res) => {
     let requestData = req.body; // Parsed JSON data from the request body
 
-// Remove objects where init is an empty string
-requestData = requestData.filter(row => row.init !== '');
+    // Remove objects where init is an empty string
+    requestData = requestData.filter(row => row.init !== '');
 
     // Process the data and build your SQL query
     const numericValueUpdates = [];
@@ -540,6 +540,44 @@ app.post('/deleteNote', (req, res) => {
         }
         res.json({ message: 'Note deleted successfully' });
     });
+});
+
+app.post('/addParticipants', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+
+    // Prepare the SQL query with placeholders for data
+    const sql = `
+        INSERT INTO ct_tbl_participant (chID, character_name, ac, starting_hp, numeric_value, init, secondary_init, eID, join_round, dead_round)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    // Iterate over each row in the request data and execute the query
+    requestData.forEach((row) => {
+        const values = [
+            row.chID,
+            row.character_name,
+            row.ac,
+            row.max_hp,
+            row.numeric_value, 
+            1, 
+            10, 
+            1, 
+            1, 
+            100
+        ];
+
+        // Execute the SQL query with the provided values
+        db.run(sql, values, (err) => {
+            if (err) {
+                console.log(err);
+                res.status(500).json({ error: 'Internal Server Error' });
+                return;
+            }
+        });
+    });
+
+    // Send a response once all queries have been executed
+    res.json({ message: 'Participants added successfully' });
 });
 
 app.post('/deleteAction', (req, res) => {
