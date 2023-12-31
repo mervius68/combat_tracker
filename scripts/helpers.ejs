@@ -267,9 +267,9 @@
             div4.textContent = "Init";
 
             section1.appendChild(div1);
-            section1.appendChild(div2);
-            section1.appendChild(div3);
             section1.appendChild(div4);
+            section1.appendChild(div3);
+            section1.appendChild(div2);
 
             ctRound.appendChild(section1);
             mainContainer.appendChild(ctRound);
@@ -508,7 +508,7 @@
                                     ? ", "
                                     : "");
                         });
-                        turn.nextSibling.innerHTML = hps;
+                        turn.nextSibling.nextSibling.nextSibling.innerHTML = hps;
                     } else {
                         participant.damageArray[i - 2].forEach((hp, index) => {
                             hps =
@@ -520,7 +520,7 @@
                                     ? ", "
                                     : "");
                         });
-                        turn.nextSibling.innerHTML = hps;
+                        turn.nextSibling.nextSibling.nextSibling.innerHTML = hps;
                     }
 
                     // show character name
@@ -784,7 +784,7 @@
                     });
 
                     // show initiative value for this character
-                    turn.nextSibling.nextSibling.nextSibling.innerText =
+                    turn.nextSibling.innerText =
                         participant.init;
                 });
 
