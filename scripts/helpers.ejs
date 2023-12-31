@@ -790,7 +790,7 @@
 
                 // does the row deserve a yellow or red highlight (e.g. 50% hp or 0 hp)
                 participantHTML.forEach(async (turn, index) => {
-                    let newValue = turn.nextSibling.innerText.split(",");
+                    let newValue = turn.nextSibling.nextSibling.nextSibling.innerText.split(",");
                     // if newValue contains comma, get what's to the right of the last comma
                     // const arr = previousHP.nextSibling.innerHTML.split(","); // split the string into an array based on comma delimiter
                     const lastNum = newValue.pop().trim(); // remove and return the last element of the array, and trim any whitespace
@@ -1061,10 +1061,16 @@
         };
 
         function showContextMenu(show = true) {
-            cm.style.display = show ? "block" : "none";
-            cm.style.left = event.clientX + "px";
-            cm.style.top = event.clientY + "px";
-        }
+    cm.style.display = show ? "block" : "none";
+    
+    // Adjust for scroll position
+    const scrollX = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft;
+    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+
+    cm.style.left = event.clientX + scrollX + "px";
+    cm.style.top = event.clientY + scrollY + "px";
+}
+
         window.addEventListener("click", () => {
 
             showContextMenu(false);
