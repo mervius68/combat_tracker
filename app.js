@@ -50,6 +50,20 @@ app.get("/selected_encounter/:eID", (req, res) => {
     });
 });
 
+app.get("/updatedNames/:pID", (req, res) => {
+    pID = req.params.pID;
+    let sql = `SELECT character_name
+                FROM ct_tbl_participant
+                WHERE pID = ${pID}
+    `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
 app.post('/your-server-endpoint', (req, res) => {
     // Get the data sent from the client
     const data = req.body.option; // Assuming you expect JSON with a property 'option'

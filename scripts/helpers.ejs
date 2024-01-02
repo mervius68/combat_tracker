@@ -81,13 +81,14 @@
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
         const chids = [];
         let newNames;
-        originalParticipants.forEach((participant) => {
-
-        })
-        // const newNames = await dbQuery("GET", "updateNames/" + )
+        for (participant of originalParticipants) {
+            const newNames = await dbQuery("GET", "updatedNames/" + participant.pID)
+            participant.character_name = newNames[0].character_name
+        }
 
         // set ctApp to originalParticipants before using reduce method on originalParticipants
         ctApp = [...originalParticipants]
+        xxx = ctApp;
         const getEncounter = await dbQuery("GET", "getLatestEncounterID");
         if (encounterCode == 0) {
             ctAppEnc = getEncounter.eID;
