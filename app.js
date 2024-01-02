@@ -68,23 +68,30 @@ app.post('/your-server-endpoint', (req, res) => {
 
 
 
-app.get('/available-databases', (req, res) => {
-    // Read the contents of the /databases folder
-    fs.readdir(databaseFolder, (err, files) => {
+app.get('/availableEncounters', (req, res) => {
+    let sql = `SELECT *
+                FROM tbl_encounter
+                ORDER BY eID DESC
+    `;
+    let query = db.all(sql, [], (err, results) => {
         if (err) {
-            console.error('Error reading the /databases folder:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            console.log(err);
+            throw err;
         }
+        res.send(results);
+    });
+});
 
-        // Filter for .db files
-        const dbFiles = files.filter(file => path.extname(file) === '.db');
-
-        // Extract just the database names
-        const databaseNames = dbFiles.map(file => path.parse(file).name);
-
-        // Send the list of available databases as a JSON response
-        res.json({ databases: databaseNames, database_current: databaseName });
+app.get('/getLatestEncounterID', (req, res) => {
+    let sql = `SELECT eID
+                FROM ct_tbl_encounter
+                ORDER BY eID DESC limit 1
+    `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            throw err;
+        }
+        res.send(...results);
     });
 });
 
@@ -97,7 +104,7 @@ app.get("/latest_eID/", (req, res) => {
         if (err) {
             throw err;
         }
-        res.send(results);
+        res.send(...results);
     });
 });
 
@@ -118,10 +125,12 @@ app.get("/getLatestActionRow", (req, res) => {
 app.get("/participants/:encounter", (req, res) => {
     let encounter = req.params.encounter;
     let sql = `SELECT *
-                FROM ct_tbl_participant
-                JOIN tbl_character ON ct_tbl_participant.chID = tbl_character.chID
-                WHERE ct_tbl_participant.eID = ${encounter} ORDER BY init DESC, secondary_init DESC, character_name, numeric_value ASC;
-                `;
+    FROM ct_tbl_participant
+    JOIN tbl_character ON ct_tbl_participant.chID = tbl_character.chID
+    JOIN ct_tbl_encounter ON ct_tbl_participant.pID = ct_tbl_encounter.pID
+    WHERE ct_tbl_encounter.eID = ${encounter}
+    ORDER BY init DESC, secondary_init DESC, character_name, numeric_value ASC;
+     `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);

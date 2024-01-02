@@ -53,19 +53,21 @@
         document.removeEventListener("keydown", keydownEventListener);
         document.removeEventListener("keydown", clickEventListener);
         cellCountVertical = 1;
-        let latestID = await dbQuery("GET", "latest_eID");
-        let encounterID;
-        if (encounterCode == 0) {
-            encounterID = latestID[0]?.eID || 0;
-        } else if (encounterCode == 1) {
-            // get encounterID from selected value in dropdown
-            let html = document
-                .querySelector(".initDropdown")
-                .getAttribute("value");
-        }
-        if (encounterID == 0) {
-            new_encounter(encounterID);
-        }
+        const getLatestID = await dbQuery("GET", "latest_eID");
+        let latestID = getLatestID.eID;
+        // latestID = 1; // temporary! while developing!
+        let encounterID = encounterCode || "2";
+        // if (encounterCode == 0) {
+        //     encounterID = latestID || 0;
+        // } else if (encounterCode == 1) {
+        //     // get encounterID from selected value in dropdown
+        //     let html = document
+        //         .querySelector(".encounterDropdown")
+        //         .value;
+        // }
+        // if (encounterID == 0) {
+        //     new_encounter(encounterID);
+        // }
         let encounter = await dbQuery(
             "GET",
             "selected_encounter/" + encounterID
@@ -77,6 +79,8 @@
             })`;
 
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
+        bbb = encounterID;
+        aaa = originalParticipants;
         const chids = [];
         let newNames;
         originalParticipants.forEach((participant) => {
@@ -86,6 +90,11 @@
 
         // set ctApp to originalParticipants before using reduce method on originalParticipants
         ctApp = [...originalParticipants]
+        const getEncounter = await dbQuery("GET", "getLatestEncounterID");
+        if (encounterCode == 0) {
+            ctAppEnc = getEncounter.eID;
+        }
+        
         const characterNameCounts = originalParticipants.reduce((acc, obj) => {
             if (!acc[obj.character_name]) {
                 acc[obj.character_name] = [obj];
@@ -1061,15 +1070,15 @@
         };
 
         function showContextMenu(show = true) {
-    cm.style.display = show ? "block" : "none";
-    
-    // Adjust for scroll position
-    const scrollX = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft;
-    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+            cm.style.display = show ? "block" : "none";
 
-    cm.style.left = event.clientX + scrollX + "px";
-    cm.style.top = event.clientY + scrollY + "px";
-}
+            // Adjust for scroll position
+            const scrollX = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft;
+            const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+
+            cm.style.left = event.clientX + scrollX + "px";
+            cm.style.top = event.clientY + scrollY + "px";
+        }
 
         window.addEventListener("click", () => {
 
@@ -1080,7 +1089,7 @@
         // fill values for dropdown
         // fillDropdown(encounterCode);
         fillInitDropdown();
-        fillDBDropdown();
+        fillEncounterDropdown();
 
         // Get all elements with the specified data-hover-id attribute
         const elements = document.querySelectorAll('[data-hover-id]');
@@ -1122,28 +1131,6 @@
 
 
     }
-
-    async function writeToDatabase(optionText) {
-        const requestData = { option: optionText };
-
-        try {
-            const responseData = await dbQueryPost('your-server-endpoint', requestData);
-            console.log('Data written to the file on the server:', responseData);
-        } catch (error) {
-            console.error('Failed to write data to the file:', error);
-        }
-
-        let html = document.querySelector(".selected");
-        let dataNav = html.getAttribute("data-nav");
-        load_encounter(0, dataNav);
-    }
-
-    async function restart_server() {
-        const databaseOptions = document.getElementById('databaseOptions');
-        const writeToDatabaseButton = document.getElementById('writeToDatabaseButton');
-        const selectedOption = databaseOptions.options[databaseOptions.selectedIndex].text;
-        writeToDatabase(selectedOption);
-    };
 
     async function modalActions() {
         let modal = document.querySelector("#modal-body");
@@ -2918,22 +2905,25 @@
         return round;
     }
 
-    async function fillDBDropdown() {
-        let dbList = await dbQuery("GET", "available-databases")
-        let select = document.querySelector(".dbDropdown");
+    async function fillEncounterDropdown() {
+        const encounterList = await dbQuery("GET", "availableEncounters")
+        xxx = encounterList;
+        let select = document.querySelector(".encounterDropdown");
         select.innerHTML = "";
 
-        dbList.databases.forEach((db) => {
+        encounterList.forEach((enc) => {
             const option = document.createElement("option");
-            option.setAttribute("value", db);
-            option.innerText = db;
-            if (dbList.database_current === db) {
+            option.setAttribute("value", enc.eID);
+            option.innerText = `(${enc.eID}) ${enc.campaign} - ${enc.location} - ${enc.description}`;
+            option.removeAttribute("selected");
+            if (enc.eID == ctAppEnc) {
                 option.setAttribute("selected", "selected")
-            }
+            } 
+            // else {
+            //     option.removeAttribute("selected")
+            // }
             select.appendChild(option);
         })
-
-
     }
 
     async function fillInitDropdown() {
@@ -3055,20 +3045,21 @@
 
     }
 
-    function new_encounter(encounterID) {
-        let modalContainer = document.createElement("div");
-        modalContainer.innerHTML;
+    // function new_encounter(encounterID) {
+    //     "hello??????"
+    //     let modalContainer = document.createElement("div");
+    //     modalContainer.innerHTML;
 
-        let innerContainer = document.createElement("div");
-        innerContainer.classList.add("modalContainer");
+    //     let innerContainer = document.createElement("div");
+    //     innerContainer.classList.add("modalContainer");
 
-        let participantsHeader = document.createElement("h2");
-        participantsHeader.innerText = "Participants";
+    //     let participantsHeader = document.createElement("h2");
+    //     participantsHeader.innerText = "Participants";
 
-        let x = document.getElementById("modal-body");
-        x.innerHTML = modalContainer.outerHTML;
-        launchActionModal();
-    }
+    //     let x = document.getElementById("modal-body");
+    //     x.innerHTML = modalContainer.outerHTML;
+    //     launchActionModal();
+    // }
 
     function launchActionModal(event) {
         modalActions();
@@ -3652,5 +3643,18 @@
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
         load_encounter(0, dataNav);
+    }
+
+    async function change_encounter() {
+        // Get the select element
+        const selectElement = document.querySelector(".encounterDropdown");
+
+        // Get the selected option
+        var selectedOption = selectElement.options[selectElement.selectedIndex];
+
+        ctAppEnc = selectedOption.value;
+        let html = document.querySelector(".selected");
+        let dataNav = html?.getAttribute("data-nav");
+        load_encounter(ctAppEnc, dataNav);
     }
 </script>
