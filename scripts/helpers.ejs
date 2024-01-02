@@ -967,6 +967,7 @@
         const cm = document.querySelector(".custom-cm");
 
         const contextMenuListener = function (e) {
+            console.log(e.target)
             e.preventDefault();
             const element = e.target;
             const dataAidValue = element.dataset.aid;
@@ -1046,12 +1047,6 @@
                 deleteOption.textContent = "Delete Note";
                 deleteOption.addEventListener("click", () => deleteNote(dataAidValue));
                 contextMenu.appendChild(deleteOption);
-
-                // Create "Edit Note" option
-                // const editOption = document.createElement("div");
-                // editOption.textContent = "Edit Note";
-                // editOption.addEventListener("click", () => editNote(dataAidValue));
-                // contextMenu.appendChild(editOption);
                 showContextMenu()
             }
             else {
@@ -3663,6 +3658,11 @@
         var selectedOption = selectElement.options[selectElement.selectedIndex];
 
         ctAppEnc = selectedOption.value;
+        const data = {
+            id: ctAppEnc
+        }
+
+        await dbQueryPost("saveEncounterID", data)
         refresh_encounter();
     }
 

@@ -64,6 +64,22 @@ app.get("/updatedNames/:pID", (req, res) => {
     });
 });
 
+app.post('/saveEncounterID', (req, res) => {
+    const eID = req.body;
+    console.log(eID);
+    const dataToWrite = `${eID.id}`;
+  
+    fs.writeFile('databases/database.txt', dataToWrite, (err) => {
+      if (err) {
+        console.error('Error writing to file:', err);
+        res.status(500).json({ success: false, error: err.message });
+      } else {
+        console.log('Data written to file successfully.');
+        res.json({ success: true });
+      }
+    });
+  });
+
 app.post('/your-server-endpoint', (req, res) => {
     // Get the data sent from the client
     const data = req.body.option; // Assuming you expect JSON with a property 'option'
