@@ -84,7 +84,7 @@ app.get('/availableEncounters', (req, res) => {
 
 app.get('/getLatestEncounterID', (req, res) => {
     let sql = `SELECT eID
-                FROM tbl_encounter
+                FROM ct_tbl_encounter
                 ORDER BY eID DESC limit 1
     `;
     let query = db.all(sql, [], (err, results) => {
@@ -97,7 +97,7 @@ app.get('/getLatestEncounterID', (req, res) => {
 
 app.get("/latest_eID/", (req, res) => {
     let sql = `SELECT *
-                FROM tbl_encounter
+                FROM ct_tbl_encounter
                 ORDER BY eID DESC limit 1
     `;
     let query = db.all(sql, [], (err, results) => {
