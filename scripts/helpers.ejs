@@ -42,7 +42,7 @@
         );
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
-        load_encounter(0, dataNav);
+        load_encounter(ctAppEnc, dataNav);
 
     }
 
@@ -79,8 +79,6 @@
             })`;
 
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
-        bbb = encounterID;
-        aaa = originalParticipants;
         const chids = [];
         let newNames;
         originalParticipants.forEach((participant) => {
@@ -1986,7 +1984,7 @@
 
 
 
-        load_encounter(0, dataNav);
+        load_encounter(ctAppEnc, dataNav);
         let modal = document.querySelector(".modal");
 
         // Remove the event listener
@@ -2423,7 +2421,7 @@
         let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${taID}/${conditionEndsPID}/${newCpID}/${concentration}/${holding}/${nextAID}`;
         await dbQuery("GET", dataConditions);
 
-        load_encounter(0, dataNav);
+        load_encounter(ctAppEnc, dataNav);
         let modal = document.querySelector(".modal");
         modal.style.display = "none";
     }
@@ -2782,7 +2780,7 @@
 
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
-        load_encounter(0, dataNav);
+        load_encounter(ctAppEnc, dataNav);
     }
 
     async function dbQuery(httpReqType, httpReqString) {
@@ -2913,7 +2911,6 @@
     async function fillEncounterDropdown() {
         
         const encounterList = await dbQuery("GET", "availableEncounters")
-        ddd = encounterList;
         let select = document.querySelector(".encounterDropdown");
         select.innerHTML = "";
 
@@ -2958,8 +2955,8 @@
             option2.innerText = combatant;
             select.appendChild(option2);
         });
-        div.appendChild(select);
-        select.appendChild(div);
+        // div.appendChild(select);
+        // select.appendChild(div);
 
     }
 
@@ -3293,7 +3290,7 @@
             });
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
-        load_encounter(0, dataNav);
+        load_encounter(ctAppEnc, dataNav);
     }
 
     async function deleteAction(dataAidValue) {
@@ -3349,7 +3346,7 @@
             });
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
-        load_encounter(0, dataNav);
+        load_encounter(ctAppEnc, dataNav);
     }
 
     function add_participants_modal() {
@@ -3601,8 +3598,6 @@
         // Select all elements with class "list-item" (excluding the first match) where the child checkbox is checked
         const selectedCharacters = document.querySelectorAll('.list-item:not(:first-child) input.character-checkbox:checked');
 
-
-
         let group = []
         // Do something with the selected elements
         selectedCharacters.forEach((item, index) => {
@@ -3610,9 +3605,11 @@
                 chID: item.getAttribute("data-chid"),
                 character_name: item.getAttribute("data-name"),
                 ac: item.getAttribute("data-ac"),
+                eID: ctAppEnc,
                 max_hp: item.previousElementSibling.value,
                 numeric_value: ""
             }
+            aaa = currentItem;
             group.push(currentItem);
         });
 
@@ -3634,21 +3631,40 @@
                 const currentItem = {
                     chID: chID,
                     character_name: participantName,
+                    eID: ctAppEnc,
                     ac: ac,
                     max_hp: hp,
                     numeric_value: number > 1 ? i + 1 : ""
                 }
+                bbb = currentItem
                 group.push(currentItem);
             }
         }
 
+        // we have a group array containing objects, where each object gets action in the db
 
-
-        await dbQueryPost("addParticipants", group)
-
-        let html = document.querySelector(".selected");
-        let dataNav = html.getAttribute("data-nav");
-        load_encounter(0, dataNav);
+        for (const obj of group) {
+            const chidCheck = await dbQuery("GET", "chidCheck/" + obj.chID)
+            // if (chidCheck.length > 0) {
+            //     obj.update = false;
+            //     obj.pID = chidCheck.pID;
+            // } else {
+                // obj.update = true;
+                let latestParticipant = await dbQuery("GET", "getLatestParticipant")
+                console.log(latestParticipant);
+                obj.pID = parseInt(latestParticipant[0].pID) + 1
+            // }
+            // await new Promise(resolve => setTimeout(resolve, 1000));
+            await dbQueryPost("updateEncounterParticipants", obj)
+            // await new Promise(resolve => setTimeout(resolve, 1000));
+            // if (obj.update == true) {
+                await dbQueryPost("addParticipant", obj)
+                // await new Promise(resolve => setTimeout(resolve, 1000));
+            // }
+        }
+ 
+        // await dbQueryPost("addParticipants", group)
+        refresh_encounter();
     }
 
     async function change_encounter() {
@@ -3659,8 +3675,13 @@
         var selectedOption = selectElement.options[selectElement.selectedIndex];
 
         ctAppEnc = selectedOption.value;
+        refresh_encounter();
+    }
+
+    function refresh_encounter() {
         let html = document.querySelector(".selected");
         let dataNav = html?.getAttribute("data-nav");
         load_encounter(ctAppEnc, dataNav);
     }
+
 </script>

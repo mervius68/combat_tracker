@@ -220,6 +220,7 @@ app.get(
     "/submitTargets/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID/:targetHP",
     (req, res) => {
         let encounter = req.params.encounter;
+        console.log(encounter);
         let round = req.params.round;
         let targetHP = req.params.targetHP;
         let toolID = req.params.tool; // may be toolID or descriptive string (e.g. disengage)
@@ -551,39 +552,60 @@ app.post('/deleteNote', (req, res) => {
     });
 });
 
-app.post('/addParticipants', (req, res) => {
+app.post('/updateEncounterParticipants', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+    console.log(requestData);
+    // Generate the SQL query
+    const sql = `
+      INSERT INTO ct_tbl_encounter (pID, eID) 
+      VALUES (${requestData.pID}, ${requestData.eID})
+    `;
+
+    // Execute the SQL query and handle the response (you'll need to set up your database connection)
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.json({ message: 'Record created successfully' });
+    });
+});
+
+app.post('/addParticipant', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
 
     // Prepare the SQL query with placeholders for data
     const sql = `
-        INSERT INTO ct_tbl_participant (chID, character_name, ac, starting_hp, numeric_value, init, secondary_init, eID, join_round, dead_round)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO ct_tbl_participant (chID, eID, character_name, ac, starting_hp, numeric_value, init, secondary_init, eID, join_round, dead_round)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    // Iterate over each row in the request data and execute the query
-    requestData.forEach((row) => {
-        const values = [
-            row.chID,
-            row.character_name,
-            row.ac,
-            row.max_hp,
-            row.numeric_value, 
-            1, 
-            10, 
-            1, 
-            1, 
-            100
-        ];
 
-        // Execute the SQL query with the provided values
-        db.run(sql, values, (err) => {
-            if (err) {
-                console.log(err);
-                res.status(500).json({ error: 'Internal Server Error' });
-                return;
-            }
-        });
-    });
+            const values = [
+                requestData.chID,
+                requestData.eID,
+                requestData.character_name,
+                requestData.ac,
+                requestData.max_hp,
+                requestData.numeric_value, 
+                1, 
+                10, 
+                1, 
+                1, 
+                100
+            ];
+            console.log(requestData.eID);
+            // Execute the SQL query with the provided values
+            db.run(sql, values, (err) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).json({ error: 'Internal Server Error' });
+                    return;
+                }
+            });
+
+        
+
 
     // Send a response once all queries have been executed
     res.json({ message: 'Participants added successfully' });
@@ -716,6 +738,33 @@ app.post('/deleteActionUpdateTargetHPs', (req, res) => {
 //         res.send({});
 //     });
 // });
+
+app.get("/chidCheck/:chID/", (req, res) => {
+    let chID = req.params.chID;
+    let sql = `SELECT * FROM ct_tbl_participant
+        where chID = '${chID}' ORDER BY pID DESC limit 1;
+            `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
+app.get("/getLatestParticipant/", (req, res) => {
+    let sql = `SELECT * FROM ct_tbl_participant
+        ORDER BY pID DESC limit 1;
+            `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
 
 app.get("/revive/:targeted_pID/", (req, res) => {
     let targeted_pID = req.params.targeted_pID;
