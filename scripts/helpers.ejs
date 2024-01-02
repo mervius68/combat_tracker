@@ -94,7 +94,7 @@
         if (encounterCode == 0) {
             ctAppEnc = getEncounter.eID;
         }
-        
+
         const characterNameCounts = originalParticipants.reduce((acc, obj) => {
             if (!acc[obj.character_name]) {
                 acc[obj.character_name] = [obj];
@@ -963,15 +963,20 @@
             } catch (err) { }
         }
 
-        let xyz = document.querySelectorAll(".ct_round");
-        xyz[xyz.length - 1].classList.add("hidden");
-        xyz[xyz.length - 1].classList.add("sometimes_hidden");
-        xyz[xyz.length - 1].previousSibling.classList.add("hidden");
-        xyz[xyz.length - 1].previousSibling.classList.add("sometimes_hidden");
-        startNav.parentNode.parentNode.classList.remove("hidden");
-        startNav.parentNode.parentNode.previousSibling.classList.remove(
-            "hidden"
-        );
+        let xyz;
+        try {
+            xyz = document.querySelectorAll(".ct_round");
+            xyz[xyz.length - 1].classList.add("hidden");
+            xyz[xyz.length - 1].classList.add("sometimes_hidden");
+            xyz[xyz.length - 1].previousSibling.classList.add("hidden");
+            xyz[xyz.length - 1].previousSibling.classList.add("sometimes_hidden");
+            startNav.parentNode.parentNode.classList.remove("hidden");
+            startNav.parentNode.parentNode.previousSibling.classList.remove(
+                "hidden"
+            );
+        }
+        catch (err) { }
+
 
         const cm = document.querySelector(".custom-cm");
 
@@ -2906,8 +2911,9 @@
     }
 
     async function fillEncounterDropdown() {
+        
         const encounterList = await dbQuery("GET", "availableEncounters")
-        xxx = encounterList;
+        ddd = encounterList;
         let select = document.querySelector(".encounterDropdown");
         select.innerHTML = "";
 
@@ -2918,7 +2924,7 @@
             option.removeAttribute("selected");
             if (enc.eID == ctAppEnc) {
                 option.setAttribute("selected", "selected")
-            } 
+            }
             // else {
             //     option.removeAttribute("selected")
             // }
