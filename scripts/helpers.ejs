@@ -54,20 +54,8 @@
         document.removeEventListener("keydown", clickEventListener);
         cellCountVertical = 1;
         const getLatestID = await dbQuery("GET", "latest_eID");
-        let latestID = getLatestID.eID;
-        // latestID = 1; // temporary! while developing!
-        let encounterID = encounterCode || "2";
-        // if (encounterCode == 0) {
-        //     encounterID = latestID || 0;
-        // } else if (encounterCode == 1) {
-        //     // get encounterID from selected value in dropdown
-        //     let html = document
-        //         .querySelector(".encounterDropdown")
-        //         .value;
-        // }
-        // if (encounterID == 0) {
-        //     new_encounter(encounterID);
-        // }
+        const latestID = getLatestID.eID;
+        const encounterID = encounterCode || latestID;
         let encounter = await dbQuery(
             "GET",
             "selected_encounter/" + encounterID
@@ -88,7 +76,6 @@
 
         // set ctApp to originalParticipants before using reduce method on originalParticipants
         ctApp = [...originalParticipants]
-        xxx = ctApp;
         const getEncounter = await dbQuery("GET", "getLatestEncounterID");
         if (encounterCode == 0) {
             ctAppEnc = getEncounter.eID;
