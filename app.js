@@ -570,6 +570,26 @@ app.post('/orderInitiative', (req, res) => {
     });
 });
 
+app.post('/removeDuplicateNumericValues', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+
+    // Generate the SQL query
+    const sql = `
+      UPDATE ct_tbl_participant
+      SET numeric_value = ""
+      WHERE pID = ${requestData.pID}
+    `;
+
+    // Execute the SQL query and handle the response (you'll need to set up your database connection)
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.json({ message: 'Note deleted successfully' });
+    });
+  });
+
 app.post('/deleteNote', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
 

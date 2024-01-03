@@ -84,6 +84,40 @@
             ctAppEnc = savedEncounterPlaceholder || getEncounter.eID;
         }
 
+        const encounteredNames = new Set();
+        const duplicateNames = new Set();
+        const resultArray = [];
+
+        // Filter the array based on conditions
+        // Filter the array to identify duplicates
+        ctApp.forEach((character) => {
+            if (encounteredNames.has(character.character_name)) {
+                duplicateNames.add(character.character_name);
+            } else {
+                encounteredNames.add(character.character_name);
+            }
+        });
+
+        // Filter the array based on conditions
+        ctApp.forEach((character) => {
+            // Check if character_name has a number in numeric_value
+            const hasNumber = /\d/.test(character.numeric_value);
+
+            // Check if character_name is not a duplicate and has a number in numeric_value
+            if (!duplicateNames.has(character.character_name) && hasNumber) {
+                resultArray.push(character);
+            }
+        });
+        xxx = resultArray;
+
+        for (obj of resultArray) {
+            const newObj = {
+                pID: obj.pID
+            }
+            await dbQueryPost("removeDuplicateNumericValues", newObj)
+        }
+
+
         const characterNameCounts = originalParticipants.reduce((acc, obj) => {
             if (!acc[obj.character_name]) {
                 acc[obj.character_name] = [obj];
@@ -2904,7 +2938,7 @@
     }
 
     async function fillEncounterDropdown() {
-        
+
         const encounterList = await dbQuery("GET", "availableEncounters")
         let select = document.querySelector(".encounterDropdown");
         select.innerHTML = "";
@@ -3292,17 +3326,25 @@
 
     async function deleteParticipant(pID) {
         const data = {
-            pID: pID, 
+            pID: pID,
             eID: ctAppEnc
         }
 
         await dbQueryPost("deleteParticipant", data)
-        .then((data) => {
+            .then((data) => {
                 console.log(data); // Handle the response from the server
             })
             .catch((error) => {
                 // Handle errors here
             });
+
+        // clean up ct_tbl_participants:
+        // where eID and character_name are (as a set) NOT duplicated, set numeric_value to "" 
+
+
+
+
+        
 
         refresh_encounter();
     }
@@ -3660,20 +3702,20 @@
             //     obj.update = false;
             //     obj.pID = chidCheck.pID;
             // } else {
-                // obj.update = true;
-                let latestParticipant = await dbQuery("GET", "getLatestParticipant")
-                console.log(latestParticipant);
-                obj.pID = parseInt(latestParticipant[0].pID) + 1
+            // obj.update = true;
+            let latestParticipant = await dbQuery("GET", "getLatestParticipant")
+            console.log(latestParticipant);
+            obj.pID = parseInt(latestParticipant[0].pID) + 1
             // }
             // await new Promise(resolve => setTimeout(resolve, 1000));
             await dbQueryPost("updateEncounterParticipants", obj)
             // await new Promise(resolve => setTimeout(resolve, 1000));
             // if (obj.update == true) {
-                await dbQueryPost("addParticipant", obj)
-                // await new Promise(resolve => setTimeout(resolve, 1000));
+            await dbQueryPost("addParticipant", obj)
+            // await new Promise(resolve => setTimeout(resolve, 1000));
             // }
         }
- 
+
         // await dbQueryPost("addParticipants", group)
         refresh_encounter();
     }
