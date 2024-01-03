@@ -46,6 +46,38 @@
 
     }
 
+    async function handleNumericValues() {
+        
+        const characterNameCounts = ctApp.reduce((acc, obj) => {
+            if (!acc[obj.character_name]) {
+                acc[obj.character_name] = [obj];
+            } else {
+                acc[obj.character_name].push(obj);
+            }
+            return acc;
+        }, {});
+
+        const duplicatedCharacterNames = Object.keys(characterNameCounts).filter(
+            (characterName) => characterNameCounts[characterName].length > 1
+        );
+
+        const orderedCharacterObjects = duplicatedCharacterNames.map(characterName => {
+            const characterObjects = ctApp.filter(obj => obj.character_name === characterName);
+            characterObjects.sort((a, b) => b.init - a.init); // Sort in descending order by "init"
+            return characterObjects;
+        });
+
+        orderedCharacterObjects.forEach((collection) => {
+            collection.sort((a, b) => b.init - a.init)
+        });
+
+        await orderedCharacterObjects.forEach(async (objects) => {
+            await objects.forEach(async (obj, index) => {
+                await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1))
+            })
+        })
+    }
+
     async function load_encounter(encounterCode = 0, dataNav = 1) {
 
         const encounterData = await dbQuery("GET", "getEncounterID")
@@ -108,7 +140,6 @@
                 resultArray.push(character);
             }
         });
-        xxx = resultArray;
 
         for (obj of resultArray) {
             const newObj = {
@@ -118,34 +149,36 @@
         }
 
 
-        const characterNameCounts = originalParticipants.reduce((acc, obj) => {
-            if (!acc[obj.character_name]) {
-                acc[obj.character_name] = [obj];
-            } else {
-                acc[obj.character_name].push(obj);
-            }
-            return acc;
-        }, {});
+        // const characterNameCounts = originalParticipants.reduce((acc, obj) => {
+        //     if (!acc[obj.character_name]) {
+        //         acc[obj.character_name] = [obj];
+        //     } else {
+        //         acc[obj.character_name].push(obj);
+        //     }
+        //     return acc;
+        // }, {});
 
-        const duplicatedCharacterNames = Object.keys(characterNameCounts).filter(
-            (characterName) => characterNameCounts[characterName].length > 1
-        );
+        // const duplicatedCharacterNames = Object.keys(characterNameCounts).filter(
+        //     (characterName) => characterNameCounts[characterName].length > 1
+        // );
 
-        const orderedCharacterObjects = duplicatedCharacterNames.map(characterName => {
-            const characterObjects = originalParticipants.filter(obj => obj.character_name === characterName);
-            characterObjects.sort((a, b) => b.init - a.init); // Sort in descending order by "init"
-            return characterObjects;
-        });
+        // const orderedCharacterObjects = duplicatedCharacterNames.map(characterName => {
+        //     const characterObjects = originalParticipants.filter(obj => obj.character_name === characterName);
+        //     characterObjects.sort((a, b) => b.init - a.init); // Sort in descending order by "init"
+        //     return characterObjects;
+        // });
 
-        orderedCharacterObjects.forEach((collection) => {
-            collection.sort((a, b) => b.init - a.init)
-        });
+        // orderedCharacterObjects.forEach((collection) => {
+        //     collection.sort((a, b) => b.init - a.init)
+        // });
 
-        await orderedCharacterObjects.forEach(async (objects) => {
-            await objects.forEach(async (obj, index) => {
-                await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1))
-            })
-        })
+        // await orderedCharacterObjects.forEach(async (objects) => {
+        //     await objects.forEach(async (obj, index) => {
+        //         await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1))
+        //     })
+        // })
+
+        handleNumericValues()
 
         // get all the actions of this encounter
         // let ctActions = await dbQuery("GET", "actions/" + encounterID);
@@ -3343,10 +3376,8 @@
 
 
 
-
-        
-
         refresh_encounter();
+        xxx = ctApp;
     }
 
     async function deleteAction(dataAidValue) {
