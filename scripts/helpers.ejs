@@ -47,6 +47,9 @@
     }
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
+
+        const encounterData = await dbQuery("GET", "getEncounterID")
+        const savedEncounterPlaceholder = encounterData.data.info
         try {
             document.removeEventListener("contextmenu", contextMenuListener);
         } catch (err) { }
@@ -55,7 +58,7 @@
         cellCountVertical = 1;
         const getLatestID = await dbQuery("GET", "latest_eID");
         const latestID = getLatestID.eID;
-        const encounterID = encounterCode || latestID;
+        const encounterID = savedEncounterPlaceholder || encounterCode || latestID;
         let encounter = await dbQuery(
             "GET",
             "selected_encounter/" + encounterID
@@ -78,7 +81,7 @@
         ctApp = [...originalParticipants]
         const getEncounter = await dbQuery("GET", "getLatestEncounterID");
         if (encounterCode == 0) {
-            ctAppEnc = getEncounter.eID;
+            ctAppEnc = savedEncounterPlaceholder || getEncounter.eID;
         }
 
         const characterNameCounts = originalParticipants.reduce((acc, obj) => {

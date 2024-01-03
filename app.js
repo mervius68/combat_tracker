@@ -68,16 +68,27 @@ app.post('/saveEncounterID', (req, res) => {
     const eID = req.body;
     console.log(eID);
     const dataToWrite = `${eID.id}`;
-  
-    fs.writeFile('databases/database.txt', dataToWrite, (err) => {
-      if (err) {
-        console.error('Error writing to file:', err);
-        res.status(500).json({ success: false, error: err.message });
-      } else {
-        console.log('Data written to file successfully.');
-        res.json({ success: true });
-      }
+
+    fs.writeFile('databases/encounter_id.txt', dataToWrite, (err) => {
+        if (err) {
+            console.error('Error writing to file:', err);
+            res.status(500).json({ success: false, error: err.message });
+        } else {
+            console.log('Data written to file successfully.');
+            res.json({ success: true });
+        }
     });
+});
+
+app.get('/getEncounterID', (req, res) => {
+    try {
+      const data = fs.readFileSync('databases/encounter_id.txt', 'utf-8');
+      const responseObj = { info: data.trim() };
+      res.json({ success: true, data: responseObj });
+    } catch (err) {
+      console.error('Error reading file:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
   });
 
 app.post('/your-server-endpoint', (req, res) => {
@@ -611,30 +622,30 @@ app.post('/addParticipant', (req, res) => {
     `;
 
 
-            const values = [
-                requestData.chID,
-                requestData.eID,
-                requestData.character_name,
-                requestData.ac,
-                requestData.max_hp,
-                requestData.numeric_value, 
-                1, 
-                10, 
-                1, 
-                1, 
-                100
-            ];
-            console.log(requestData.eID);
-            // Execute the SQL query with the provided values
-            db.run(sql, values, (err) => {
-                if (err) {
-                    console.log(err);
-                    res.status(500).json({ error: 'Internal Server Error' });
-                    return;
-                }
-            });
+    const values = [
+        requestData.chID,
+        requestData.eID,
+        requestData.character_name,
+        requestData.ac,
+        requestData.max_hp,
+        requestData.numeric_value,
+        1,
+        10,
+        1,
+        1,
+        100
+    ];
+    console.log(requestData.eID);
+    // Execute the SQL query with the provided values
+    db.run(sql, values, (err) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+            return;
+        }
+    });
 
-        
+
 
 
     // Send a response once all queries have been executed
