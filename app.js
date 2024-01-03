@@ -66,7 +66,6 @@ app.get("/updatedNames/:pID", (req, res) => {
 
 app.post('/saveEncounterID', (req, res) => {
     const eID = req.body;
-    console.log(eID);
     const dataToWrite = `${eID.id}`;
 
     fs.writeFile('databases/encounter_id.txt', dataToWrite, (err) => {
@@ -74,7 +73,6 @@ app.post('/saveEncounterID', (req, res) => {
             console.error('Error writing to file:', err);
             res.status(500).json({ success: false, error: err.message });
         } else {
-            console.log('Data written to file successfully.');
             res.json({ success: true });
         }
     });
@@ -261,7 +259,6 @@ app.get(
     "/submitTargets/:encounter/:round/:tool/:actionString/:pID/:nextTargetID/:hit/:actionCategory/:damage/:notes/:disable_condition/:nextAID/:nextToolID/:target_pID/:targetHP",
     (req, res) => {
         let encounter = req.params.encounter;
-        console.log(encounter);
         let round = req.params.round;
         let targetHP = req.params.targetHP;
         let toolID = req.params.tool; // may be toolID or descriptive string (e.g. disengage)
@@ -590,6 +587,38 @@ app.post('/deleteNote', (req, res) => {
             throw err;
         }
         res.json({ message: 'Note deleted successfully' });
+    });
+});
+
+app.post('/deleteParticipant', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+
+    // Generate and execute the first SQL query
+    const sql1 = `
+      DELETE FROM ct_tbl_participant
+      WHERE pID = ? AND eID = ?;
+    `;
+
+    db.run(sql1, [requestData.pID, requestData.eID], function (err1) {
+        if (err1) {
+            console.log(err1);
+            throw err1;
+        }
+
+        // Generate and execute the second SQL query
+        const sql2 = `
+          DELETE FROM ct_tbl_encounter
+          WHERE pID = ? AND eID = ?;
+        `;
+
+        db.run(sql2, [requestData.pID, requestData.eID], function (err2) {
+            if (err2) {
+                console.log(err2);
+                throw err2;
+            }
+            res.json({ message: 'Participant deleted successfully' });
+            
+        })
     });
 });
 

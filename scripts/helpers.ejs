@@ -282,6 +282,7 @@
                 div5.setAttribute("data-nav", cellCountVertical);
                 div5.setAttribute("tabindex", cellCountVertical);
                 div5.setAttribute("data-round", i);
+                div5.classList.add("delete_character")
                 cellCountVertical += 1;
                 let div6 = document.createElement("div");
                 div6.classList.add("section");
@@ -481,7 +482,7 @@
                     '"]'
                 );
 
-                // populate row in section 1 (ac, hp, character name, and initiative value)
+                // populate row in section 1 (ac, init, character name, and hp)
                 participantHTML.forEach((turn, index) => {
                     // show AC on the combat tracker for this participant
                     turn.innerText =
@@ -526,7 +527,6 @@
                     if (participant.join_round <= i && participant.dead_round >= i) {
                         characterDisplay =
                             participant.character_name +
-                            // (participant.numeric_value == "" || participant.numeric_value == "null"
                             (["null", "", " ", "0", 0].includes(participant.numeric_value)
                                 ? ""
                                 : " #" + participant.numeric_value);
@@ -970,7 +970,9 @@
         const cm = document.querySelector(".custom-cm");
 
         const contextMenuListener = function (e) {
+            console.log("***target***")
             console.log(e.target)
+            console.log("---------target-----------")
             e.preventDefault();
             const element = e.target;
             const dataAidValue = element.dataset.aid;
@@ -1045,12 +1047,19 @@
                 showContextMenu()
             }
             else if (element.classList.contains("notes") && element.innerText !== "") {
-                // Create "Delete Note" option
                 const deleteOption = document.createElement("div");
                 deleteOption.textContent = "Delete Note";
                 deleteOption.addEventListener("click", () => deleteNote(dataAidValue));
                 contextMenu.appendChild(deleteOption);
                 showContextMenu()
+            }
+            else if (element.classList.contains("delete_character") && element.innerText !== "") {
+                const characterToDelete = element.getAttribute("data-participant")
+                const deleteCharacter = document.createElement("div");
+                deleteCharacter.textContent = "Delete Character";
+                deleteCharacter.addEventListener("click", () => deleteParticipant(characterToDelete));
+                contextMenu.appendChild(deleteCharacter);
+                showContextMenu();
             }
             else {
                 console.log(e.target.outerHTML)
@@ -3274,9 +3283,28 @@
             .catch((error) => {
                 // Handle errors here
             });
-        let html = document.querySelector(".selected");
-        let dataNav = html.getAttribute("data-nav");
-        load_encounter(ctAppEnc, dataNav);
+        // let html = document.querySelector(".selected");
+        // let dataNav = html.getAttribute("data-nav");
+        // load_encounter(ctAppEnc, dataNav);
+        refresh_encounter();
+
+    }
+
+    async function deleteParticipant(pID) {
+        const data = {
+            pID: pID, 
+            eID: ctAppEnc
+        }
+
+        await dbQueryPost("deleteParticipant", data)
+        .then((data) => {
+                console.log(data); // Handle the response from the server
+            })
+            .catch((error) => {
+                // Handle errors here
+            });
+
+        refresh_encounter();
     }
 
     async function deleteAction(dataAidValue) {
@@ -3347,7 +3375,6 @@
         container.classList.add("modal-body");
         const div = document.createElement("div");
         div.classList.add("modal-content");
-
 
         const h1 = document.createElement("h1");
         h1.classList.add("center");
@@ -3442,10 +3469,8 @@
         option.innerText = "None";
         select.appendChild(option);
 
-        // let firstOppHP = 0;
         // for each opponent...
         opponents.forEach((opponent, index) => {
-            // firstOppHP = index == 0 ? opponent.max_hp : firstOppHP;
             const option = document.createElement("option");
             option.setAttribute("value", "monster" + opponent.chID);
             option.setAttribute("data-hp", opponent.max_hp);
