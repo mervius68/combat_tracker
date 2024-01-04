@@ -572,23 +572,24 @@ app.post('/orderInitiative', (req, res) => {
 
 app.post('/removeDuplicateNumericValues', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
-
-    // Generate the SQL query
+    // Generate the SQL query with parameters
     const sql = `
       UPDATE ct_tbl_participant
-      SET numeric_value = ""
-      WHERE pID = ${requestData.pID}
+      SET numeric_value = ''
+      WHERE pID = '${requestData.pID}'
     `;
-
-    // Execute the SQL query and handle the response (you'll need to set up your database connection)
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        res.json({ message: 'Note deleted successfully' });
+  
+    // Execute the SQL query with parameters and handle the response
+    db.run(sql, [], (err) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+  console.log(sql);
+      res.json({ message: 'Numeric value deleted successfully' });
     });
   });
+  
 
 app.post('/deleteNote', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
@@ -644,7 +645,7 @@ app.post('/deleteParticipant', (req, res) => {
 
 app.post('/updateEncounterParticipants', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
-    console.log(requestData);
+    // console.log(requestData);
     // Generate the SQL query
     const sql = `
       INSERT INTO ct_tbl_encounter (pID, eID) 
@@ -684,7 +685,6 @@ app.post('/addParticipant', (req, res) => {
         1,
         100
     ];
-    console.log(requestData.eID);
     // Execute the SQL query with the provided values
     db.run(sql, values, (err) => {
         if (err) {
@@ -788,46 +788,6 @@ app.post('/deleteActionUpdateTargetHPs', (req, res) => {
         res.status(400).json({ message: 'Invalid request data' });
     }
 });
-
-
-
-
-
-
-// app.get("/orderInitiative/:valuesString", (req, res) => {
-//     const valuesString = req.params.valuesString;
-//     const rows = valuesString.split(' | ');
-//     const numericValueUpdates = [];
-//     const initUpdates = [];
-
-//     for (const row of rows) {
-//         const [pID, numeric_value, init] = row.split(', ');
-//         numericValueUpdates.push(`WHEN pID = ${pID} THEN '${numeric_value == 0 ? '' : numeric_value}'`);
-//         initUpdates.push(`WHEN pID = ${pID} THEN '${init}'`);
-//     }
-
-//     // Generate the SQL query
-//     const sql = `
-//     UPDATE ct_tbl_participant
-//     SET numeric_value = CASE
-//       ${numericValueUpdates.join('\n')}
-//       ELSE numeric_value
-//     END,
-//     init = CASE
-//       ${initUpdates.join('\n')}
-//       ELSE init
-//     END
-//     WHERE pID IN (${rows.map(row => row.split(', ')[0]).join(', ')});
-//         `;
-
-//     let query = db.all(sql, [], (err, results) => {
-//         if (err) {
-//             console.log(err);
-//             throw err;
-//         }
-//         res.send({});
-//     });
-// });
 
 app.get("/chidCheck/:chID/", (req, res) => {
     let chID = req.params.chID;

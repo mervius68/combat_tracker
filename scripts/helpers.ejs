@@ -40,14 +40,14 @@
             "/" +
             taid
         );
-        let html = document.querySelector(".selected");
-        let dataNav = html.getAttribute("data-nav");
-        load_encounter(ctAppEnc, dataNav);
-
+        // let html = document?.querySelector(".selected");
+        // let dataNav = html?.getAttribute("data-nav") || 1;
+        // load_encounter(ctAppEnc, dataNav);
+        refresh_encounter()
     }
 
     async function handleNumericValues() {
-        
+
         const characterNameCounts = ctApp.reduce((acc, obj) => {
             if (!acc[obj.character_name]) {
                 acc[obj.character_name] = [obj];
@@ -56,6 +56,7 @@
             }
             return acc;
         }, {});
+
 
         const duplicatedCharacterNames = Object.keys(characterNameCounts).filter(
             (characterName) => characterNameCounts[characterName].length > 1
@@ -79,7 +80,7 @@
     }
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
-
+        ctApp = [];
         const encounterData = await dbQuery("GET", "getEncounterID")
         const savedEncounterPlaceholder = encounterData.data.info
         try {
@@ -102,6 +103,7 @@
             })`;
 
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
+        console.log(originalParticipants)
         const chids = [];
         let newNames;
         for (participant of originalParticipants) {
@@ -141,12 +143,7 @@
             }
         });
 
-        for (obj of resultArray) {
-            const newObj = {
-                pID: obj.pID
-            }
-            await dbQueryPost("removeDuplicateNumericValues", newObj)
-        }
+
 
 
         // const characterNameCounts = originalParticipants.reduce((acc, obj) => {
@@ -178,7 +175,7 @@
         //     })
         // })
 
-        handleNumericValues()
+        await handleNumericValues()
 
         // get all the actions of this encounter
         // let ctActions = await dbQuery("GET", "actions/" + encounterID);
@@ -1037,9 +1034,6 @@
         const cm = document.querySelector(".custom-cm");
 
         const contextMenuListener = function (e) {
-            console.log("***target***")
-            console.log(e.target)
-            console.log("---------target-----------")
             e.preventDefault();
             const element = e.target;
             const dataAidValue = element.dataset.aid;
@@ -3377,7 +3371,6 @@
 
 
         refresh_encounter();
-        xxx = ctApp;
     }
 
     async function deleteAction(dataAidValue) {
@@ -3729,22 +3722,10 @@
 
         for (const obj of group) {
             const chidCheck = await dbQuery("GET", "chidCheck/" + obj.chID)
-            // if (chidCheck.length > 0) {
-            //     obj.update = false;
-            //     obj.pID = chidCheck.pID;
-            // } else {
-            // obj.update = true;
             let latestParticipant = await dbQuery("GET", "getLatestParticipant")
-            console.log(latestParticipant);
             obj.pID = parseInt(latestParticipant[0].pID) + 1
-            // }
-            // await new Promise(resolve => setTimeout(resolve, 1000));
             await dbQueryPost("updateEncounterParticipants", obj)
-            // await new Promise(resolve => setTimeout(resolve, 1000));
-            // if (obj.update == true) {
             await dbQueryPost("addParticipant", obj)
-            // await new Promise(resolve => setTimeout(resolve, 1000));
-            // }
         }
 
         // await dbQueryPost("addParticipants", group)
@@ -3767,9 +3748,43 @@
         refresh_encounter();
     }
 
-    function refresh_encounter() {
-        let html = document.querySelector(".selected");
-        let dataNav = html?.getAttribute("data-nav");
+    async function refresh_encounter() {
+
+
+        const encounteredNames = {};
+        const resultArray = [];
+
+        // Filter the array based on conditions
+        ctApp.forEach((character) => {
+            // Check if character_name has a number in numeric_value
+            const hasNumber = /\d/.test(character.numeric_value);
+
+            // Check if character_name is not a duplicate and has a number in numeric_value
+            if (!encounteredNames[character.character_name] && hasNumber) {
+                resultArray.push(character);
+                encounteredNames[character.character_name] = true;
+            }
+        });
+
+        xxx = resultArray;
+
+
+        const newObj = {
+            pID: resultArray[0]?.pID,
+        }
+
+        await dbQueryPost("removeDuplicateNumericValues", newObj)
+            .then((data) => {
+                console.log(data); // Handle the response from the server
+            })
+            .catch((error) => {
+                // Handle errors here
+            });
+
+
+        let html = document?.querySelector(".selected");
+        let dataNav = html?.getAttribute("data-nav") || 1;
+        await load_encounter(ctAppEnc, dataNav);
         load_encounter(ctAppEnc, dataNav);
     }
 
