@@ -80,7 +80,6 @@
     }
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
-        ctApp = [];
         const encounterData = await dbQuery("GET", "getEncounterID")
         const savedEncounterPlaceholder = encounterData.data.info
         try {
@@ -2039,7 +2038,6 @@
         });
 
 
-
         load_encounter(ctAppEnc, dataNav);
         let modal = document.querySelector(".modal");
 
@@ -2066,19 +2064,23 @@
         holdingOneRound,
         nextAID
     ) {
-        let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
+        let modal = document.querySelector("#modal-body");
+        
         // let dataNavSelected = html.getAttribute("data-nav");
-        let participantID = html.getAttribute("data-participant");
+        let participantID = await html.getAttribute("data-participant");
         // let causerObject = ctApp.find((participant) => {
         //     return participantID == participant.pID
         // })
         // let affecteeObject = ctApp.find((participant) => {
         //     return participant.pID ==
         // })
+
         let characterID = ctApp.find((participant) => {
             return participant.pID == participantID;
         }).chID;
+        xxx = characterID;
+        yyy = "what now?"
         let currentRound = html.getAttribute("data-round");
         let encounter = ctApp[0].eID;
 
@@ -2089,7 +2091,7 @@
             "participantTools/" + characterID
         );
         // targets
-
+       
         // conditions in effect (with option to end them)
         let conditionsInEffect = await dbQuery(
             "GET",
@@ -2260,7 +2262,7 @@
         label3.classList.add("pointer");
         label3.innerText = "NO";
         let br9 = document.createElement("br");
-
+        
         div17.appendChild(h7);
         // div17.appendChild(br8);
         div17.appendChild(radioButton1);
@@ -3765,8 +3767,6 @@
                 encounteredNames[character.character_name] = true;
             }
         });
-
-        xxx = resultArray;
 
 
         const newObj = {
