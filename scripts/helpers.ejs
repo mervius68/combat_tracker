@@ -80,6 +80,7 @@
     }
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
+        modalIsOpen = false
         const encounterData = await dbQuery("GET", "getEncounterID")
         const savedEncounterPlaceholder = encounterData.data.info
         try {
@@ -1087,6 +1088,7 @@
             }
             else if ((element.classList.contains("attack") || element.classList.contains("attack_alt") || element.parentElement.classList.contains("attack") || element.parentElement.classList.contains("attack_alt")) && element.innerText !== "" && (element.hasAttribute("data-participant") || element.parentElement.hasAttribute("data-participant"))) {
                 const deleteActionEl = document.createElement("div");
+                deleteActionEl.classList.add("clickable_area")
                 deleteActionEl.textContent = "Delete Action";
                 deleteActionEl.addEventListener("click", () => deleteAction(dataAidValue));
                 contextMenu.appendChild(deleteActionEl);
@@ -1142,6 +1144,25 @@
 
             showContextMenu(false);
         });
+        document.addEventListener("keyup", (e) => {
+            const modal = document.querySelector(".modal");
+            // const selectedElement = document.querySelector(".selected");
+            if (e.altKey && e.key === "Enter" && !modalIsOpen) {
+                launchConditionsModal("turn")
+            } else if (e.key === "Enter" && !modalIsOpen) {
+                launchActionModal("turn")
+            } else if (e.key === "Escape" && modalIsOpen) {
+                let modal = document.querySelector(".modal");
+                modal.style.display = "none";
+                modalIsOpen = false;
+            }
+        })
+        document.addEventListener("keydown", (e) => {
+            if (!modalIsOpen) {
+                blurAllElements();
+            }
+            
+        })
         document.addEventListener("contextmenu", contextMenuListener);
 
         // fill values for dropdown
@@ -1210,10 +1231,6 @@
         // targets
         let allParticipants = ctApp.filter((participant) => {
             return participant// (
-            //     participant.join_round <= currentRound &&
-            //     (participant.dead_round >= currentRound ||
-            //         participant.dead_round == "")
-            // );
         });
         // conditions in effect (with option to end them)
         let conditionsInEffect = await dbQuery(
@@ -1674,7 +1691,6 @@
         modal.addEventListener("click", modalClickListener);
 
         modal.addEventListener("input", function (e) {
-
             if (e.target.parentElement.classList.contains("conSaveParent")) {
                 let concentrationStuff =
                     e.target.parentNode.querySelectorAll(".concentration");
@@ -1712,6 +1728,11 @@
                 });
             }
         });
+        const selectedWeapons = document.getElementsByName("weapons");
+        selectedWeapons[1]?.focus()
+        selectedWeapons[0]?.removeAttribute("checked")
+        selectedWeapons[1]?.setAttribute("checked", "checked");
+        modalIsOpen = true;
     }
 
     async function submitAction(forceCondition = 0) {
@@ -2066,7 +2087,7 @@
     ) {
         let html = document.querySelector(".selected");
         let modal = document.querySelector("#modal-body");
-        
+
         // let dataNavSelected = html.getAttribute("data-nav");
         let participantID = await html.getAttribute("data-participant");
         // let causerObject = ctApp.find((participant) => {
@@ -2079,7 +2100,7 @@
         let characterID = ctApp.find((participant) => {
             return participant.pID == participantID;
         }).chID;
-        xxx = characterID;
+
         yyy = "what now?"
         let currentRound = html.getAttribute("data-round");
         let encounter = ctApp[0].eID;
@@ -2091,7 +2112,7 @@
             "participantTools/" + characterID
         );
         // targets
-       
+
         // conditions in effect (with option to end them)
         let conditionsInEffect = await dbQuery(
             "GET",
@@ -2262,7 +2283,7 @@
         label3.classList.add("pointer");
         label3.innerText = "NO";
         let br9 = document.createElement("br");
-        
+
         div17.appendChild(h7);
         // div17.appendChild(br8);
         div17.appendChild(radioButton1);
@@ -3134,8 +3155,10 @@
         window.addEventListener("click", function (e) {
             if (e.target == modal) {
                 modal.style.display = "none";
+                modalIsOpen = false;
             }
         });
+        modalIsOpen = false
     }
 
     async function checkOutOfRange(modifier, event) {
@@ -3180,91 +3203,90 @@
 
 
     const keydownEventListener = async function (event) {
+        const modal = document.querySelector(".modal");
         if (event.key === "ArrowDown") {
-            // const outOfRange = await checkOutOfRange("1", event);
-            // if (!outOfRange) {
-            let myElement = document.querySelectorAll(".selected");
-            let nav = myElement[0].getAttribute("data-nav");
-            let targetNum = Number(nav) + 1;
-            let newTarget;
-            if (nav < cellCountVertical - 1) {
-                myElement.forEach((ele) => {
-                    ele.classList.remove("selected");
-                });
-                newTarget = document.querySelector(
-                    '[data-nav="' + targetNum + '"]'
-                );
-                newTarget.classList.add("selected");
-                newTarget.nextSibling.classList.add("selected");
-                newTarget.nextSibling.nextSibling.classList.add("selected");
-                newTarget.nextSibling.nextSibling.nextSibling.classList.add(
-                    "selected"
-                );
-                if (newTarget.classList.contains("selected")) {
-                    if (
-                        newTarget.parentElement.parentElement.classList.contains(
-                            "sometimes_hidden"
-                        ) &&
-                        newTarget.classList.contains("selected")
-                    ) {
-                        let p = document.querySelectorAll(".sometimes_hidden");
-                        p.forEach((element) => {
-                            element.classList.remove("hidden");
-                        });
-                    } else {
-                        let p = document.querySelectorAll(".sometimes_hidden");
-                        p.forEach((element) => {
-                            element.classList.add("hidden");
-                        });
+            if (modal?.style?.display == "none" || modal.style.display == "") {
+                // const outOfRange = await checkOutOfRange("1", event);
+                // if (!outOfRange) {
+                let myElement = document.querySelectorAll(".selected");
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) + 1;
+                let newTarget;
+                if (nav < cellCountVertical - 1) {
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    newTarget.classList.add("selected");
+                    newTarget.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
+                    if (newTarget.classList.contains("selected")) {
+                        if (
+                            newTarget.parentElement.parentElement.classList.contains(
+                                "sometimes_hidden"
+                            ) &&
+                            newTarget.classList.contains("selected")
+                        ) {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.remove("hidden");
+                            });
+                        } else {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.add("hidden");
+                            });
+                        }
                     }
+                    newTarget.scrollIntoViewIfNeeded(true);
                 }
-                newTarget.scrollIntoViewIfNeeded(true);
+            }
+        } else if (event.key === "ArrowUp") {
+            if (modal?.style?.display == "none" || modal.style.display == "") {
+                let myElement = document.querySelectorAll(".selected");
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) - 1;
+                let newTarget;
+                if (nav != 1) {
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    newTarget.classList.add("selected");
+                    newTarget.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
+                    if (newTarget.classList.contains("selected")) {
+                        if (
+                            newTarget.parentElement.parentElement.classList.contains(
+                                "sometimes_hidden"
+                            ) &&
+                            newTarget.classList.contains("selected")
+                        ) {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.remove("hidden");
+                            });
+                        } else {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.add("hidden");
+                            });
+                        }
+                    }
+                    newTarget.scrollIntoViewIfNeeded(true);
+                }
             }
 
-            // }
-        } else if (event.key === "ArrowUp") {
-            // const outOfRange = await checkOutOfRange("3", event);
-            // if (!outOfRange) {
-            let myElement = document.querySelectorAll(".selected");
-            let nav = myElement[0].getAttribute("data-nav");
-            let targetNum = Number(nav) - 1;
-            let newTarget;
-            if (nav != 1) {
-                myElement.forEach((ele) => {
-                    ele.classList.remove("selected");
-                });
-                newTarget = document.querySelector(
-                    '[data-nav="' + targetNum + '"]'
-                );
-                newTarget.classList.add("selected");
-                newTarget.nextSibling.classList.add("selected");
-                newTarget.nextSibling.nextSibling.classList.add("selected");
-                newTarget.nextSibling.nextSibling.nextSibling.classList.add(
-                    "selected"
-                );
-                if (newTarget.classList.contains("selected")) {
-                    if (
-                        newTarget.parentElement.parentElement.classList.contains(
-                            "sometimes_hidden"
-                        ) &&
-                        newTarget.classList.contains("selected")
-                    ) {
-                        let p = document.querySelectorAll(".sometimes_hidden");
-                        p.forEach((element) => {
-                            element.classList.remove("hidden");
-                        });
-                    } else {
-                        let p = document.querySelectorAll(".sometimes_hidden");
-                        p.forEach((element) => {
-                            element.classList.add("hidden");
-                        });
-                    }
-                }
-                newTarget.scrollIntoViewIfNeeded(true);
-            }
-            // }
-        } else if (event.altKey && event.key == "Enter") {
-            launchActionModal("turn");
         } else if (event.altKey && event.keyCode == 81) {
             launchConditionsModal("turn");
         } else if (event.altKey && event.keyCode == 67) {
@@ -3787,5 +3809,17 @@
         await load_encounter(ctAppEnc, dataNav);
         load_encounter(ctAppEnc, dataNav);
     }
+
+    function blurAllElements() {
+    // Get all focusable elements
+    const focusableElements = document.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+
+    // Blur each focusable element
+    focusableElements.forEach(element => {
+        element.blur();
+    });
+}
+
+
 
 </script>
