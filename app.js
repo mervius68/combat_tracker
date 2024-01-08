@@ -80,14 +80,14 @@ app.post('/saveEncounterID', (req, res) => {
 
 app.get('/getEncounterID', (req, res) => {
     try {
-      const data = fs.readFileSync('databases/encounter_id.txt', 'utf-8');
-      const responseObj = { info: data.trim() };
-      res.json({ success: true, data: responseObj });
+        const data = fs.readFileSync('databases/encounter_id.txt', 'utf-8');
+        const responseObj = { info: data.trim() };
+        res.json({ success: true, data: responseObj });
     } catch (err) {
-      console.error('Error reading file:', err);
-      res.status(500).json({ success: false, error: err.message });
+        console.error('Error reading file:', err);
+        res.status(500).json({ success: false, error: err.message });
     }
-  });
+});
 
 app.post('/your-server-endpoint', (req, res) => {
     // Get the data sent from the client
@@ -578,18 +578,17 @@ app.post('/removeDuplicateNumericValues', (req, res) => {
       SET numeric_value = ''
       WHERE pID = '${requestData.pID}'
     `;
-  
+
     // Execute the SQL query with parameters and handle the response
     db.run(sql, [], (err) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ error: 'Internal Server Error' });
-      }
-  console.log(sql);
-      res.json({ message: 'Numeric value deleted successfully' });
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.json({ message: 'Numeric value deleted successfully' });
     });
-  });
-  
+});
+
 
 app.post('/deleteNote', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
@@ -638,7 +637,7 @@ app.post('/deleteParticipant', (req, res) => {
                 throw err2;
             }
             res.json({ message: 'Participant deleted successfully' });
-            
+
         })
     });
 });

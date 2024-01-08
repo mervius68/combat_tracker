@@ -103,7 +103,6 @@
             })`;
 
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
-        console.log(originalParticipants)
         const chids = [];
         let newNames;
         for (participant of originalParticipants) {
