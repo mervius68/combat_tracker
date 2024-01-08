@@ -585,7 +585,6 @@ app.post('/removeDuplicateNumericValues', (req, res) => {
         console.log(err);
         return res.status(500).json({ error: 'Internal Server Error' });
       }
-  console.log(sql);
       res.json({ message: 'Numeric value deleted successfully' });
     });
   });
