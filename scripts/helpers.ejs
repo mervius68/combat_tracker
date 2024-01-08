@@ -1150,18 +1150,17 @@
                 launchConditionsModal("turn")
             } else if (e.key === "Enter" && !modalIsOpen) {
                 launchActionModal("turn")
-            } else if (e.key === "Escape" && modalIsOpen) {
+            } else if (e.key === "Enter" && modalIsOpen && document.querySelector(".modal-body").getAttribute("data-modal-type") === "action") {
+                submitAction();
+            } else if (e.key === "Enter" && modalIsOpen && document.querySelector(".modal-body").getAttribute("data-modal-type") === "condition") {
+                submitCondition();
+            }else if (e.key === "Escape" && modalIsOpen) {
                 let modal = document.querySelector(".modal");
                 modal.style.display = "none";
                 modalIsOpen = false;
-            }
+            } 
         })
-        document.addEventListener("keydown", (e) => {
-            if (!modalIsOpen) {
-                blurAllElements();
-            }
-            
-        })
+        
         document.addEventListener("contextmenu", contextMenuListener);
 
         // fill values for dropdown
@@ -1238,6 +1237,7 @@
         );
         // build the HTML
         let container = document.createElement("div");
+        container.setAttribute("data-modal-type","action")
         container.classList.add("modal-body");
 
         let h3 = document.createElement("h3");
@@ -3203,7 +3203,10 @@
 
     const keydownEventListener = async function (event) {
         const modal = document.querySelector(".modal");
-        if (event.key === "ArrowDown") {
+        if (!modalIsOpen) {
+                blurAllElements();
+            }
+        if (event.key === "ArrowDown" || event.key === "Tab") {
             if (modal?.style?.display == "none" || modal.style.display == "") {
                 // const outOfRange = await checkOutOfRange("1", event);
                 // if (!outOfRange) {
