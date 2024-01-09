@@ -1140,27 +1140,30 @@
         }
 
         window.addEventListener("click", () => {
-
             showContextMenu(false);
         });
-        document.addEventListener("keyup", (e) => {
+
+        const keyupEventListener = (e) => {
             const modal = document.querySelector(".modal");
-            // const selectedElement = document.querySelector(".selected");
-            if (e.altKey && e.key === "Enter" && !modalIsOpen) {
-                launchConditionsModal("turn")
-            } else if (e.key === "Enter" && !modalIsOpen) {
-                launchActionModal("turn")
-            } else if (e.key === "Enter" && modalIsOpen && document.querySelector(".modal-body").getAttribute("data-modal-type") === "action") {
-                submitAction();
-            } else if (e.key === "Enter" && modalIsOpen && document.querySelector(".modal-body").getAttribute("data-modal-type") === "condition") {
-                submitCondition();
-            }else if (e.key === "Escape" && modalIsOpen) {
-                let modal = document.querySelector(".modal");
+            if (e.key === "Escape" && modalIsOpen) {
                 modal.style.display = "none";
                 modalIsOpen = false;
-            } 
-        })
-        
+            } else if (e.key === "Enter") {
+                if (!modalIsOpen) {
+                    e.altKey ? launchConditionsModal("turn") : launchActionModal("turn");
+                } else {
+                    const modalType = modal.querySelector(".modal-body").getAttribute("data-modal-type");
+                    if (modalType === "action") {
+                        submitAction();
+                    } else if (modalType === "condition") {
+                        submitCondition();
+                    }
+                    document.removeEventListener("keyup", keyupEventListener);
+                }
+            }
+        }
+
+        document.addEventListener("keyup", keyupEventListener);
         document.addEventListener("contextmenu", contextMenuListener);
 
         // fill values for dropdown
@@ -1237,7 +1240,7 @@
         );
         // build the HTML
         let container = document.createElement("div");
-        container.setAttribute("data-modal-type","action")
+        container.setAttribute("data-modal-type", "action")
         container.classList.add("modal-body");
 
         let h3 = document.createElement("h3");
@@ -3202,10 +3205,14 @@
 
 
     const keydownEventListener = async function (event) {
+        if (event.key === "Tab") {
+            event.preventDefault();
+            // Additional logic if needed
+        }
         const modal = document.querySelector(".modal");
         if (!modalIsOpen) {
-                blurAllElements();
-            }
+            blurAllElements();
+        }
         if (event.key === "ArrowDown" || event.key === "Tab") {
             if (modal?.style?.display == "none" || modal.style.display == "") {
                 // const outOfRange = await checkOutOfRange("1", event);
@@ -3813,14 +3820,14 @@
     }
 
     function blurAllElements() {
-    // Get all focusable elements
-    const focusableElements = document.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        // Get all focusable elements
+        const focusableElements = document.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
 
-    // Blur each focusable element
-    focusableElements.forEach(element => {
-        element.blur();
-    });
-}
+        // Blur each focusable element
+        focusableElements.forEach(element => {
+            element.blur();
+        });
+    }
 
 
 
