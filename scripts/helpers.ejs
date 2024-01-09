@@ -3212,47 +3212,8 @@
         if (event.key === "Tab" && !modalIsOpen) {
             event.preventDefault();
         }
-        if (event.key === "ArrowDown" || event.key === "Tab") {
-            if (modal?.style?.display == "none" || modal.style.display == "") {
-                let myElement = document.querySelectorAll(".selected");
-                let nav = myElement[0].getAttribute("data-nav");
-                let targetNum = Number(nav) + 1;
-                let newTarget;
-                if (nav < cellCountVertical - 1) {
-                    myElement.forEach((ele) => {
-                        ele.classList.remove("selected");
-                    });
-                    newTarget = document.querySelector(
-                        '[data-nav="' + targetNum + '"]'
-                    );
-                    newTarget.classList.add("selected");
-                    newTarget.nextSibling.classList.add("selected");
-                    newTarget.nextSibling.nextSibling.classList.add("selected");
-                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
-                        "selected"
-                    );
-                    if (newTarget.classList.contains("selected")) {
-                        if (
-                            newTarget.parentElement.parentElement.classList.contains(
-                                "sometimes_hidden"
-                            ) &&
-                            newTarget.classList.contains("selected")
-                        ) {
-                            let p = document.querySelectorAll(".sometimes_hidden");
-                            p.forEach((element) => {
-                                element.classList.remove("hidden");
-                            });
-                        } else {
-                            let p = document.querySelectorAll(".sometimes_hidden");
-                            p.forEach((element) => {
-                                element.classList.add("hidden");
-                            });
-                        }
-                    }
-                    newTarget.scrollIntoViewIfNeeded(true);
-                }
-            }
-        } else if (event.key === "ArrowUp") {
+
+        if (event.key === "ArrowUp" || event.shiftKey && event.key === "Tab") {
             if (modal?.style?.display == "none" || modal.style.display == "") {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
@@ -3293,7 +3254,48 @@
                 }
             }
 
-        } else if (event.altKey && event.keyCode == 81) {
+        } else if (event.key === "ArrowDown" || event.key === "Tab") {
+            if (modal?.style?.display == "none" || modal.style.display == "") {
+                let myElement = document.querySelectorAll(".selected");
+                let nav = myElement[0].getAttribute("data-nav");
+                let targetNum = Number(nav) + 1;
+                let newTarget;
+                if (nav < cellCountVertical - 1) {
+                    myElement.forEach((ele) => {
+                        ele.classList.remove("selected");
+                    });
+                    newTarget = document.querySelector(
+                        '[data-nav="' + targetNum + '"]'
+                    );
+                    newTarget.classList.add("selected");
+                    newTarget.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.classList.add("selected");
+                    newTarget.nextSibling.nextSibling.nextSibling.classList.add(
+                        "selected"
+                    );
+                    if (newTarget.classList.contains("selected")) {
+                        if (
+                            newTarget.parentElement.parentElement.classList.contains(
+                                "sometimes_hidden"
+                            ) &&
+                            newTarget.classList.contains("selected")
+                        ) {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.remove("hidden");
+                            });
+                        } else {
+                            let p = document.querySelectorAll(".sometimes_hidden");
+                            p.forEach((element) => {
+                                element.classList.add("hidden");
+                            });
+                        }
+                    }
+                    newTarget.scrollIntoViewIfNeeded(true);
+                }
+            }
+        }
+        else if (event.altKey && event.keyCode == 81) {
             launchConditionsModal("turn");
         } else if (event.altKey && event.keyCode == 67) {
             alert("HUZZAH!");
