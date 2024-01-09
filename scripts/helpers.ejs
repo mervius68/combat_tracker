@@ -81,6 +81,7 @@
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
         modalIsOpen = false
+        
         const encounterData = await dbQuery("GET", "getEncounterID")
         const savedEncounterPlaceholder = encounterData.data.info
         try {
@@ -1158,6 +1159,7 @@
                     } else if (modalType === "condition") {
                         submitCondition();
                     }
+                    modalIsOpen = false;
                     document.removeEventListener("keyup", keyupEventListener);
                 }
             }
@@ -2762,7 +2764,7 @@
     }
 
     async function submitInitModal(PC) {
-
+        
         if (PC == 0) {
             // Assuming you have a NodeList, for example:
             let nodeList = document.querySelectorAll('input[type="text"] + span + strong');
@@ -3052,6 +3054,7 @@
         }
         modalInit()
         pushModal()
+        modalIsOpen = true;
     }
 
     function resizeSections() {
@@ -3253,7 +3256,6 @@
                     newTarget.scrollIntoViewIfNeeded(true);
                 }
             }
-
         } else if (event.key === "ArrowDown" || event.key === "Tab") {
             if (modal?.style?.display == "none" || modal.style.display == "") {
                 let myElement = document.querySelectorAll(".selected");
@@ -3326,6 +3328,7 @@
 
     function launchInitModal(selectedOptionText) {
         pushModal()
+        modalIsOpen = true;
     }
 
     function pushModal() {
