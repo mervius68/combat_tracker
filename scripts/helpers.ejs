@@ -3205,18 +3205,15 @@
 
 
     const keydownEventListener = async function (event) {
-        if (event.key === "Tab") {
-            event.preventDefault();
-            // Additional logic if needed
-        }
         const modal = document.querySelector(".modal");
         if (!modalIsOpen) {
             blurAllElements();
         }
+        if (event.key === "Tab" && !modalIsOpen) {
+            event.preventDefault();
+        }
         if (event.key === "ArrowDown" || event.key === "Tab") {
             if (modal?.style?.display == "none" || modal.style.display == "") {
-                // const outOfRange = await checkOutOfRange("1", event);
-                // if (!outOfRange) {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) + 1;
