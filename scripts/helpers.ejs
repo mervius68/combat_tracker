@@ -1168,7 +1168,6 @@
                             submitInitModal(0);
                         }
                     } else if (modalType === "participant") {
-                        alert("hey")
                         updateParticipantList();
                     }
                     modalIsOpen = false;
@@ -3781,7 +3780,12 @@
             await dbQueryPost("addParticipant", obj)
         }
 
-        // await dbQueryPost("addParticipants", group)
+        modalIsOpen = false;
+        let modal = document.querySelector(".modal");
+
+        // Remove the event listener
+        modal.removeEventListener("click", modalClickListener);
+        modal.style.display = "none";
         refresh_encounter();
     }
 
