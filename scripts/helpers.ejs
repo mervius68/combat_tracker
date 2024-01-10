@@ -81,7 +81,7 @@
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
         modalIsOpen = false
-        
+
         const encounterData = await dbQuery("GET", "getEncounterID")
         const savedEncounterPlaceholder = encounterData.data.info
         try {
@@ -1158,6 +1158,18 @@
                         submitAction();
                     } else if (modalType === "condition") {
                         submitCondition();
+                    } else if (modalType === "init") {
+                        const modal = document.querySelector("#modal-body");
+                        const dropdown = document.querySelector(".initDropdown");
+                        const selectedOptionValue = dropdown.options[dropdown.selectedIndex].value;
+                        if (selectedOptionValue == "Party") {
+                            submitInitModal(1);
+                        } else {
+                            submitInitModal(0);
+                        }
+                    } else if (modalType === "participant") {
+                        alert("hey")
+                        updateParticipantList();
                     }
                     modalIsOpen = false;
                     document.removeEventListener("keyup", keyupEventListener);
@@ -2126,6 +2138,7 @@
         // build the HTML
         let container = document.createElement("div");
         container.classList.add("container");
+        container.setAttribute("data-modal-type", "condition")
 
         let topLeftDiv = document.createElement("div");
         topLeftDiv.classList.add("topLeftDiv");
@@ -2516,6 +2529,7 @@
 
         const container = document.createElement("div");
         container.classList.add("modal-body");
+        container.setAttribute("data-modal-type", "init")
         let div = document.createElement("div");
         div.classList.add("modal-content");
         let h1 = document.createElement("h1");
@@ -2764,7 +2778,7 @@
     }
 
     async function submitInitModal(PC) {
-        
+
         if (PC == 0) {
             // Assuming you have a NodeList, for example:
             let nodeList = document.querySelectorAll('input[type="text"] + span + strong');
@@ -2857,13 +2871,15 @@
                 .catch((error) => {
                     // Handle errors here
                 });
-
-
         }
+        modalIsOpen = false;
+        let modal = document.querySelector(".modal");
 
-        let html = document.querySelector(".selected");
-        let dataNav = html.getAttribute("data-nav");
-        load_encounter(ctAppEnc, dataNav);
+        // Remove the event listener
+        modal.removeEventListener("click", modalClickListener);
+        modal.style.display = "none";
+        refresh_encounter();
+
     }
 
     async function dbQuery(httpReqType, httpReqString) {
@@ -3474,6 +3490,7 @@
         modal.innerHTML = "";
         const container = document.createElement("div");
         container.classList.add("modal-body");
+        container.setAttribute("data-modal-type", "participant")
         const div = document.createElement("div");
         div.classList.add("modal-content");
 
@@ -3701,6 +3718,7 @@
             resetNewName.value = ""
         });
 
+        modalIsOpen = true;
 
 
     }
