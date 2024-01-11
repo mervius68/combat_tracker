@@ -510,9 +510,6 @@
             divCM2.setAttribute("onclick", "endCondition()");
 
             divCM.appendChild(divCM2);
-            // divCM.appendChild(divCM3);
-            // divCM.appendChild(divCMDivider);
-            // divCM.appendChild(divCM4);
             mainContainer.prepend(divCM);
 
             // populate the sections
@@ -548,6 +545,9 @@
 
                 // populate row in section 1 (ac, init, character name, and hp)
                 participantHTML.forEach((turn, index) => {
+                    console.log(participantHTML[0]);
+                    let toolTipHTML =
+                                    document.createElement("span");
                     // show AC on the combat tracker for this participant
                     turn.innerText =
                         participant.ac +
@@ -603,10 +603,11 @@
                                 : " #" + participant.numeric_value);
                         characterDisplay = span6.outerHTML;
                     }
-                    turn.nextSibling.nextSibling.innerHTML = characterDisplay;
-
+                    turn.nextSibling.nextSibling.innerText = characterDisplay;
+                
                     // if character has a condition/concentration, show icon with tooltip
                     participant.conditionsArray.forEach(async (condition) => {
+                        
                         let affecteesStill = await dbQuery(
                             "GET",
                             "anyoneStillAffected/" +
@@ -665,6 +666,7 @@
                                 parseInt(endRound) >= i &&
                                 affectedInitLower == false)
                         ) {
+                            // alert("going in")
                             // get the participants who are affected by this condition.taID
                             let affectees = await dbQuery(
                                 "GET",
@@ -699,20 +701,21 @@
                                 "data-causerID",
                                 condition.pID
                             );
-
+                            
                             toolTipHTML.setAttribute("data-this-round", i);
                             if (parseInt(condition.concentration) == 1) {
                                 toolTipHTML.innerText = "C";
                             } else if (parseInt(condition.holding) == 1) {
                                 toolTipHTML.innerText = "H";
                             }
-                            // toolTipHTML.innerText = "C";
+                            
                             toolTipHTML.classList.add("hovertwin");
                             toolTipHTML.setAttribute("data-hover-id", condition.taID);
+                            
                             let toolTipText = document.createElement("span");
                             toolTipText.classList.add("tooltiptext");
                             toolTipText.innerHTML =
-                                condition.description.toUpperCase() +
+                                condition.description +
                                 "<br><br>" +
                                 participant.character_name +
                                 (participant.numeric_value
@@ -720,9 +723,11 @@
                                     : "") +
                                 " <span class='arrow-container'></span> " +
                                 affecteesString;
+                            
                             toolTipHTML.appendChild(toolTipText);
-                            turn.nextSibling.nextSibling.innerHTML +=
-                                toolTipHTML.outerHTML;
+                            turn.nextSibling.nextSibling.appendChild(
+                                    toolTipHTML
+                                );
                         }
                     });
 
@@ -789,8 +794,7 @@
                             }
 
                             function populateAffected() {
-                                const toolTipHTML =
-                                    document.createElement("span");
+                                
                                 // toolTipHTML.className = "tooltip affected";
                                 toolTipHTML.classList.add("tooltip");
                                 toolTipHTML.classList.add("affected");
@@ -803,7 +807,7 @@
                                     affected.affected_pID
                                 );
                                 toolTipHTML.setAttribute("data-this-round", i);
-                                toolTipHTML.innerHTML = "A";
+                                toolTipHTML.innerText = "A";
                                 toolTipHTML.classList.add("hovertwin")
                                 toolTipHTML.setAttribute(
                                     "data-taid",
@@ -813,6 +817,7 @@
                                     "data-hover-id",
                                     affected.taID
                                 );
+                               
                                 let span5 = document.createElement("span");
                                 span5.classList.add("tooltiptext");
                                 span5.innerHTML =
@@ -841,15 +846,17 @@
                                 turn.nextSibling.nextSibling.appendChild(
                                     toolTipHTML
                                 );
+                                
                             }
                         }
+                        
                     });
-
                     // show initiative value for this character
                     turn.nextSibling.innerText =
                         participant.init;
+                        // console.log(turn.nextSibling.nextSibling);
                 });
-
+                // console.log(participantHTML)
                 // does the row deserve a yellow or red highlight (e.g. 50% hp or 0 hp)
                 participantHTML.forEach(async (turn, index) => {
                     let newValue = turn.nextSibling.nextSibling.nextSibling.innerText.split(",");
@@ -1118,7 +1125,8 @@
             else if (element.classList.contains("delete_character") && element.innerText !== "") {
                 const characterToDelete = element.getAttribute("data-participant")
                 const deleteCharacter = document.createElement("div");
-                deleteCharacter.textContent = "Delete Character";
+                deleteCharacter.textContent = "Delete Participant";
+                deleteCharacter.classList.add("contextMenuItem")
                 deleteCharacter.addEventListener("click", () => deleteParticipant(characterToDelete));
                 contextMenu.appendChild(deleteCharacter);
                 showContextMenu();
@@ -1218,11 +1226,6 @@
                 twinElement.classList.remove('hovered');
             });
         }
-
-
-
-
-
     }
 
     async function modalActions() {
@@ -1615,7 +1618,7 @@
                     if (condition.holding == 1) {
                         span.textContent = "H";
                         span.classList.add("holding");
-                        // span.classList.add("savingThrow");
+                        
                     }
                     let label = document.createElement("label");
                     label.setAttribute("for", "b" + condition.affected_pID);
@@ -2433,6 +2436,7 @@
         // container.appendChild(submit);
 
         modal.innerHTML = container.outerHTML;
+        modalIsOpen = true;
     }
 
     async function submitCondition(nextAID) {
