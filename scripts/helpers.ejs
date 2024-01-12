@@ -545,7 +545,6 @@
 
                 // populate row in section 1 (ac, init, character name, and hp)
                 participantHTML.forEach((turn, index) => {
-                    console.log(participantHTML[0]);
                     let toolTipHTML =
                                     document.createElement("span");
                     // show AC on the combat tracker for this participant
@@ -655,7 +654,6 @@
                                 break;
                             }
                         }
-
                         if (
                             ((parseInt(condition.concentration) == 1 || parseInt(condition.holding) == 1) &&
                                 parseInt(condition.start_round) <= i &&
@@ -666,8 +664,9 @@
                                 parseInt(endRound) >= i &&
                                 affectedInitLower == false)
                         ) {
-                            // alert("going in")
                             // get the participants who are affected by this condition.taID
+                            
+                            turn.nextSibling.innerHTML = "WHY?"
                             let affectees = await dbQuery(
                                 "GET",
                                 "getAffectees/" + condition.taID + "/" + i
@@ -682,7 +681,7 @@
                                     (index != affectees.length - 1 ? ", " : "");
                             });
 
-                            let toolTipHTML = document.createElement("span");
+                            
                             toolTipHTML.classList.add("tooltip");
                             toolTipHTML.classList.add("concentration");
                             toolTipHTML.setAttribute(
@@ -714,23 +713,23 @@
                             
                             let toolTipText = document.createElement("span");
                             toolTipText.classList.add("tooltiptext");
-                            toolTipText.innerHTML =
-                                condition.description +
-                                "<br><br>" +
-                                participant.character_name +
-                                (participant.numeric_value
-                                    ? " #" + participant.numeric_value
-                                    : "") +
-                                " <span class='arrow-container'></span> " +
-                                affecteesString;
-                            
+                            // toolTipText.innerHTML =
+                            //     condition.description +
+                            //     "<br><br>" +
+                            //     participant.character_name +
+                            //     (participant.numeric_value
+                            //         ? " #" + participant.numeric_value
+                            //         : "") +
+                            //     " <span class='arrow-container'></span> " +
+                            //     affecteesString;
                             toolTipHTML.appendChild(toolTipText);
                             turn.nextSibling.nextSibling.appendChild(
                                     toolTipHTML
                                 );
                         }
+                        
                     });
-
+                    
                     // if participant is affected by a condition, show icon with tooltip
                     participant.affectedArray.forEach((affected) => {
                         const affectedParticipant = ctApp.find(
@@ -843,17 +842,20 @@
                                         ? " #" + participant.numeric_value
                                         : "");
                                 toolTipHTML.appendChild(span5);
-                                turn.nextSibling.nextSibling.appendChild(
-                                    toolTipHTML
-                                );
+                                
                                 
                             }
                         }
                         
                     });
+                   
+                    turn.nextSibling.nextSibling.appendChild(
+                                    toolTipHTML
+                                );
                     // show initiative value for this character
                     turn.nextSibling.innerText =
                         participant.init;
+                    // turn.nextSibling.nextSibling.innerText = "What the fuck?"
                         // console.log(turn.nextSibling.nextSibling);
                 });
                 // console.log(participantHTML)
@@ -887,10 +889,12 @@
                             "red"
                         );
                     }
+                    
                 });
+                
             });
         }
-
+        
         // load the actions into the wireframe
         try {
             for (const action of ctActions) {
