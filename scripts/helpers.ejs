@@ -883,7 +883,7 @@
                 });
             });
         }
-
+        console.log(ctActions)
         // load the actions into the wireframe
         try {
             for (const action of ctActions) {
@@ -960,6 +960,7 @@
 
         // function to populate the individual actions
         function sendToCoordinate(round, participant, actionType, actionObject, taID) {
+            console.log(actionObject.aID);
             try {
                 let y = mainContainer.querySelector(
                     `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
