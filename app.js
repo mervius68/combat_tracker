@@ -175,6 +175,7 @@ app.get("/participants/:encounter", (req, res) => {
             console.log(err);
             throw err;
         }
+        console.log(results);
         res.send(results);
     });
 });

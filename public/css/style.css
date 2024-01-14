@@ -535,7 +535,7 @@ h3 {
     border-radius: 6px;
     padding: 7px;
     position: absolute;
-    z-index: 1;
+    z-index: 50;
     bottom: 125%;
     left: 50%;
     margin-left: -60px;
@@ -553,6 +553,7 @@ h3 {
     border-width: 5px;
     border-style: solid;
     border-color: #555 transparent transparent transparent;
+    z-index: 50;
 }
 
 .tooltip:hover .tooltiptext {
@@ -654,4 +655,9 @@ strong {
 
 .clickable_area {
     pointer-events: auto;
+}
+
+.contextMenuItem {
+    background-color: yellow;
+    padding: 5px;
 }

@@ -40,9 +40,6 @@
             "/" +
             taid
         );
-        // let html = document?.querySelector(".selected");
-        // let dataNav = html?.getAttribute("data-nav") || 1;
-        // load_encounter(ctAppEnc, dataNav);
         refresh_encounter()
     }
 
@@ -81,7 +78,6 @@
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
         modalIsOpen = false
-        
         const encounterData = await dbQuery("GET", "getEncounterID")
         const savedEncounterPlaceholder = encounterData.data.info
         try {
@@ -510,9 +506,6 @@
             divCM2.setAttribute("onclick", "endCondition()");
 
             divCM.appendChild(divCM2);
-            // divCM.appendChild(divCM3);
-            // divCM.appendChild(divCMDivider);
-            // divCM.appendChild(divCM4);
             mainContainer.prepend(divCM);
 
             // populate the sections
@@ -547,7 +540,8 @@
                 );
 
                 // populate row in section 1 (ac, init, character name, and hp)
-                participantHTML.forEach((turn, index) => {
+                await participantHTML.forEach((turn, index) => {
+                    let toolTipHTML = document.createElement("span");
                     // show AC on the combat tracker for this participant
                     turn.innerText =
                         participant.ac +
@@ -603,128 +597,150 @@
                                 : " #" + participant.numeric_value);
                         characterDisplay = span6.outerHTML;
                     }
-                    turn.nextSibling.nextSibling.innerHTML = characterDisplay;
+                    turn.nextSibling.nextSibling.innerText = characterDisplay;
 
-                    // if character has a condition/concentration, show icon with tooltip
-                    participant.conditionsArray.forEach(async (condition) => {
-                        let affecteesStill = await dbQuery(
-                            "GET",
-                            "anyoneStillAffected/" +
-                            condition.conditionID +
-                            "/" +
-                            i
-                        );
+                    // this is super lame, but this timeout is required as a workaround till I can figure out
+                    // why this doesn't complete otherwise
+                    // And then, because I'm using a setTimeout here, I have to put a bigger setTimeout on the 
+                    // eventListener at the end of load_encounter
+                    
+                    setTimeout(async () => {
 
-                        const maxValue = Math.max(
-                            ...affecteesStill.map((obj) => obj.end_round)
-                        );
-                        const maxObjects = affecteesStill.filter(
-                            (obj) => obj.end_round === maxValue
-                        );
-
-                        let affectedThisRound = ctApp.filter((item) =>
-                            affecteesStill.some(
-                                (obj) => obj.affected_pID === item.pID
-                            )
-                        );
-                        let endRound = maxObjects[0]?.end_round;
-
-                        let affectedInitLower = false;
-                        if (
-                            affectedThisRound.some(
-                                (item) => item.init < participant.init
-                            )
-                        ) {
-                            affectedInitLower = true;
-                        }
-
-                        let matchingObject = null;
-
-                        // Iterate over the values array in reverse order
-                        for (let i = ctApp.length - 1; i >= 0; i--) {
-                            const value = ctApp[i].pID;
-
-                            // Find the first object that matches the current value
-                            matchingObject = ctApp.find(
-                                (obj) => obj.pID === value
-                            );
-
-                            // If a matching object is found, exit the loop
-                            if (matchingObject) {
-                                break;
-                            }
-                        }
-
-                        if (
-                            ((parseInt(condition.concentration) == 1 || parseInt(condition.holding) == 1) &&
-                                parseInt(condition.start_round) <= i &&
-                                parseInt(endRound) >= i &&
-                                affectedInitLower == true) ||
-                            ((parseInt(condition.concentration) == 1 || parseInt(condition.holding) == 1) &&
-                                parseInt(condition.start_round) <= i &&
-                                parseInt(endRound) >= i &&
-                                affectedInitLower == false)
-                        ) {
-                            // get the participants who are affected by this condition.taID
-                            let affectees = await dbQuery(
+                        // if character has a condition/concentration, show icon with tooltip
+                        participant.conditionsArray.forEach(async (condition) => {
+                            let affecteesStill = await dbQuery(
                                 "GET",
-                                "getAffectees/" + condition.taID + "/" + i
-                            );
-                            let affecteesString = "";
-                            affectees.forEach((affectee, index) => {
-                                affecteesString +=
-                                    affectee.character_name +
-                                    (affectee.numeric_value
-                                        ? " #" + affectee.numeric_value
-                                        : "") +
-                                    (index != affectees.length - 1 ? ", " : "");
-                            });
-
-                            let toolTipHTML = document.createElement("span");
-                            toolTipHTML.classList.add("tooltip");
-                            toolTipHTML.classList.add("concentration");
-                            toolTipHTML.setAttribute(
-                                "data-condition-id",
-                                condition.conditionID
-                            );
-                            toolTipHTML.setAttribute(
-                                "data-affected-id",
-                                condition.affected_pID
-                            );
-                            toolTipHTML.setAttribute(
-                                "data-taid",
-                                condition.taID
-                            );
-                            toolTipHTML.setAttribute(
-                                "data-causerID",
-                                condition.pID
+                                "anyoneStillAffected/" +
+                                condition.conditionID +
+                                "/" +
+                                i
                             );
 
-                            toolTipHTML.setAttribute("data-this-round", i);
-                            if (parseInt(condition.concentration) == 1) {
-                                toolTipHTML.innerText = "C";
-                            } else if (parseInt(condition.holding) == 1) {
-                                toolTipHTML.innerText = "H";
+                            const maxValue = Math.max(
+                                ...affecteesStill.map((obj) => obj.end_round)
+                            );
+                            const maxObjects = affecteesStill.filter(
+                                (obj) => obj.end_round === maxValue
+                            );
+
+                            let affectedThisRound = ctApp.filter((item) =>
+                                affecteesStill.some(
+                                    (obj) => obj.affected_pID === item.pID
+                                )
+                            );
+                            let endRound = maxObjects[0]?.end_round;
+
+                            let affectedInitLower = false;
+                            if (
+                                affectedThisRound.some(
+                                    (item) => item.init < participant.init
+                                )
+                            ) {
+                                affectedInitLower = true;
                             }
-                            // toolTipHTML.innerText = "C";
-                            toolTipHTML.classList.add("hovertwin");
-                            toolTipHTML.setAttribute("data-hover-id", condition.taID);
-                            let toolTipText = document.createElement("span");
-                            toolTipText.classList.add("tooltiptext");
-                            toolTipText.innerHTML =
-                                condition.description.toUpperCase() +
-                                "<br><br>" +
-                                participant.character_name +
-                                (participant.numeric_value
-                                    ? " #" + participant.numeric_value
-                                    : "") +
-                                " <span class='arrow-container'></span> " +
-                                affecteesString;
-                            toolTipHTML.appendChild(toolTipText);
-                            turn.nextSibling.nextSibling.innerHTML +=
-                                toolTipHTML.outerHTML;
-                        }
-                    });
+
+                            let matchingObject = null;
+
+                            // Iterate over the values array in reverse order
+                            for (let i = ctApp.length - 1; i >= 0; i--) {
+                                const value = ctApp[i].pID;
+
+                                // Find the first object that matches the current value
+                                matchingObject = ctApp.find(
+                                    (obj) => obj.pID === value
+                                );
+
+                                // If a matching object is found, exit the loop
+                                if (matchingObject) {
+                                    break;
+                                }
+                            }
+
+                            if (
+                                ((parseInt(condition.concentration) == 1 || parseInt(condition.holding) == 1) &&
+                                    parseInt(condition.start_round) <= i &&
+                                    parseInt(endRound) >= i &&
+                                    affectedInitLower == true) ||
+                                ((parseInt(condition.concentration) == 1 || parseInt(condition.holding) == 1) &&
+                                    parseInt(condition.start_round) <= i &&
+                                    parseInt(endRound) >= i &&
+                                    affectedInitLower == false)
+                            ) {
+                                // get the participants who are affected by this condition.taID
+                                let round = index + i;
+                                xxx = round
+                                let y = document.querySelector(`[data-participant="${condition.pID}"][data-round="${round}"]`);
+
+                                let affectees = await dbQuery(
+                                    "GET",
+                                    "getAffectees/" + condition.taID + "/" + i
+                                );
+                                let affecteesString = "";
+                                affectees.forEach((affectee, index) => {
+                                    affecteesString +=
+                                        affectee.character_name +
+                                        (affectee.numeric_value
+                                            ? " #" + affectee.numeric_value
+                                            : "") +
+                                        (index != affectees.length - 1 ? ", " : "");
+                                });
+
+                                let toolTipHTML = document.createElement("span");
+                                toolTipHTML.classList.add("tooltip");
+                                toolTipHTML.classList.add("concentration");
+                                toolTipHTML.setAttribute(
+                                    "data-condition-id",
+                                    condition.conditionID
+                                );
+                                toolTipHTML.setAttribute(
+                                    "data-affected-id",
+                                    condition.affected_pID
+                                );
+                                toolTipHTML.setAttribute(
+                                    "data-taid",
+                                    condition.taID
+                                );
+                                toolTipHTML.setAttribute(
+                                    "data-causerID",
+                                    condition.pID
+                                );
+
+                                toolTipHTML.setAttribute("data-this-round", i);
+                                if (parseInt(condition.concentration) == 1) {
+                                    toolTipHTML.innerText = "C";
+                                } else if (parseInt(condition.holding) == 1) {
+                                    toolTipHTML.innerText = "H";
+                                }
+
+                                toolTipHTML.classList.add("hovertwin");
+                                toolTipHTML.setAttribute("data-hover-id", condition.taID);
+
+                                let toolTipText = document.createElement("span");
+                                toolTipText.classList.add("tooltiptext");
+                                toolTipText.innerHTML =
+                                    condition.description +
+                                    "<br><br>" +
+                                    participant.character_name +
+                                    (participant.numeric_value
+                                        ? " #" + participant.numeric_value
+                                        : "") +
+                                    " <span class='arrow-container'></span> " +
+                                    affecteesString;
+
+                                toolTipHTML.appendChild(toolTipText);
+                                // turn.nextSibling.nextSibling.appendChild(
+                                //     toolTipHTML
+                                // );
+
+
+                                y.nextSibling.nextSibling.appendChild(
+                                    toolTipHTML
+                                )
+
+                            }
+                        });
+                    }, 10)
+
 
                     // if participant is affected by a condition, show icon with tooltip
                     participant.affectedArray.forEach((affected) => {
@@ -789,8 +805,7 @@
                             }
 
                             function populateAffected() {
-                                const toolTipHTML =
-                                    document.createElement("span");
+
                                 // toolTipHTML.className = "tooltip affected";
                                 toolTipHTML.classList.add("tooltip");
                                 toolTipHTML.classList.add("affected");
@@ -803,7 +818,7 @@
                                     affected.affected_pID
                                 );
                                 toolTipHTML.setAttribute("data-this-round", i);
-                                toolTipHTML.innerHTML = "A";
+                                toolTipHTML.innerText = "A";
                                 toolTipHTML.classList.add("hovertwin")
                                 toolTipHTML.setAttribute(
                                     "data-taid",
@@ -813,6 +828,7 @@
                                     "data-hover-id",
                                     affected.taID
                                 );
+
                                 let span5 = document.createElement("span");
                                 span5.classList.add("tooltiptext");
                                 span5.innerHTML =
@@ -841,15 +857,17 @@
                                 turn.nextSibling.nextSibling.appendChild(
                                     toolTipHTML
                                 );
+
                             }
                         }
-                    });
 
+                    });
                     // show initiative value for this character
                     turn.nextSibling.innerText =
                         participant.init;
+                    // console.log(turn.nextSibling.nextSibling);
                 });
-
+                // console.log(participantHTML)
                 // does the row deserve a yellow or red highlight (e.g. 50% hp or 0 hp)
                 participantHTML.forEach(async (turn, index) => {
                     let newValue = turn.nextSibling.nextSibling.nextSibling.innerText.split(",");
@@ -860,8 +878,9 @@
                         turn.nextSibling.nextSibling.querySelectorAll(
                             ".affected"
                         );
+
                     // compare that value to participant.starting_hp
-                    if (lastNum <= participant.starting_hp / 2) {
+                    if (lastNum <= participant.max_hp / 2) {
                         turn.classList.add("yellow");
                         turn.nextSibling.classList.add("yellow");
                         turn.nextSibling.nextSibling.classList.add("yellow");
@@ -1014,6 +1033,7 @@
                 x.nextSibling.nextSibling.nextSibling.innerHTML =
                     actionObject.damage;
             } catch (err) { }
+            console.log("sent to coordinate!")
         }
 
         let xyz;
@@ -1118,7 +1138,8 @@
             else if (element.classList.contains("delete_character") && element.innerText !== "") {
                 const characterToDelete = element.getAttribute("data-participant")
                 const deleteCharacter = document.createElement("div");
-                deleteCharacter.textContent = "Delete Character";
+                deleteCharacter.textContent = "Delete Participant";
+                deleteCharacter.classList.add("contextMenuItem")
                 deleteCharacter.addEventListener("click", () => deleteParticipant(characterToDelete));
                 contextMenu.appendChild(deleteCharacter);
                 showContextMenu();
@@ -1158,6 +1179,17 @@
                         submitAction();
                     } else if (modalType === "condition") {
                         submitCondition();
+                    } else if (modalType === "init") {
+                        const modal = document.querySelector("#modal-body");
+                        const dropdown = document.querySelector(".initDropdown");
+                        const selectedOptionValue = dropdown.options[dropdown.selectedIndex].value;
+                        if (selectedOptionValue == "Party") {
+                            submitInitModal(1);
+                        } else {
+                            submitInitModal(0);
+                        }
+                    } else if (modalType === "participant") {
+                        updateParticipantList();
                     }
                     modalIsOpen = false;
                     document.removeEventListener("keyup", keyupEventListener);
@@ -1174,13 +1206,16 @@
         fillEncounterDropdown();
 
         // Get all elements with the specified data-hover-id attribute
-        const elements = document.querySelectorAll('[data-hover-id]');
+        setTimeout(() => {
+            const elements = document.querySelectorAll('[data-hover-id]');
+            // Attach hover event listeners to each element
+            elements.forEach(element => {
+                element.addEventListener('mouseenter', handleMouseEnter);
+                element.addEventListener('mouseleave', handleMouseLeave);
+            });
+        }, 100)
 
-        // Attach hover event listeners to each element
-        elements.forEach(element => {
-            element.addEventListener('mouseenter', handleMouseEnter);
-            element.addEventListener('mouseleave', handleMouseLeave);
-        });
+
 
         function handleMouseEnter(event) {
             // Get the data-hover-id attribute value of the current element
@@ -1207,11 +1242,6 @@
                 twinElement.classList.remove('hovered');
             });
         }
-
-
-
-
-
     }
 
     async function modalActions() {
@@ -1546,16 +1576,6 @@
         // );
         qqq = conditionsInEffect;
         conditionsInEffect.forEach((condition) => {
-
-            // if...
-            // condition.end_round == currentRound &&
-            // condition.end_pID !== participantID
-            // alert("******")
-            // alert(condition.end_round);
-            // alert(currentRound);
-            // alert(condition.end_pID);
-            // alert(participantID);
-            // alert(condition.pID);
             if (condition.end_round == currentRound && condition.end_pID == participantID) {
 
             } else {
@@ -1604,7 +1624,7 @@
                     if (condition.holding == 1) {
                         span.textContent = "H";
                         span.classList.add("holding");
-                        // span.classList.add("savingThrow");
+
                     }
                     let label = document.createElement("label");
                     label.setAttribute("for", "b" + condition.affected_pID);
@@ -2021,7 +2041,6 @@
             hit = 1;
         }
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
-        // alert(dataAction);
         await dbQuery("GET", dataAction);
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
@@ -2126,6 +2145,7 @@
         // build the HTML
         let container = document.createElement("div");
         container.classList.add("container");
+        container.setAttribute("data-modal-type", "condition")
 
         let topLeftDiv = document.createElement("div");
         topLeftDiv.classList.add("topLeftDiv");
@@ -2421,6 +2441,7 @@
         // container.appendChild(submit);
 
         modal.innerHTML = container.outerHTML;
+        modalIsOpen = true;
     }
 
     async function submitCondition(nextAID) {
@@ -2516,6 +2537,7 @@
 
         const container = document.createElement("div");
         container.classList.add("modal-body");
+        container.setAttribute("data-modal-type", "init")
         let div = document.createElement("div");
         div.classList.add("modal-content");
         let h1 = document.createElement("h1");
@@ -2764,7 +2786,7 @@
     }
 
     async function submitInitModal(PC) {
-        
+
         if (PC == 0) {
             // Assuming you have a NodeList, for example:
             let nodeList = document.querySelectorAll('input[type="text"] + span + strong');
@@ -2857,13 +2879,15 @@
                 .catch((error) => {
                     // Handle errors here
                 });
-
-
         }
+        modalIsOpen = false;
+        let modal = document.querySelector(".modal");
 
-        let html = document.querySelector(".selected");
-        let dataNav = html.getAttribute("data-nav");
-        load_encounter(ctAppEnc, dataNav);
+        // Remove the event listener
+        modal.removeEventListener("click", modalClickListener);
+        modal.style.display = "none";
+        refresh_encounter();
+
     }
 
     async function dbQuery(httpReqType, httpReqString) {
@@ -3170,7 +3194,6 @@
         let lastActionRow = await dbQuery("GET", "getLatestActionRow");
         let myElement = event.target
         let nav = myElement.getAttribute("data-nav");
-        // alert(nav + " vs. " + lastActionRow[0].row)
         // if (nav > lastActionRow[0].row + modifier) {
         if (nav - lastActionRow[0].row >= modifier) {
             // build a modal that asks if you're okay with being out of range
@@ -3474,6 +3497,7 @@
         modal.innerHTML = "";
         const container = document.createElement("div");
         container.classList.add("modal-body");
+        container.setAttribute("data-modal-type", "participant")
         const div = document.createElement("div");
         div.classList.add("modal-content");
 
@@ -3701,6 +3725,7 @@
             resetNewName.value = ""
         });
 
+        modalIsOpen = true;
 
 
     }
@@ -3763,7 +3788,12 @@
             await dbQueryPost("addParticipant", obj)
         }
 
-        // await dbQueryPost("addParticipants", group)
+        modalIsOpen = false;
+        let modal = document.querySelector(".modal");
+
+        // Remove the event listener
+        modal.removeEventListener("click", modalClickListener);
+        modal.style.display = "none";
         refresh_encounter();
     }
 
