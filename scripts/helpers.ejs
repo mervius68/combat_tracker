@@ -861,7 +861,7 @@
                             ".affected"
                         );
                     // compare that value to participant.starting_hp
-                    if (lastNum <= participant.starting_hp / 2) {
+                    if (lastNum <= participant.max_hp / 2) {
                         turn.classList.add("yellow");
                         turn.nextSibling.classList.add("yellow");
                         turn.nextSibling.nextSibling.classList.add("yellow");
@@ -3700,7 +3700,7 @@
             const resetNewName = document.getElementById("detailsInput");
             resetNewName.value = ""
         });
-
+        modalIsOpen = true;
 
 
     }
