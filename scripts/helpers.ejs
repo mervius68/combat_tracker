@@ -883,7 +883,7 @@
                 });
             });
         }
-        console.log(ctActions)
+
         // load the actions into the wireframe
         try {
             for (const action of ctActions) {
@@ -960,7 +960,6 @@
 
         // function to populate the individual actions
         function sendToCoordinate(round, participant, actionType, actionObject, taID) {
-            console.log(actionObject.aID);
             try {
                 let y = mainContainer.querySelector(
                     `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
@@ -1055,7 +1054,7 @@
                 const top = clickY + menuHeight > maxY ? maxY - menuHeight : clickY;
                 const left = clickX + menuWidth > maxX ? maxX - menuWidth : clickX;
 
-                contextMenu.innerHTML = "End This Condition";
+                contextMenu.innerHTML = "Stop Condition Here";
                 contextMenu.setAttribute("onclick", "endCondition()");
 
                 let cmEnd = document.querySelector(".cmEnd");
@@ -3085,8 +3084,6 @@
 
         document.addEventListener("click", async function (event) {
             if (event.target.getAttribute("data-nav")) {
-                // const outOfRange = await checkOutOfRange("2", event);
-                // if (!outOfRange) {
                 let myElement = document.querySelectorAll(".selected");
                 let nav = myElement[0].getAttribute("data-nav");
                 let targetNum = Number(nav) + 1;
@@ -3165,46 +3162,6 @@
             }
         });
         modalIsOpen = false
-    }
-
-    async function checkOutOfRange(modifier, event) {
-        let lastActionRow = await dbQuery("GET", "getLatestActionRow");
-        let myElement = event.target
-        let nav = myElement.getAttribute("data-nav");
-        // alert(nav + " vs. " + lastActionRow[0].row)
-        // if (nav > lastActionRow[0].row + modifier) {
-        if (nav - lastActionRow[0].row >= modifier) {
-            // build a modal that asks if you're okay with being out of range
-            // if the user is okay with it, return false
-            return new Promise((resolve) => {
-                let modal = document.querySelector("#modal-body");
-                let content = `
-                
-                        <p>Warning: The row you've tried to select is potentially out of range! Would you like to continue anyway?</p>
-                        <div class="line center-div-align-left">
-                        <button id="continueButton" class="close-modal" onclick="closeModalBox()">Yes</button>
-                        <button id="cancelButton" class="close-modal" onclick="closeModalBox()">Cancel</button>
-                </div>
-            `
-                modal.innerHTML = content;
-                pushModal();
-
-                document.getElementById("continueButton").addEventListener("click", function () {
-                    // Add your code to execute if the user chose to continue
-                    resolve(false)
-                });
-
-                document.getElementById("cancelButton").addEventListener("click", function () {
-                    // Add your code to execute if the user chose to cancel
-                    resolve(true);
-                });
-            })
-
-
-        }
-
-
-
     }
 
 
@@ -3345,8 +3302,6 @@
 
     const clickEventListener = async function (event) {
         if (event.target.getAttribute("data-nav")) {
-            // const outOfRange = await checkOutOfRange("2", event);
-            // if (!outOfRange) {
             let myElement = document.querySelectorAll(".selected");
             let nav = myElement[0].getAttribute("data-nav");
             let targetNum = Number(nav) + 1;
