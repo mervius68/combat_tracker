@@ -655,3 +655,9 @@ strong {
 .clickable_area {
     pointer-events: auto;
 }
+
+.previous_tool {
+    background-color: yellow;
+    padding: 2px;
+    border: 1px solid black;
+}

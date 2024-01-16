@@ -890,6 +890,7 @@ app.get("/actions/:encounter", (req, res) => {
     let encounter = req.params.encounter;
     let sql = `SELECT * 
         FROM ct_tbl_action
+        LEFT JOIN tbl_tool ON tbl_tool.toolID = ct_tbl_action.toolID
                 WHERE eID = ${encounter} ORDER BY aID, round;
                 `;
     let query = db.all(sql, [], (err, results) => {

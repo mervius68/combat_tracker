@@ -81,7 +81,7 @@
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
         modalIsOpen = false
-        
+
         const encounterData = await dbQuery("GET", "getEncounterID")
         const savedEncounterPlaceholder = encounterData.data.info
         try {
@@ -1287,6 +1287,9 @@
         div14.appendChild(defaultLabel);
         div14.appendChild(br1);
 
+        // const targetPID = 60; // Specify the target pID
+        const resultObject = findHighestAIDByPID(ctActions, participantID);
+
         participantTools.forEach((item) => {
             let tool = document.createElement("input");
             tool.setAttribute("type", "radio");
@@ -1300,6 +1303,13 @@
 
             let label = document.createElement("label");
             label.setAttribute("for", item.toolID);
+            try {
+                if (item.toolID == resultObject.toolID) {
+                    label.classList.add("previous_tool")
+                }
+            }
+            catch (err) { }
+
             label.classList.add("radio_buttons");
             label.classList.add("pointer");
             label.innerHTML =
@@ -1737,6 +1747,28 @@
         selectedWeapons[0]?.removeAttribute("checked")
         selectedWeapons[1]?.setAttribute("checked", "checked");
         modalIsOpen = true;
+
+        function findHighestAIDByPID(array, targetPID) {
+            // Filter the array to include only objects with the specified pID
+            const filteredArray = array.filter(item => item.pID === parseInt(targetPID));
+            xxx = filteredArray;
+            // Check if there are any objects with the specified pID
+            if (filteredArray.length === 0) {
+                return null; // No matching objects found
+            }
+
+            // Find the object with the highest aID among those with the same pID
+            const highestAIDObject = filteredArray.reduce((maxObject, currentObject) => {
+                return currentObject.aID > maxObject.aID ? currentObject : maxObject;
+            }, filteredArray[0]);
+
+            return highestAIDObject;
+        }
+
+
+
+        console.log(resultObject);
+
     }
 
     async function submitAction(forceCondition = 0) {
@@ -1775,7 +1807,7 @@
             weapons = document.getElementsByName("weapons");
             tool = Array.from(weapons).find((weapon) => {
                 return weapon.checked == true;
-            }).value;
+            }).id;
             concentrationNext =
                 Array.from(weapons)
                     .find((weapon) => {
@@ -2764,7 +2796,7 @@
     }
 
     async function submitInitModal(PC) {
-        
+
         if (PC == 0) {
             // Assuming you have a NodeList, for example:
             let nodeList = document.querySelectorAll('input[type="text"] + span + strong');
