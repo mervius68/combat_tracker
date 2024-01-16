@@ -1303,6 +1303,8 @@
 
             let label = document.createElement("label");
             label.setAttribute("for", item.toolID);
+            xxx = item.toolID;
+            yyy = resultObject?.toolID || 0;
             try {
                 if (item.toolID == resultObject.toolID) {
                     label.classList.add("previous_tool")
@@ -1339,7 +1341,7 @@
 
         let weaponTextInput = document.createElement("input");
         weaponTextInput.setAttribute("type", "text");
-        weaponTextInput.setAttribute("name", "weaponsText");
+        weaponTextInput.setAttribute("name", "weaponTextInput");
         weaponTextInput.setAttribute("autocomplete", "off");
         weaponTextInput.classList.add("text_field");
         let label1 = document.createElement("label");
@@ -1751,7 +1753,6 @@
         function findHighestAIDByPID(array, targetPID) {
             // Filter the array to include only objects with the specified pID
             const filteredArray = array.filter(item => item.pID === parseInt(targetPID));
-            xxx = filteredArray;
             // Check if there are any objects with the specified pID
             if (filteredArray.length === 0) {
                 return null; // No matching objects found
@@ -1796,18 +1797,24 @@
         }
 
         // get weapon radio buttons
-        let weaponsText = document.getElementsByName("weaponsText");
+        let weaponTextInput = document.getElementsByName("weaponTextInput");
         let concentrationNext = 0;
         let holding = 0;
         let weapons,
             tool = [],
+            toolNum = [],
             actionString = "",
             nextToolID = "";
-        if (weaponsText[0].value == "") {
+        if (weaponTextInput[0].value == "") {
             weapons = document.getElementsByName("weapons");
             tool = Array.from(weapons).find((weapon) => {
                 return weapon.checked == true;
-            }).id;
+            }).value // was .id, but that seemed wrong
+            try {toolNum = Array.from(weapons).find((weapon) => {
+                return weapon.checked == true;
+            }).id} 
+            catch (err) {}
+            
             concentrationNext =
                 Array.from(weapons)
                     .find((weapon) => {
@@ -1838,8 +1845,8 @@
                 nextToolID = "0";
             }
         } else {
-            tool = weaponsText[0].value;
-            actionString = weaponsText[0].value;
+            tool = weaponTextInput[0].value;
+            actionString = weaponTextInput[0].value;
             nextToolID = "0";
         }
 
@@ -2052,7 +2059,7 @@
         ) {
             hit = 1;
         }
-        let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${tool}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
+        let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
         // alert(dataAction);
         await dbQuery("GET", dataAction);
         let round = currentRound;
@@ -2453,6 +2460,7 @@
         // container.appendChild(submit);
 
         modal.innerHTML = container.outerHTML;
+        modalIsOpen = true;
     }
 
     async function submitCondition(nextAID) {
