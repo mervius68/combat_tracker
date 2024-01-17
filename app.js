@@ -306,9 +306,9 @@ app.get(
         const encounter = req.params.encounter;
         let round = req.params.round;
         let toolID = req.params.tool; // may be toolID or descriptive string (e.g. disengage)
-        let actionString = req.params.action_type == "-"
+        let actionString = req.params.actionString == "-"
             ? ""
-            : req.params.action_type || "";
+            : req.params.actionString || "";
         toolID = isNaN(parseInt(toolID)) ? (actionString = toolID, "") : toolID;
 
         let pID = req.params.pID;

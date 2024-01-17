@@ -1303,8 +1303,6 @@
 
             let label = document.createElement("label");
             label.setAttribute("for", item.toolID);
-            xxx = item.toolID;
-            yyy = resultObject?.toolID || 0;
             try {
                 if (item.toolID == resultObject.toolID) {
                     label.classList.add("previous_tool")
@@ -2059,8 +2057,10 @@
         ) {
             hit = 1;
         }
+        toolNum = toolNum == "default" ? 0 : toolNum;
+        toolNum = toolNum == "" ? 0 : toolNum;
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
-        // alert(dataAction);
+        xxx = dataAction;
         await dbQuery("GET", dataAction);
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
