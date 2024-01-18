@@ -1,86 +1,9 @@
 <script>
-    let cellCountVertical;
-    let participantsHpsByRound;
-    // Define the event listener function separately
-    const modalClickListener = function (event) {
-        if (event.target.classList.contains("modal_text_inputs")) {
-            if (event.target.previousSibling.value === "") {
-                event.target.previousSibling.value = "x";
-            } else if (event.target.previousSibling.value === "x") {
-                event.target.previousSibling.value = "";
-            }
-        }
-    };
-
-    async function endCondition() {
-        let htmlSelected = document.querySelector(".selected");
-        let selectedID = htmlSelected.getAttribute("data-participant");
-        let endThisCondition = document.querySelector("[data-cm-condition-id]");
-        let conditionID = endThisCondition.getAttribute("data-cm-condition-id");
-        let affecteeID = endThisCondition.getAttribute("data-cm-affected-id");
-        let round = endThisCondition.getAttribute("data-cm-round");
-        let taid = endThisCondition.getAttribute("data-cm-taid");
-        let conditionState = endThisCondition.getAttribute(
-            "data-cm-concentration-or-affected"
-        );
-        if (conditionState == "concentration") {
-            affecteeID = htmlSelected.getAttribute("data-cm-causer-id");
-        }
-
-        await dbQuery(
-            "GET",
-            "endCondition/" +
-            conditionID +
-            "/" +
-            affecteeID +
-            "/" +
-            round +
-            "/" +
-            conditionState +
-            "/" +
-            taid
-        );
-        // let html = document?.querySelector(".selected");
-        // let dataNav = html?.getAttribute("data-nav") || 1;
-        // load_encounter(ctAppEnc, dataNav);
-        refresh_encounter()
-    }
-
-    async function handleNumericValues() {
-
-        const characterNameCounts = ctApp.reduce((acc, obj) => {
-            if (!acc[obj.character_name]) {
-                acc[obj.character_name] = [obj];
-            } else {
-                acc[obj.character_name].push(obj);
-            }
-            return acc;
-        }, {});
-
-
-        const duplicatedCharacterNames = Object.keys(characterNameCounts).filter(
-            (characterName) => characterNameCounts[characterName].length > 1
-        );
-
-        const orderedCharacterObjects = duplicatedCharacterNames.map(characterName => {
-            const characterObjects = ctApp.filter(obj => obj.character_name === characterName);
-            characterObjects.sort((a, b) => b.init - a.init); // Sort in descending order by "init"
-            return characterObjects;
-        });
-
-        orderedCharacterObjects.forEach((collection) => {
-            collection.sort((a, b) => b.init - a.init)
-        });
-
-        await orderedCharacterObjects.forEach(async (objects) => {
-            await objects.forEach(async (obj, index) => {
-                await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1))
-            })
-        })
-    }
+    let cellCountVertical,
+        participantsHpsByRound;
 
     async function load_encounter(encounterCode = 0, dataNav = 1) {
-        modalIsOpen = false
+        modalIsOpen = false // global variable is created
 
         const encounterData = await dbQuery("GET", "getEncounterID")
         const savedEncounterPlaceholder = encounterData.data.info
@@ -104,8 +27,6 @@
             })`;
 
         const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
-        const chids = [];
-        let newNames;
         for (participant of originalParticipants) {
             const newNames = await dbQuery("GET", "updatedNames/" + participant.pID)
             participant.character_name = newNames[0].character_name
@@ -122,7 +43,6 @@
         const duplicateNames = new Set();
         const resultArray = [];
 
-        // Filter the array based on conditions
         // Filter the array to identify duplicates
         ctApp.forEach((character) => {
             if (encounteredNames.has(character.character_name)) {
@@ -132,7 +52,6 @@
             }
         });
 
-        // Filter the array based on conditions
         ctApp.forEach((character) => {
             // Check if character_name has a number in numeric_value
             const hasNumber = /\d/.test(character.numeric_value);
@@ -143,42 +62,10 @@
             }
         });
 
-
-
-
-        // const characterNameCounts = originalParticipants.reduce((acc, obj) => {
-        //     if (!acc[obj.character_name]) {
-        //         acc[obj.character_name] = [obj];
-        //     } else {
-        //         acc[obj.character_name].push(obj);
-        //     }
-        //     return acc;
-        // }, {});
-
-        // const duplicatedCharacterNames = Object.keys(characterNameCounts).filter(
-        //     (characterName) => characterNameCounts[characterName].length > 1
-        // );
-
-        // const orderedCharacterObjects = duplicatedCharacterNames.map(characterName => {
-        //     const characterObjects = originalParticipants.filter(obj => obj.character_name === characterName);
-        //     characterObjects.sort((a, b) => b.init - a.init); // Sort in descending order by "init"
-        //     return characterObjects;
-        // });
-
-        // orderedCharacterObjects.forEach((collection) => {
-        //     collection.sort((a, b) => b.init - a.init)
-        // });
-
-        // await orderedCharacterObjects.forEach(async (objects) => {
-        //     await objects.forEach(async (obj, index) => {
-        //         await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1))
-        //     })
-        // })
-
         await handleNumericValues()
 
-        // get all the actions of this encounter
-        // let ctActions = await dbQuery("GET", "actions/" + encounterID);
+        // get all the actions of this encounter as ctActions and ctActionsConditions
+        // global variables
         ctActions = await dbQuery("GET", "actions/" + encounterID);
         ctActionsConditions = await dbQuery("GET", "actionsConditions/" + encounterID)
 
@@ -197,13 +84,12 @@
                     Object.assign(obj, matchingObj);
                 }
             }
-
             return mainArray;
         }
 
+        // merge actions and conditions, as ctActions
         result = mergeArrays(ctActions, ctActionsConditions);
         ctActions = result;
-
 
         // get all the conditions of this encounter
         let ctConditions = await dbQuery(
@@ -212,6 +98,7 @@
         );
 
         // determine how many rounds are represented in the database
+        // for this encounter
         let totalRounds = ctActions.reduce((max, obj) => {
             return obj.round > max ? obj.round : max;
         }, -Infinity);
@@ -294,34 +181,33 @@
         for (let i = 1; i <= totalRounds + 1; i++) {
 
             // build the wireframe of first section (participants);
-
-            let ctRound = document.createElement("div");
+            const ctRound = document.createElement("div");
             ctRound.classList.add("ct_round");
             ctRound.setAttribute("data-round", i);
 
-            let section1 = document.createElement("div");
+            const section1 = document.createElement("div");
             section1.classList.add("ct_grid4columns");
             section1.setAttribute("data-section", "1");
 
-            let div1 = document.createElement("div");
+            const div1 = document.createElement("div");
             div1.classList.add("section");
             div1.classList.add("header");
             div1.classList.add("ct_turn_bookends");
             div1.classList.add("center");
             div1.textContent = "AC";
-            let div2 = document.createElement("div");
+            const div2 = document.createElement("div");
             div2.classList.add("section");
             div2.classList.add("header");
             div2.classList.add("ct_turn_bookends");
             div2.classList.add("center");
             div2.textContent = "HP";
-            let div3 = document.createElement("div");
+            const div3 = document.createElement("div");
             div3.classList.add("section");
             div3.classList.add("header");
             div3.classList.add("ct_turn_bookends");
             div3.classList.add("center");
             div3.textContent = "Character";
-            let div4 = document.createElement("div");
+            const div4 = document.createElement("div");
             div4.classList.add("section");
             div4.classList.add("header");
             div4.classList.add("ct_turn_bookends");
@@ -437,57 +323,59 @@
             mainContainer.appendChild(sectionHTML);
 
             // build the final section, empty
-            let section2 = document.createElement("div");
+            const section2 = document.createElement("div");
             section2.classList.add("ct_grid4columns");
             section2.setAttribute("data-section", 2);
 
-            let div5 = document.createElement("div");
+            const div5 = document.createElement("div");
             div5.classList.add("section");
             div5.classList.add("header");
             div5.classList.add("ct_turn_bookends");
             div5.classList.add("center");
             div5.textContent = "Drop";
-            let div6 = document.createElement("div");
+            const div6 = document.createElement("div");
             div6.classList.add("section");
             div6.classList.add("header");
             div6.classList.add("ct_turn_bookends");
             div6.classList.add("align_left");
             div6.textContent = "Start";
-            let div7 = document.createElement("div");
+            const div7 = document.createElement("div");
             div7.classList.add("section");
             div7.classList.add("header");
             div7.classList.add("ct_turn_bookends");
             div7.classList.add("align_right");
             div7.textContent = "End";
-            let div8 = document.createElement("div");
+            const div8 = document.createElement("div");
             div8.classList.add("section");
             div8.classList.add("header");
             div8.classList.add("ct_turn_bookends");
             div8.classList.add("center");
             div8.textContent = "Notes";
+
             section2.appendChild(div5);
             section2.appendChild(div6);
             section2.appendChild(div7);
             section2.appendChild(div8);
 
             ctApp.forEach((participant) => {
-                let div9 = document.createElement("div");
+                const div9 = document.createElement("div");
                 div9.classList.add("section");
                 div9.classList.add("ct_turn_bookends");
                 div9.classList.add("center");
                 div9.setAttribute("div-participant", participant.pID);
-                let div10 = document.createElement("div");
+                const div10 = document.createElement("div");
                 div10.classList.add("section");
                 div10.classList.add("ct_turn_bookends");
                 div10.classList.add("align_left");
-                let div11 = document.createElement("div");
+                const div11 = document.createElement("div");
                 div11.classList.add("section");
                 div11.classList.add("ct_turn_bookends");
                 div11.classList.add("align_right");
-                let div12 = document.createElement("div");
+                const div12 = document.createElement("div");
                 div12.classList.add("section");
                 div12.classList.add("ct_turn_bookends");
                 div12.classList.add("center");
+
                 section2.appendChild(div9);
                 section2.appendChild(div10);
                 section2.appendChild(div11);
@@ -496,23 +384,20 @@
             ctRound.appendChild(section2);
 
             mainContainer.appendChild(ctRound);
-            let headerText = document.createElement("h2");
+            const headerText = document.createElement("h2");
             headerText.textContent =
                 i == totalRounds + 1 ? "" : "Round " + (i + 1);
             mainContainer.appendChild(headerText);
 
-            let divCM = document.createElement("div");
+            const divCM = document.createElement("div");
             divCM.classList.add("custom-cm");
-            let divCM2 = document.createElement("div");
+            const divCM2 = document.createElement("div");
             divCM2.classList.add("custom-cm__item");
             divCM2.classList.add("cmEnd");
             divCM2.innerHTML = "End This Condition";
             divCM2.setAttribute("onclick", "endCondition()");
 
             divCM.appendChild(divCM2);
-            // divCM.appendChild(divCM3);
-            // divCM.appendChild(divCMDivider);
-            // divCM.appendChild(divCM4);
             mainContainer.prepend(divCM);
 
             // populate the sections
@@ -534,7 +419,8 @@
                         item.round == i && item.target_pID == participant.pID
                     );
                 });
-                // sort oldest to newest, e.g. hit points cell might read "22, 15, 13" (hp descending as they take hits)
+                // sort oldest to newest, e.g. hit points cell might read 
+                // "22, 15, 13" (hp descending as they take hits)
                 roundDamages.sort((a, b) => a.tID - b.tID);
 
                 // locate the HTML elements for this participant
@@ -1819,11 +1705,13 @@
             tool = Array.from(weapons).find((weapon) => {
                 return weapon.checked == true;
             }).value // was .id, but that seemed wrong
-            try {toolNum = Array.from(weapons).find((weapon) => {
-                return weapon.checked == true;
-            }).id} 
-            catch (err) {}
-            
+            try {
+                toolNum = Array.from(weapons).find((weapon) => {
+                    return weapon.checked == true;
+                }).id
+            }
+            catch (err) { }
+
             concentrationNext =
                 Array.from(weapons)
                     .find((weapon) => {
@@ -3838,6 +3726,83 @@
         });
     }
 
+    // Clicking on target's name toggles X in the text input
+    const modalClickListener = function (event) {
+        if (event.target.classList.contains("modal_text_inputs")) {
+            if (event.target.previousSibling.value === "") {
+                event.target.previousSibling.value = "x";
+            } else if (event.target.previousSibling.value === "x") {
+                event.target.previousSibling.value = "";
+            }
+        }
+    };
 
+    async function endCondition() {
+        const htmlSelected = document.querySelector(".selected");
+        const selectedID = htmlSelected.getAttribute("data-participant");
+        const endThisCondition = document.querySelector("[data-cm-condition-id]");
+        const conditionID = endThisCondition.getAttribute("data-cm-condition-id");
+        let affecteeID = endThisCondition.getAttribute("data-cm-affected-id");
+        const round = endThisCondition.getAttribute("data-cm-round");
+        const taid = endThisCondition.getAttribute("data-cm-taid");
+        const conditionState = endThisCondition.getAttribute(
+            "data-cm-concentration-or-affected"
+        );
+        if (conditionState == "concentration") {
+            affecteeID = htmlSelected.getAttribute("data-cm-causer-id");
+        }
+
+        await dbQuery(
+            "GET",
+            "endCondition/" +
+            conditionID +
+            "/" +
+            affecteeID +
+            "/" +
+            round +
+            "/" +
+            conditionState +
+            "/" +
+            taid
+        );
+        refresh_encounter()
+    }
+
+    // determine if participants are duplicated - e.g. goblin #1 and goblin #2
+    // and apply #x to their names in the combat tracker
+    async function handleNumericValues() {
+        // look for participants with duplicate names, e.g. goblin and goblin
+        const characterNameCounts = ctApp.reduce((acc, obj) => {
+            if (!acc[obj.character_name]) {
+                acc[obj.character_name] = [obj];
+            } else {
+                acc[obj.character_name].push(obj);
+            }
+            return acc;
+        }, {});
+
+        const duplicatedCharacterNames = Object.keys(characterNameCounts).filter(
+            (characterName) => characterNameCounts[characterName].length > 1
+        );
+
+        const orderedCharacterObjects = duplicatedCharacterNames.map(characterName => {
+            const characterObjects = ctApp.filter(obj => obj.character_name === characterName);
+            characterObjects.sort((a, b) => b.init - a.init); // Sort in descending order by "init"
+            return characterObjects;
+        });
+
+        orderedCharacterObjects.forEach((collection) => {
+            collection.sort((a, b) => b.init - a.init)
+        });
+
+        // change participants numeric values in db, by initiative positions;
+        // goblin with init 20 would get a 1, while goblin with init 19
+        // would get a 2, and so on.
+        await orderedCharacterObjects.forEach(async (objects) => {
+            await objects.forEach(async (obj, index) => {
+                await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1))
+            })
+        })
+    }
 
 </script>
