@@ -168,7 +168,7 @@ app.get("/participants/:encounter", (req, res) => {
     JOIN tbl_character ON ct_tbl_participant.chID = tbl_character.chID
     JOIN ct_tbl_encounter ON ct_tbl_participant.pID = ct_tbl_encounter.pID
     WHERE ct_tbl_encounter.eID = ${encounter}
-    ORDER BY init DESC, secondary_init DESC, character_name, numeric_value ASC;
+    ORDER BY init DESC, init_modifier DESC, secondary_init DESC, character_name, numeric_value ASC;
      `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
