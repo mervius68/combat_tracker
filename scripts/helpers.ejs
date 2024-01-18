@@ -254,46 +254,23 @@
             ctRound.appendChild(section1);
 
             // how many attack, bonus, and react sections are needed for this round?
-            let attacksThisRound = [];
-            let bonusThisRound = [];
-            let reactThisRound = [];
-            ctApp.forEach((participant) => {
-                attacksThisRound.push(
-                    ctActions.filter((action) => {
-                        return (
-                            action.pID == participant.pID &&
-                            action.action_type == "attack" &&
-                            action.round == i
-                        );
-                    })
+            const filterActionsByType = (ctActions, ctApp, actionType, round) =>
+                ctApp.map((participant) =>
+                    ctActions.filter((action) =>
+                        action.pID === participant.pID &&
+                        action.action_type === actionType &&
+                        action.round === round
+                    )
                 );
-            });
-            ctApp.forEach((participant) => {
-                bonusThisRound.push(
-                    ctActions.filter((action) => {
-                        return (
-                            action.pID == participant.pID &&
-                            action.action_type == "bonus" &&
-                            action.round == i
-                        );
-                    })
-                );
-            });
-            ctApp.forEach((participant) => {
-                reactThisRound.push(
-                    ctActions.filter((action) => {
-                        return (
-                            action.pID == participant.pID &&
-                            action.action_type == "react" &&
-                            action.round == i
-                        );
-                    })
-                );
-            });
-            let numAttacks = findLargestSubarray(attacksThisRound);
-            numAttacks = Math.max(numAttacks, 1);
+
+            let attacksThisRound = filterActionsByType(ctActions, ctApp, "attack", i);
+            let bonusThisRound = filterActionsByType(ctActions, ctApp, "bonus", i);
+            let reactThisRound = filterActionsByType(ctActions, ctApp, "react", i);
+
+            let numAttacks = Math.max(findLargestSubarray(attacksThisRound), 1);
             let bonusActions = findLargestSubarray(bonusThisRound);
             let reactActions = findLargestSubarray(reactThisRound);
+
 
             // build the attack section(s), empty; we'll fill 'em up at the end of the loop
             let sectionHTML = buildASection(
