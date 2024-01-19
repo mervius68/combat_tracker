@@ -585,17 +585,16 @@
                                 " <span class='arrow-container'></span> " +
                                 affecteesString;
                             toolTipHTML.appendChild(toolTipText);
-                            try {
-                                setTimeout(() => {
-                                    let x = document.querySelector("[data-participant='64'][data-round='1'][data-nav]");
-                                    x.nextSibling.nextSibling.innerHTML += toolTipHTML.outerHTML;
-                                }, 10)
-                            }
-                            catch (err) {
+                            // try {
+                            //     let x = document.querySelector("[data-participant='64'][data-round='1'][data-nav]");
+                            //     x.nextSibling.nextSibling.innerHTML += toolTipHTML.outerHTML;
+                            // }
+                            // catch(err) {
+                                
                                 turn.nextSibling.nextSibling.innerHTML +=
-                                    toolTipHTML.outerHTML;
-                            }
-
+                                toolTipHTML.outerHTML;
+                            // }
+                            
                         }
                     });
 
@@ -1045,17 +1044,15 @@
         // fillDropdown(encounterCode);
         fillInitDropdown();
         fillEncounterDropdown();
-        setTimeout(() => {
-            // Get all elements with the specified data-hover-id attribute
-            const elements = document.querySelectorAll('[data-hover-id]');
 
-            // Attach hover event listeners to each element
-            elements.forEach(element => {
-                element.addEventListener('mouseenter', handleMouseEnter);
-                element.addEventListener('mouseleave', handleMouseLeave);
-            });
-        }, 50)
+        // Get all elements with the specified data-hover-id attribute
+        const elements = document.querySelectorAll('[data-hover-id]');
 
+        // Attach hover event listeners to each element
+        elements.forEach(element => {
+            element.addEventListener('mouseenter', handleMouseEnter);
+            element.addEventListener('mouseleave', handleMouseLeave);
+        });
 
         function handleMouseEnter(event) {
             // Get the data-hover-id attribute value of the current element
