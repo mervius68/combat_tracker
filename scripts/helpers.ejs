@@ -88,8 +88,7 @@
         }
 
         // merge actions and conditions, as ctActions
-        result = mergeArrays(ctActions, ctActionsConditions);
-        ctActions = result;
+        ctActions = mergeArrays(ctActions, ctActionsConditions);
 
         // get all the conditions of this encounter
         let ctConditions = await dbQuery(
@@ -411,6 +410,7 @@
 
                 // populate row in section 1 (ac, init, character name, and hp)
                 participantHTML.forEach((turn, index) => {
+                    xxx = [];
                     // show AC on the combat tracker for this participant
                     turn.innerText =
                         participant.ac +
@@ -585,12 +585,13 @@
                                 " <span class='arrow-container'></span> " +
                                 affecteesString;
                             toolTipHTML.appendChild(toolTipText);
+                            
                             // try {
                             //     let x = document.querySelector("[data-participant='64'][data-round='1'][data-nav]");
                             //     x.nextSibling.nextSibling.innerHTML += toolTipHTML.outerHTML;
                             // }
                             // catch(err) {
-                                
+                                xxx.push(turn.nextSibling.nextSibling);
                                 turn.nextSibling.nextSibling.innerHTML +=
                                 toolTipHTML.outerHTML;
                             // }
@@ -619,8 +620,6 @@
                                 ? affected.pID !=
                                 parseInt(affected.affected_pID)
                                 : affected.concentration === 1 &&
-                                // affected.pID !=
-                                // parseInt(affected.affected_pID) &&
                                 parseInt(affected.start_round) <= i &&
                                 parseInt(affected.end_round) >= i
                         ) {
@@ -663,7 +662,6 @@
                             function populateAffected() {
                                 const toolTipHTML =
                                     document.createElement("span");
-                                // toolTipHTML.className = "tooltip affected";
                                 toolTipHTML.classList.add("tooltip");
                                 toolTipHTML.classList.add("affected");
                                 toolTipHTML.setAttribute(
@@ -732,7 +730,7 @@
                         turn.nextSibling.nextSibling.querySelectorAll(
                             ".affected"
                         );
-                    // compare that value to participant.starting_hp
+                    // compare that value to participant.max_hp
                     if (lastNum <= participant.max_hp / 2) {
                         turn.classList.add("yellow");
                         turn.nextSibling.classList.add("yellow");
@@ -1079,11 +1077,6 @@
                 twinElement.classList.remove('hovered');
             });
         }
-
-
-
-
-
     }
 
     async function modalActions() {
@@ -2729,9 +2722,6 @@
                 .catch((error) => {
                     // Handle errors here
                 });
-
-
-            // await dbQuery("GET", `orderInitiative/${stringToSend}`)
 
             // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
         } else { // if PC == 1
