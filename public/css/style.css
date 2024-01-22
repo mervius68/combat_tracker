@@ -661,3 +661,7 @@ strong {
     padding: 2px;
     border: 1px solid black;
 }
+
+.initValues {
+    margin-right: 20px;
+}
