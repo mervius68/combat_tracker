@@ -31,7 +31,7 @@
             const newNames = await dbQuery("GET", "updatedNames/" + participant.pID)
             participant.character_name = newNames[0].character_name
         }
-
+        xxx = originalParticipants;
         // set ctApp to originalParticipants before using reduce method on originalParticipants
         ctApp = [...originalParticipants]
         const getEncounter = await dbQuery("GET", "getLatestEncounterID");
@@ -410,7 +410,6 @@
 
                 // populate row in section 1 (ac, init, character name, and hp)
                 participantHTML.forEach((turn, index) => {
-                    xxx = [];
                     // show AC on the combat tracker for this participant
                     turn.innerText =
                         participant.ac +
@@ -591,7 +590,6 @@
                             //     x.nextSibling.nextSibling.innerHTML += toolTipHTML.outerHTML;
                             // }
                             // catch(err) {
-                            xxx.push(turn.nextSibling.nextSibling);
                             turn.nextSibling.nextSibling.innerHTML +=
                                 toolTipHTML.outerHTML;
                             // }
@@ -998,7 +996,7 @@
                 const characterToAdjustInit = element.getAttribute("data-participant")
                 const divAdjustInit = document.createElement("div");
                 divAdjustInit.textContent = "Adjust Initiative";
-                divAdjustInit.addEventListener("click", () => adjustInit(characterToAdjustInit));
+                divAdjustInit.addEventListener("click", () => adjustInitModal(characterToAdjustInit));
 
                 const characterToAdjustHP = element.getAttribute("data-participant")
                 const divAdjustHP = document.createElement("div");
@@ -1105,7 +1103,7 @@
         }
     }
 
-    async function adjustInit(characterToAdjustInit) {
+    async function adjustInitModal(characterToAdjustInit) {
         const pIDObject = ctApp.find(obj => obj.pID == characterToAdjustInit);
 
         const modal = document.querySelector("#modal-body");
@@ -1220,6 +1218,12 @@
         }, 90)
 
         modal.addEventListener("input", function (e) {
+            if (e.target.getAttribute("id") == "initValue") {
+                modal.querySelector("#rolledD20").value = modal.querySelector("#initValue").value - pIDObject.init_modifier
+            } else if (e.target.getAttribute("id") == "rolledD20") {
+                modal.querySelector("#initValue").value = parseInt(modal.querySelector("#rolledD20").value) + parseInt(pIDObject.init_modifier) || pIDObject.init_modifier
+            }
+
             // Get all left input elements
             const leftInputs = document.querySelectorAll('[data-init-pid]');
 
@@ -2249,7 +2253,6 @@
         toolNum = toolNum == "default" ? 0 : toolNum;
         toolNum = toolNum == "" ? 0 : toolNum;
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
-        xxx = dataAction;
         await dbQuery("GET", dataAction);
         let round = currentRound;
         targetHits.forEach(async (target, index) => {

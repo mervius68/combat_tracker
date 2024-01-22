@@ -170,6 +170,7 @@ app.get("/participants/:encounter", (req, res) => {
     WHERE ct_tbl_encounter.eID = ${encounter}
     ORDER BY init DESC, init_modifier DESC, secondary_init DESC, character_name, numeric_value ASC;
      `;
+
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
