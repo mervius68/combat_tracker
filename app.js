@@ -168,7 +168,7 @@ app.get("/participants/:encounter", (req, res) => {
     JOIN tbl_character ON ct_tbl_participant.chID = tbl_character.chID
     JOIN ct_tbl_encounter ON ct_tbl_participant.pID = ct_tbl_encounter.pID
     WHERE ct_tbl_encounter.eID = ${encounter}
-    ORDER BY init DESC, init_modifier DESC, secondary_init DESC, character_name, numeric_value ASC;
+    ORDER BY init DESC, secondary_init DESC, init_modifier DESC, character_name, numeric_value ASC;
      `;
 
     let query = db.all(sql, [], (err, results) => {
@@ -590,6 +590,26 @@ app.post('/removeDuplicateNumericValues', (req, res) => {
     });
 });
 
+app.post('/adjustInit', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+    // Generate the SQL query with parameters
+    const sql = `
+      UPDATE ct_tbl_participant
+      SET init = '${requestData.init}',
+      secondary_init = '${requestData.secondary_init}'
+      WHERE pID = '${requestData.pID}'
+    `;
+
+    // Execute the SQL query with parameters and handle the response
+    db.run(sql, [], (err) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.json({ message: 'Numeric value deleted successfully' });
+    });
+});
+
 
 app.post('/deleteNote', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
@@ -924,7 +944,6 @@ app.get("/tool/:toolID/", (req, res) => {
     let sql = `SELECT *
         FROM tbl_tool
                 WHERE toolID = "${toolID}"
-                ORDER BY toolName ASC
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {

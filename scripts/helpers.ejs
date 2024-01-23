@@ -31,7 +31,7 @@
             const newNames = await dbQuery("GET", "updatedNames/" + participant.pID)
             participant.character_name = newNames[0].character_name
         }
-        xxx = originalParticipants;
+
         // set ctApp to originalParticipants before using reduce method on originalParticipants
         ctApp = [...originalParticipants]
         const getEncounter = await dbQuery("GET", "getLatestEncounterID");
@@ -1328,7 +1328,24 @@
     }
 
     async function submitAdjustInit() {
-        alert("jojo")
+        // get new initiative and pID
+        const newInitEle = document.querySelector("#initValue")
+        const newInit = newInitEle.value;
+        const pID = newInitEle.getAttribute("data-init-pid")
+        // get secondary initiative
+        const newSecondaryInit = document.querySelector("#secondaryInit").value
+
+        const data = {
+            init: newInit,
+            secondary_init: newSecondaryInit,
+            pID: pID
+        }
+
+        // submit to database
+        await dbQueryPost("adjustInit", data)
+
+        closeModal()
+        refresh_encounter()
     }
 
     async function modalActions() {
