@@ -1193,12 +1193,12 @@
         const br2 = document.createElement("br");
 
         const button = document.createElement("button");
-        button.setAttribute("onclick", "submitInitModal(1)")
+        button.setAttribute("onclick", "submitAdjustInit()")
         button.innerText = "SUBMIT";
         button.classList.add("center")
 
         const button2 = document.createElement("button");
-        button2.setAttribute("onclick", "closeModalBox()")
+        button2.setAttribute("onclick", "closeModal()")
         button2.innerText = "CLOSE";
         button2.classList.add("close-modal")
         button2.classList.add("center");
@@ -1224,74 +1224,6 @@
             } else if (e.target.getAttribute("id") == "rolledD20") {
                 modal.querySelector("#initValue").value = parseInt(modal.querySelector("#rolledD20").value) + parseInt(pIDObject.init_modifier) || pIDObject.init_modifier
             }
-
-            // Get all left input elements
-            const leftInputs = document.querySelectorAll('[data-init-pid]');
-
-            // Create a Set to store encountered values
-            const encounteredValues = new Set();
-            const duplicatedNumbers = new Set();
-
-            // Iterate through each left input element
-            leftInputs.forEach(leftInput => {
-                // Get the value of the left input
-                const leftInputValue = leftInput.value.trim();
-
-                // Check if the value is not empty
-                if (leftInputValue !== '') {
-                    // Check if the value has been encountered before
-                    if (encounteredValues.has(leftInputValue)) {
-                        // If yes, add it to the Set of duplicated numbers
-                        duplicatedNumbers.add(leftInputValue);
-                    } else {
-                        // If not, add it to the Set of encountered values
-                        encounteredValues.add(leftInputValue);
-                    }
-                }
-            });
-
-            // Log the array of duplicated numbers to the console
-            console.log('Duplicated Numbers:', Array.from(duplicatedNumbers));
-
-            // Iterate through each left input element
-            leftInputs.forEach(leftInput => {
-                // Get the value of the left input
-                const leftInputValue = leftInput.value.trim();
-
-                // Check if the value is in the duplicatedNumbers array
-                if (duplicatedNumbers.has(leftInputValue)) {
-                    // Get the value of data-init-pid for the matching left input
-                    const dataInitPidValue = leftInput.getAttribute('data-init-pid');
-
-                    // Select all elements with data-init-pid-secondary matching the value
-                    const secondaryInitOffElements = document.querySelectorAll(`[data-init-pid-secondary="${dataInitPidValue}"]`);
-
-                    // Remove the secondaryInitOff class from matching elements
-                    secondaryInitOffElements.forEach(element => {
-                        element.classList.remove('secondaryInitOff');
-                    });
-                }
-            });
-
-            // Iterate through each left input element
-            leftInputs.forEach(leftInput => {
-                // Get the value of the left input
-                const leftInputValue = leftInput.value.trim();
-
-                // Check if the value is NOT in the duplicatedNumbers array
-                if (!duplicatedNumbers.has(leftInputValue)) {
-                    // Get the value of data-init-pid for the matching left input
-                    const dataInitPidValue = leftInput.getAttribute('data-init-pid');
-
-                    // Select all elements with data-init-pid-secondary matching the value
-                    const secondaryInitOffElements = document.querySelectorAll(`[data-init-pid-secondary="${dataInitPidValue}"]`);
-
-                    // Add the secondaryInitOff class to matching elements
-                    secondaryInitOffElements.forEach(element => {
-                        element.classList.add('secondaryInitOff');
-                    });
-                }
-            });
         });
 
         // } else {
@@ -1393,6 +1325,10 @@
         }
         pushModal();
         modalIsOpen = true;
+    }
+
+    async function submitAdjustInit() {
+        alert("jojo")
     }
 
     async function modalActions() {
@@ -2807,7 +2743,7 @@
             button.classList.add("center")
 
             const button2 = document.createElement("button");
-            button2.setAttribute("onclick", "closeModalBox()")
+            button2.setAttribute("onclick", "closeModal()")
             button2.innerText = "CLOSE";
             button2.classList.add("close-modal")
             button2.classList.add("center");
@@ -2951,7 +2887,7 @@
             button.classList.add("center")
 
             let button2 = document.createElement("button");
-            button2.setAttribute("onclick", "closeModalBox()")
+            button2.setAttribute("onclick", "closeModal()")
             button2.classList.add("close-modal")
             button2.innerText = "CLOSE";
             button2.classList.add("center");
@@ -3382,9 +3318,11 @@
     }
 
     function closeModalBox(closeModal) {
+        
         closeModal.addEventListener("click", function (e) {
             modal.style.display = "none";
         });
+       
         window.addEventListener("click", function (e) {
             if (e.target == modal) {
                 modal.style.display = "none";
@@ -3525,9 +3463,15 @@
         modal.style.display = "block";
 
         // Add the event listener or perform actions for each close button
-        closeModalButtons.forEach(function (closeModal) {
+        closeModalButtons.forEach((closeModal) => {
             closeModalBox(closeModal);
         });
+    }
+    function closeModal() {
+        let modal = document.querySelector(".modal");
+        let closeModalButtons = document.querySelectorAll(".close-modal");
+        modal.style.display = "none";
+        modalIsOpen = false;
     }
 
     const clickEventListener = async function (event) {
@@ -3818,7 +3762,7 @@
         button1.setAttribute("onclick", "updateParticipantList()");
         button1.innerText = "ADD";
         const button2 = document.createElement("button");
-        button2.setAttribute("onclick", "closeParticipantModal()");
+        button2.setAttribute("onclick", "closeModal()");
         button2.innerText = "CLOSE";
 
         btnContainer.appendChild(button1);
