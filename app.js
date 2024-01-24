@@ -610,6 +610,25 @@ app.post('/adjustInit', (req, res) => {
     });
 });
 
+app.post('/submitStartingHP', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+    // Generate the SQL query with parameters
+    const sql = `
+      UPDATE ct_tbl_participant
+      SET starting_hp = '${requestData.starting_hp}'
+      WHERE pID = '${requestData.pID}'
+    `;
+
+    // Execute the SQL query with parameters and handle the response
+    db.run(sql, [], (err) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.json({ message: 'Numeric value deleted successfully' });
+    });
+});
+
 
 app.post('/deleteNote', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
