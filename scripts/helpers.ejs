@@ -1341,13 +1341,16 @@
         modalIsOpen = true;
     }
 
-    async function submitAdjustHP() {
+    async function submitAdjustHP(characterToAdjustHP) {
         const startingHPEle = document.querySelector("#startingHP")
         const starting_hp = startingHPEle.value;
-        const pID = startingHPEle.getAttribute("data-starting-hp-pid")
+        const pIDObject = ctApp.find(obj => obj.pID == characterToAdjustHP);
+        const pID = pIDObject.pID;
+        const max_hp = pIDObject.max_hp;
     
         const data = {
             pID: pID,
+            max_hp: max_hp,
             starting_hp: starting_hp
         }
 

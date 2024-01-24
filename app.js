@@ -606,7 +606,7 @@ app.post('/adjustInit', (req, res) => {
             console.log(err);
             return res.status(500).json({ error: 'Internal Server Error' });
         }
-        res.json({ message: 'Numeric value deleted successfully' });
+        res.json({ message: 'Initiative updated successfully' });
     });
 });
 
@@ -625,7 +625,7 @@ app.post('/submitStartingHP', (req, res) => {
             console.log(err);
             return res.status(500).json({ error: 'Internal Server Error' });
         }
-        res.json({ message: 'Numeric value deleted successfully' });
+        res.json({ message: 'Starting HP updated successfully' });
     });
 });
 
