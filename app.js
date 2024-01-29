@@ -963,6 +963,7 @@ app.get("/tool/:toolID/", (req, res) => {
     let sql = `SELECT *
         FROM tbl_tool
                 WHERE toolID = "${toolID}"
+                ORDER BY toolName ASC
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -978,7 +979,7 @@ app.get("/participantTools/:chID/", (req, res) => {
     let sql = `SELECT *
         FROM tbl_tool
                 WHERE chID = "${chID}"
-                
+                ORDER BY toolName ASC
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
