@@ -184,7 +184,7 @@ hr {
     background-color: white;
     border: 1px solid #cccccc;
     box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
-    padding: 10px 0;
+    /* padding: 10px 0; */
     width: 200px;
     position: absolute;
     top: 0;
@@ -580,6 +580,15 @@ h3 {
     justify-content: left;
     font-size: 25px;
     height: 25px;
+}
+
+.context_div {
+    line-height: 40px;
+    padding-left: 10px;
+}
+
+.context_div:hover {
+    background-color: pink;
 }
 
 .line input,

@@ -957,17 +957,19 @@
             else if ((element.classList.contains("attack") || element.classList.contains("attack_alt") || element.parentElement.classList.contains("attack") || element.parentElement.classList.contains("attack_alt")) && element.innerText !== "" && (element.hasAttribute("data-participant") || element.parentElement.hasAttribute("data-participant"))) {
                 const editAction = document.createElement("div");
                 editAction.classList.add("clickable_area")
+                editAction.classList.add("context_div");
                 editAction.textContent = "Edit Action";
                 editAction.addEventListener("click", () => updateAction(dataAidValue));
 
                 const deleteActionEl = document.createElement("div");
                 deleteActionEl.classList.add("clickable_area")
+                deleteActionEl.classList.add("context_div");
                 deleteActionEl.textContent = "Delete Action";
                 deleteActionEl.addEventListener("click", () => deleteAction(dataAidValue));
 
                 contextMenu.appendChild(editAction);
                 const br = document.createElement("br");
-                contextMenu.appendChild(br);
+                // contextMenu.appendChild(br);
                 contextMenu.appendChild(deleteActionEl);
                 showContextMenu()
             }
@@ -987,6 +989,7 @@
             }
             else if (element.classList.contains("notes") && element.innerText !== "") {
                 const deleteOption = document.createElement("div");
+                deleteOption.classList.add("context_div");
                 deleteOption.textContent = "Delete Note";
                 deleteOption.addEventListener("click", () => deleteNote(dataAidValue));
                 contextMenu.appendChild(deleteOption);
@@ -995,25 +998,28 @@
             else if (element.classList.contains("delete_character") && element.innerText !== "") {
                 const characterToAdjustInit = element.getAttribute("data-participant")
                 const divAdjustInit = document.createElement("div");
+                divAdjustInit.classList.add("context_div");
                 divAdjustInit.textContent = "Adjust Initiative";
                 divAdjustInit.addEventListener("click", () => adjustInitModal(characterToAdjustInit));
 
                 const characterToAdjustHP = element.getAttribute("data-participant")
                 const divAdjustHP = document.createElement("div");
+                divAdjustHP.classList.add("context_div");
                 divAdjustHP.textContent = "Adjust Starting HP";
-                divAdjustHP.addEventListener("click", () => adjustHPModal(characterToAdjustHP));
+                divAdjustHP.addEventListener("click", (e) => adjustHPModal(e, characterToAdjustHP));
 
                 const characterToDelete = element.getAttribute("data-participant")
                 const deleteCharacter = document.createElement("div");
+                deleteCharacter.classList.add("context_div");
                 deleteCharacter.textContent = "Delete Character";
                 deleteCharacter.addEventListener("click", () => deleteParticipant(characterToDelete));
 
                 const br = document.createElement("br");
                 const br2 = document.createElement("br");
                 contextMenu.appendChild(divAdjustInit);
-                contextMenu.appendChild(br);
+                // contextMenu.appendChild(br);
                 contextMenu.appendChild(divAdjustHP);
-                contextMenu.appendChild(br2);
+                // contextMenu.appendChild(br2);
                 contextMenu.appendChild(deleteCharacter);
                 showContextMenu();
             }
@@ -1254,7 +1260,8 @@
         closeModal()
     }
 
-    async function adjustHPModal(characterToAdjustHP) {
+    async function adjustHPModal(e, characterToAdjustHP) {
+        // alert(e.target.outerHTML)
         const pIDObject = ctApp.find(obj => obj.pID == characterToAdjustHP);
         const modal = document.querySelector("#modal-body");
 
