@@ -3306,7 +3306,7 @@
 
                 const input2 = document.createElement("input");
                 input2.classList.add("secondaryInitValues")
-                input2.classList.add("secondaryInitOff")
+                input2.classList.add("secondary-init-off")
                 input2.setAttribute("type", "text");
                 input2.setAttribute("maxLength", "2");
                 input2.setAttribute("data-init-pid-secondary", participant.pID);
@@ -3392,9 +3392,9 @@
                         // Select all elements with data-init-pid-secondary matching the value
                         const secondaryInitOffElements = document.querySelectorAll(`[data-init-pid-secondary="${dataInitPidValue}"]`);
 
-                        // Remove the secondaryInitOff class from matching elements
+                        // Remove the secondary-init-off class from matching elements
                         secondaryInitOffElements.forEach(element => {
-                            element.classList.remove('secondaryInitOff');
+                            element.classList.remove('secondary-init-off');
                         });
                     }
                 });
@@ -3412,9 +3412,9 @@
                         // Select all elements with data-init-pid-secondary matching the value
                         const secondaryInitOffElements = document.querySelectorAll(`[data-init-pid-secondary="${dataInitPidValue}"]`);
 
-                        // Add the secondaryInitOff class to matching elements
+                        // Add the secondary-init-off class to matching elements
                         secondaryInitOffElements.forEach(element => {
-                            element.classList.add('secondaryInitOff');
+                            element.classList.add('secondary-init-off');
                         });
                     }
                 });
@@ -3565,7 +3565,7 @@
             // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
         } else { // if PC == 1
             let nodeList = document.querySelectorAll('.initValues');
-            let secondaryNodeList = document.querySelectorAll(".secondaryInitValues:not(.secondaryInitOff)");
+            let secondaryNodeList = document.querySelectorAll(".secondaryInitValues:not(.secondary-init-off)");
 
             let strongValuesArray = Array.from(nodeList).map(function (element) {
                 return element.value;

@@ -154,7 +154,7 @@ input {
     height: max-content;
 }
 
-.secondaryInitOff {
+.secondary-init-off {
     visibility: hidden;
 }
 
@@ -184,7 +184,6 @@ hr {
     background-color: white;
     border: 1px solid #cccccc;
     box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
-    /* padding: 10px 0; */
     width: 200px;
     position: absolute;
     top: 0;
