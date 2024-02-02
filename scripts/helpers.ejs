@@ -371,7 +371,7 @@
             divCM2.classList.add("custom-cm__item");
             divCM2.classList.add("cmEnd");
             divCM2.innerHTML = "End This Condition";
-            divCM2.setAttribute("onclick", "endCondition()");
+            // divCM2.setAttribute("onclick", "endCondition()");
 
             divCM.appendChild(divCM2);
             mainContainer.prepend(divCM);
@@ -974,9 +974,18 @@
                 showContextMenu()
             }
             else if ((element.classList.contains("bonus") || element.parentElement.classList.contains("bonus")) && element.innerText !== "") {
+                const editAction = document.createElement("div");
+                editAction.classList.add("clickable_area")
+                editAction.classList.add("context_div");
+                editAction.textContent = "Edit Action";
+                editAction.addEventListener("click", () => updateAction(dataAidValue));
+                
                 const deleteBonusActionEl = document.createElement("div");
-                deleteBonusActionEl.innerHTML = "Delete Bonus Action";
+                deleteBonusActionEl.innerHTML = "Delete Action";
+                deleteBonusActionEl.classList.add("context_div")
                 deleteBonusActionEl.addEventListener("click", () => deleteAction(dataAidValue));
+                
+                contextMenu.appendChild(editAction);
                 contextMenu.appendChild(deleteBonusActionEl)
                 showContextMenu()
             }
@@ -1369,7 +1378,8 @@
 
     async function updateAction(dataAidValue) {
         const aIDObject = ctActions.find(obj => obj.aID == dataAidValue);
-        console.log(aIDObject);
+        const targetObject = await dbQuery("GET", `targets/${aIDObject.targetID}`)
+        console.log(targetObject)
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -1436,14 +1446,15 @@
         defaultLabel.classList.add("radio_buttons");
         defaultLabel.innerHTML = "NONE";
         defaultLabel.classList.add("pointer");
-        defaultLabel.setAttribute("default", "true");
+        if (aIDObject.action == "none") {
+            defaultLabel.setAttribute("checked", "checked");
+        }
         let br1 = document.createElement("br");
         div14.appendChild(defaultTool);
         div14.appendChild(defaultLabel);
         div14.appendChild(br1);
 
         // const targetPID = 60; // Specify the target pID
-        const resultObject = findHighestAIDByPID(ctActions, participantID);
         for (item of participantTools) {
             let tool = document.createElement("input");
             tool.setAttribute("type", "radio");
@@ -1455,7 +1466,7 @@
             tool.setAttribute("data-holding", item.holding);
             tool.setAttribute("data-holding-one-round", item.holding_one_round);
             try {
-                if (item.toolID == resultObject.toolID) {
+                if (item.toolID == aIDObject.toolID) {
                     tool.setAttribute("checked", "checked");
                 }
             }
@@ -1463,13 +1474,6 @@
 
             let label = document.createElement("label");
             label.setAttribute("for", item.toolID);
-            // try {
-            //     if (item.toolID == resultObject.toolID) {
-            //         label.classList.add("previous_tool")
-            //     }
-            // }
-            // catch (err) { }
-
             label.classList.add("radio_buttons");
             label.classList.add("pointer");
             label.innerHTML =
@@ -1550,6 +1554,9 @@
                 "data-holding-one-round",
                 action == "help" || action == "ready" ? 1 : 0
             );
+            if (aIDObject.action == action) {
+                actionsRadio.setAttribute("checked", "checked");
+            }
             let label = document.createElement("label");
             label.setAttribute("for", action);
             label.classList.add("pointer");
@@ -1599,6 +1606,9 @@
             );
             actionsRadio.setAttribute("name", "actions");
             actionsRadio.classList.add("pointer");
+            if (aIDObject.action_type == action) {
+                actionsRadio.setAttribute("checked", "checked");
+            }
             let label = document.createElement("label");
             label.setAttribute("for", action == "reaction" ? "react" : action);
             label.classList.add("radio_buttons");
@@ -1919,11 +1929,6 @@
 
             return highestAIDObject;
         }
-
-
-
-        console.log(resultObject);
-
     }
 
 
@@ -2478,11 +2483,6 @@
 
             return highestAIDObject;
         }
-
-
-
-        console.log(resultObject);
-
     }
 
     async function submitAction(forceCondition = 0) {
