@@ -979,28 +979,44 @@
                 editAction.classList.add("context_div");
                 editAction.textContent = "Edit Action";
                 editAction.addEventListener("click", () => updateAction(dataAidValue));
-                
+
                 const deleteBonusActionEl = document.createElement("div");
                 deleteBonusActionEl.innerHTML = "Delete Action";
                 deleteBonusActionEl.classList.add("context_div")
                 deleteBonusActionEl.addEventListener("click", () => deleteAction(dataAidValue));
-                
+
                 contextMenu.appendChild(editAction);
                 contextMenu.appendChild(deleteBonusActionEl)
                 showContextMenu()
             }
             else if ((element.classList.contains("react") || element.parentElement.classList.contains("react")) && element.innerText !== "") {
+                const editAction = document.createElement("div");
+                // editAction.classList.add("clickable_area")
+                editAction.classList.add("context_div");
+                editAction.textContent = "Edit Action";
+                editAction.addEventListener("click", () => updateAction(dataAidValue));
+                
                 const deleteReactionEl = document.createElement("div");
+                deleteReactionEl.classList.add("context_div")
                 deleteReactionEl.innerHTML = "Delete Reaction";
                 deleteReactionEl.addEventListener("click", () => deleteAction(dataAidValue));
+
+                contextMenu.appendChild(editAction);
                 contextMenu.appendChild(deleteReactionEl)
                 showContextMenu()
             }
             else if (element.classList.contains("notes") && element.innerText !== "") {
+                const editAction = document.createElement("div");
+                editAction.classList.add("context_div");
+                editAction.textContent = "Edit Action";
+                editAction.addEventListener("click", () => updateAction(dataAidValue));
+
                 const deleteOption = document.createElement("div");
                 deleteOption.classList.add("context_div");
                 deleteOption.textContent = "Delete Note";
                 deleteOption.addEventListener("click", () => deleteNote(dataAidValue));
+
+                contextMenu.appendChild(editAction);
                 contextMenu.appendChild(deleteOption);
                 showContextMenu()
             }
@@ -1378,8 +1394,8 @@
 
     async function updateAction(dataAidValue) {
         const aIDObject = ctActions.find(obj => obj.aID == dataAidValue);
-        const targetObject = await dbQuery("GET", `targets/${aIDObject.targetID}`)
-        console.log(targetObject)
+        const targetsArray = await dbQuery("GET", `targets/${aIDObject.targetID}`)
+        console.log(targetsArray)
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -1606,8 +1622,11 @@
             );
             actionsRadio.setAttribute("name", "actions");
             actionsRadio.classList.add("pointer");
-            if (aIDObject.action_type == action) {
+            if (aIDObject.action_type == action || (aIDObject.action_type == "react" && action == "reaction")) {
                 actionsRadio.setAttribute("checked", "checked");
+            } else if (aIDObject.action_type == action) {
+                actionsRadio.setAttribute("checked", "checked");
+
             }
             let label = document.createElement("label");
             label.setAttribute("for", action == "reaction" ? "react" : action);
@@ -1646,12 +1665,19 @@
         allParticipants.forEach((participant) => {
             let target = document.createElement("input");
             target.setAttribute("type", "text");
-            target.setAttribute("value", "");
+            // if (x) {
+            //     // if participant.pID is in the targetsArray... 
+            //     // determine which targetsArray object it is
+            //     target.setAttribute("value", targetsArray[x])
+            // } else {
+                target.setAttribute("value", "");
+            // }
             target.classList.add("text_field");
             target.classList.add("numeric");
             target.setAttribute("name", "participants");
             target.setAttribute("id", "p" + participant.pID);
             target.setAttribute("autocomplete", "off");
+
             let targetLabel = document.createElement("label");
             targetLabel.setAttribute("for", "p" + participant.pID);
             targetLabel.classList.add("p" + participant.pID);
@@ -1929,6 +1955,7 @@
 
             return highestAIDObject;
         }
+        modalIsOpen = true;
     }
 
 
