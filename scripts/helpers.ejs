@@ -995,7 +995,7 @@
                 editAction.classList.add("context_div");
                 editAction.textContent = "Edit Action";
                 editAction.addEventListener("click", () => updateAction(dataAidValue));
-                
+
                 const deleteReactionEl = document.createElement("div");
                 deleteReactionEl.classList.add("context_div")
                 deleteReactionEl.innerHTML = "Delete Reaction";
@@ -1395,7 +1395,42 @@
     async function updateAction(dataAidValue) {
         const aIDObject = ctActions.find(obj => obj.aID == dataAidValue);
         const targetsArray = await dbQuery("GET", `targets/${aIDObject.targetID}`)
-        console.log(targetsArray)
+        // xxx = targetsArray;
+
+        function getCombinedObjectByTargetID(targetID) {
+            const actionsArray = [aIDObject];
+            const combinedObject = {};
+
+            // Iterate over actionsArray
+            actionsArray.forEach((action) => {
+                const currentTargetID = action.targetID;
+
+                // Create a new object for targetID if it doesn't exist in combinedObject
+                if (!combinedObject[currentTargetID]) {
+                    combinedObject[currentTargetID] = {
+                        ct_tbl_action: action,
+                        ct_tbl_targets: [],
+                    };
+                }
+
+                // Add ct_tbl_target objects to the array within the corresponding ct_tbl_action object
+                combinedObject[currentTargetID].ct_tbl_targets.push(
+                    targetsArray.filter((target) => target.targetID === currentTargetID)
+                );
+            });
+
+            // Retrieve the combinedObject for the specified targetID
+            const resultForTargetID = combinedObject[targetID];
+            return resultForTargetID;
+        }
+
+        // Example usage
+        const targetIDToRetrieve = aIDObject.targetID;
+        const actionObj = getCombinedObjectByTargetID(targetIDToRetrieve);
+
+        yyy = actionObj;
+
+        // console.log(targetsArray)
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -1462,7 +1497,7 @@
         defaultLabel.classList.add("radio_buttons");
         defaultLabel.innerHTML = "NONE";
         defaultLabel.classList.add("pointer");
-        if (aIDObject.action == "none") {
+        if (actionObj.ct_tbl_action.action == "none") {
             defaultLabel.setAttribute("checked", "checked");
         }
         let br1 = document.createElement("br");
@@ -1482,7 +1517,7 @@
             tool.setAttribute("data-holding", item.holding);
             tool.setAttribute("data-holding-one-round", item.holding_one_round);
             try {
-                if (item.toolID == aIDObject.toolID) {
+                if (item.toolID == actionObj.ct_tbl_action.toolID) {
                     tool.setAttribute("checked", "checked");
                 }
             }
@@ -1570,7 +1605,7 @@
                 "data-holding-one-round",
                 action == "help" || action == "ready" ? 1 : 0
             );
-            if (aIDObject.action == action) {
+            if (actionObj.ct_tbl_action.action == action) {
                 actionsRadio.setAttribute("checked", "checked");
             }
             let label = document.createElement("label");
@@ -1622,9 +1657,9 @@
             );
             actionsRadio.setAttribute("name", "actions");
             actionsRadio.classList.add("pointer");
-            if (aIDObject.action_type == action || (aIDObject.action_type == "react" && action == "reaction")) {
+            if (actionObj.ct_tbl_action.action_type == action || (actionObj.ct_tbl_action.action_type == "react" && action == "reaction")) {
                 actionsRadio.setAttribute("checked", "checked");
-            } else if (aIDObject.action_type == action) {
+            } else if (actionObj.ct_tbl_action.action_type == action) {
                 actionsRadio.setAttribute("checked", "checked");
 
             }
@@ -1663,19 +1698,23 @@
             redAfterSelectionParticipants.push(parseInt(item.getAttribute("data-participant")))
         })
         allParticipants.forEach((participant) => {
+            // const newArray = targetsArray.filter((item) => {
+            //     return item.target_pID == 
+            // })
             let target = document.createElement("input");
             target.setAttribute("type", "text");
             // if (x) {
-            //     // if participant.pID is in the targetsArray... 
+            //     // if getAttribute("data-pid") is in the targetsArray... 
             //     // determine which targetsArray object it is
             //     target.setAttribute("value", targetsArray[x])
             // } else {
-                target.setAttribute("value", "");
+            target.setAttribute("value", "");
             // }
             target.classList.add("text_field");
             target.classList.add("numeric");
             target.setAttribute("name", "participants");
             target.setAttribute("id", "p" + participant.pID);
+            target.setAttribute("data-pid", participant.pID);
             target.setAttribute("autocomplete", "off");
 
             let targetLabel = document.createElement("label");
@@ -2888,7 +2927,6 @@
             return participant.pID == participantID;
         }).chID;
 
-        yyy = "what now?"
         let currentRound = html.getAttribute("data-round");
         let encounter = ctApp[0].eID;
 
