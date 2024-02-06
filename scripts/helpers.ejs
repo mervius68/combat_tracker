@@ -1409,12 +1409,12 @@
                 if (!combinedObject[currentTargetID]) {
                     combinedObject[currentTargetID] = {
                         ct_tbl_action: action,
-                        ct_tbl_targets: [],
+                        ct_tbl_target: [],
                     };
                 }
 
                 // Add ct_tbl_target objects to the array within the corresponding ct_tbl_action object
-                combinedObject[currentTargetID].ct_tbl_targets.push(
+                combinedObject[currentTargetID].ct_tbl_target.push(
                     targetsArray.filter((target) => target.targetID === currentTargetID)
                 );
             });
@@ -1427,7 +1427,7 @@
         // Example usage
         const targetIDToRetrieve = aIDObject.targetID;
         const actionObj = getCombinedObjectByTargetID(targetIDToRetrieve);
-
+        yyy = actionObj
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -1710,12 +1710,22 @@
             // })
             let target = document.createElement("input");
             target.setAttribute("type", "text");
+            actionObj.ct_tbl_target[0].forEach((targetParticipant) => {
+                // alert(targetParticipant.pID)
+                // alert(participant.pID)
+                if (targetParticipant.pID == participant.pID) {
+                    target.defaultValue = targetParticipant.damage
+                }
+                if (targetParticipant.pID == participant.pID && targetParticipant.damage == 0) {
+                    target.defaultValue = "x"
+                }
+            })
             // if (x) {
             //     // if getAttribute("data-pid") is in the targetsArray... 
             //     // determine which targetsArray object it is
             //     target.setAttribute("value", targetsArray[x])
             // } else {
-            target.setAttribute("value", "");
+            // target.setAttribute("value", "");
             // }
             target.classList.add("text_field");
             target.classList.add("numeric");
