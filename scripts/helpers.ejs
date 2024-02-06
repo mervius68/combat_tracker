@@ -1428,9 +1428,6 @@
         const targetIDToRetrieve = aIDObject.targetID;
         const actionObj = getCombinedObjectByTargetID(targetIDToRetrieve);
 
-        yyy = actionObj;
-
-        // console.log(targetsArray)
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -1552,24 +1549,7 @@
 
         divLeft.appendChild(div13);
 
-        let weaponTextInput = document.createElement("input");
-        weaponTextInput.setAttribute("type", "text");
-        weaponTextInput.setAttribute("name", "weaponTextInput");
-        weaponTextInput.setAttribute("autocomplete", "off");
-        weaponTextInput.classList.add("text_field");
-        let label1 = document.createElement("label");
-        let br2 = document.createElement("br");
-
-        div14.appendChild(weaponTextInput);
-        div14.appendChild(label1);
-        div14.appendChild(br2);
-        divLeft.appendChild(div14);
-        divModalTop.appendChild(divLeft);
-
-        let divMiddleLeft = document.createElement("div");
-        divMiddleLeft.classList.add("modal_column");
-        let anotherDiv = document.createElement("div");
-        let actionsArray = [
+        const actionsArray = [
             "dash",
             "disarm",
             "disengage",
@@ -1584,6 +1564,33 @@
             "shove",
             "use an object",
         ];
+
+        let weaponTextInput = document.createElement("input");
+        weaponTextInput.setAttribute("type", "text");
+        weaponTextInput.setAttribute("name", "weaponTextInput");
+        weaponTextInput.setAttribute("autocomplete", "off");
+        weaponTextInput.classList.add("text_field");
+        if (actionObj.ct_tbl_action.toolID != NaN
+            && actionObj.ct_tbl_action.toolID != "" 
+            && !actionObj.ct_tbl_action.toolID > 0 
+            && actionObj.ct_tbl_action.action != "none"
+            && !actionsArray.includes(actionObj.ct_tbl_action.action)
+            ) {
+            weaponTextInput.defaultValue = actionObj.ct_tbl_action.action
+        }
+        let label1 = document.createElement("label");
+        let br2 = document.createElement("br");
+
+        div14.appendChild(weaponTextInput);
+        div14.appendChild(label1);
+        div14.appendChild(br2);
+        divLeft.appendChild(div14);
+        divModalTop.appendChild(divLeft);
+
+        let divMiddleLeft = document.createElement("div");
+        divMiddleLeft.classList.add("modal_column");
+        let anotherDiv = document.createElement("div");
+        
         actionsArray.forEach((action) => {
             let actionsRadio = document.createElement("input");
             actionsRadio.setAttribute("type", "radio");
@@ -1639,9 +1646,9 @@
         divMiddleRight.classList.add("modal_column");
         let anotherDiv2 = document.createElement("div");
         anotherDiv2.classList.add("modal_column_int");
-        let actions2 = ["action", "bonus", "reaction", "other"];
+        let actionCategories = ["action", "bonus", "reaction", "other"];
 
-        actions2.forEach((action) => {
+        actionCategories.forEach((action) => {
             let actionsRadio = document.createElement("input");
             actionsRadio.setAttribute("type", "radio");
             actionsRadio.setAttribute(
@@ -2211,9 +2218,9 @@
         divMiddleRight.classList.add("modal_column");
         let anotherDiv2 = document.createElement("div");
         anotherDiv2.classList.add("modal_column_int");
-        let actions2 = ["action", "bonus", "reaction", "other"];
+        let actionCategories = ["action", "bonus", "reaction", "other"];
 
-        actions2.forEach((action) => {
+        actionCategories.forEach((action) => {
             let actionsRadio = document.createElement("input");
             actionsRadio.setAttribute("type", "radio");
             actionsRadio.setAttribute(
