@@ -67,6 +67,12 @@
         // get all the actions of this encounter as ctActions and ctActionsConditions
         // global variables
         ctActions = await dbQuery("GET", "actions/" + encounterID);
+        for (let i = 0; i < ctActions.length; i++) {
+            // Assign the value of result_aID to aID
+            ctActions[i].aID = ctActions[i].result_aID;
+            ctActions[i].eID = ctActions[i].result_eID;
+            ctActions[i].pID = ctActions[i].result_pID;
+        }
         ctActionsConditions = await dbQuery("GET", "actionsConditions/" + encounterID)
 
         function mergeArrays(mainArray, secondaryArray) {
@@ -797,7 +803,7 @@
                 actionObject.notes = action.notes || "";
                 actionObject.end = action.end_note || "";
                 actionObject.start = action.start_note || "";
-                actionObject.aID = action.aID || "";
+                actionObject.aID = action.result_aID || "";
 
                 await sendToCoordinate(
                     action.round,
@@ -828,6 +834,7 @@
 
         // function to populate the individual actions
         function sendToCoordinate(round, participant, actionType, actionObject, taID) {
+            xxx = actionObject;
             try {
                 let y = mainContainer.querySelector(
                     `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
@@ -881,6 +888,8 @@
                 x.nextSibling.nextSibling.innerHTML = actionObject.targetName;
                 x.nextSibling.nextSibling.nextSibling.innerHTML =
                     actionObject.damage;
+
+
             } catch (err) { }
         }
 
@@ -1395,7 +1404,6 @@
     async function updateAction(dataAidValue) {
         const aIDObject = ctActions.find(obj => obj.aID == dataAidValue);
         const targetsArray = await dbQuery("GET", `targets/${aIDObject.targetID}`)
-        // xxx = targetsArray;
 
         function getCombinedObjectByTargetID(targetID) {
             const actionsArray = [aIDObject];
@@ -1721,7 +1729,7 @@
                     target.defaultValue = "x"
                     target.setAttribute("data-stored-damage", 0)
                 }
-                
+
             })
             target.classList.add("text_field");
             target.classList.add("numeric");
@@ -1923,7 +1931,7 @@
         submit.setAttribute("data-row", dataNavSelected)
         submit.setAttribute("data-selected-pid", participantID)
         submit.setAttribute("data-current-round", currentRound);
-        submit.setAttribute("onclick", "submitUpdateAction()");
+        submit.setAttribute("onclick", `submitUpdateAction(${dataAidValue})`);
         submit.classList.add("button");
         submit.classList.add("modalSubmit");
         // let submitGoToCondition = document.createElement("button");
@@ -2010,7 +2018,7 @@
         modalIsOpen = true;
     }
 
-    async function submitUpdateAction(forceCondition = 0) {
+    async function submitUpdateAction(dataAidValue, forceCondition = 0) {
         const data = document.querySelector(".modalSubmit");
         const dataNav = data.getAttribute("data-row");
         const currentRound = data.getAttribute("data-current-round");
@@ -2307,7 +2315,23 @@
         // we may need to insert new record(s) in ct_tbl_target, if new target created
         // we may need to delete ct_tbl_target record(s), if target removed
 
-
+        const updateData = {
+            aID: dataAidValue,
+            action_type: actionCategory,
+            currentRound: currentRound,
+            eID: ctApp[0].eID,
+            toolID: toolNum,
+            action: actionString,
+            pID: pID,
+            nextTargetID: nextTargetID,
+            hit: hit,
+            damage: damage,
+            notes: notes,
+            disableConditionsString: disableConditionsString,
+            // nextAID: nextAID,
+            // nextToolID: nextToolID, 
+            target_pIDString: target_pIDString
+        }
 
         // let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
         // await dbQuery("GET", dataAction);

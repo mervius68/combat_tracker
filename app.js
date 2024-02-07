@@ -928,10 +928,15 @@ app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
 
 app.get("/actions/:encounter", (req, res) => {
     let encounter = req.params.encounter;
-    let sql = `SELECT * 
+    let sql = `SELECT 
+    ct_tbl_action.aID AS result_aID,
+    ct_tbl_action.eID AS result_eID,
+    ct_tbl_action.pID AS result_pID,
+    *
         FROM ct_tbl_action
         LEFT JOIN tbl_tool ON tbl_tool.toolID = ct_tbl_action.toolID
-                WHERE eID = ${encounter} ORDER BY aID, round;
+        LEFT JOIN ct_tbl_condition ON ct_tbl_condition.aID = ct_tbl_action.aID
+        WHERE ct_tbl_action.eID = ${encounter} ;
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
