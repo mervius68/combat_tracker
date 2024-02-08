@@ -1764,18 +1764,18 @@
 
         divRight.appendChild(div16);
 
-        let notesLabel = document.createElement("h3");
+        const notesLabel = document.createElement("h3");
         notesLabel.innerText = "Notes";
-        let notes = document.createElement("textarea");
+        const notes = document.createElement("textarea");
         notes.defaultValue = actionObj.ct_tbl_action.notes == "-" ? "" : actionObj.ct_tbl_action.notes;
         notes.setAttribute("rows", "5");
         notes.setAttribute("cols", "30");
         notes.setAttribute("name", "notes");
         notes.classList.add("notes_text");
 
-        let notesLabelStart = document.createElement("h3");
+        const notesLabelStart = document.createElement("h3");
         notesLabelStart.innerText = "Start";
-        let notesStart = document.createElement("textarea");
+        const notesStart = document.createElement("textarea");
         notesStart.setAttribute("rows", "1");
         notesStart.setAttribute("cols", "30");
         notesStart.setAttribute("name", "notes_start");
