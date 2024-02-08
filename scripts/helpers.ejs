@@ -834,7 +834,6 @@
 
         // function to populate the individual actions
         function sendToCoordinate(round, participant, actionType, actionObject, taID) {
-            xxx = actionObject;
             try {
                 let y = mainContainer.querySelector(
                     `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
@@ -1768,7 +1767,7 @@
         let notesLabel = document.createElement("h3");
         notesLabel.innerText = "Notes";
         let notes = document.createElement("textarea");
-        notes.defaultValue = actionObj.ct_tbl_action.notes;
+        notes.defaultValue = actionObj.ct_tbl_action.notes == "-" ? "" : actionObj.ct_tbl_action.notes;
         notes.setAttribute("rows", "5");
         notes.setAttribute("cols", "30");
         notes.setAttribute("name", "notes");
@@ -2025,13 +2024,6 @@
         const pID = data.getAttribute("data-selected-pid");
 
         let holdingOneRound = 0;
-        // determine next available action number
-        // let nextAID = await dbQuery("GET", "getNewAID");
-        // if (nextAID.length > 0 && nextAID[0].aID != undefined) {
-        //     nextAID = nextAID[0].aID + 1;
-        // } else {
-        //     nextAID = 1;
-        // }
 
         // determine next available targetID
         let nextTargetID = await dbQuery("GET", "getNextTargetID");
@@ -2203,100 +2195,100 @@
         let disableConditionsString = "";
         let disabledConditionsArray = [];
 
-        // conditionsOff = [];
-        // conditionsToTurnOff = {};
-        // conditionsData = {};
-        // async function processConditions() {
-        //     for (const condition of disableConditionsEle) {
-        //         if (condition.checked) {
-        //             const object = {
-        //                 affectedpID: condition.getAttribute("data-participant-affected"),
-        //                 condition: condition.getAttribute("data-cpid")
-        //             }
-        //             conditionsOff.push(object);           // create arrays for each condition we want to edit
-        //             conditionsOff.forEach((obj) => {
-        //                 if (!conditionsToTurnOff[obj.condition]) {
-        //                     conditionsToTurnOff[obj.condition] = [];
-        //                     conditionsToTurnOff[obj.condition].affectees = [];
-        //                 }
-        //                 conditionsToTurnOff[obj.condition].affectees.push(obj.affectedpID);
-        //                 conditionsToTurnOff[obj.condition].affectees = [...new Set(conditionsToTurnOff[obj.condition].affectees)]
-        //             })
+        conditionsOff = [];
+        conditionsToTurnOff = {};
+        conditionsData = {};
+        async function processConditions() {
+            for (const condition of disableConditionsEle) {
+                if (condition.checked) {
+                    const object = {
+                        affectedpID: condition.getAttribute("data-participant-affected"),
+                        condition: condition.getAttribute("data-cpid")
+                    }
+                    conditionsOff.push(object);           // create arrays for each condition we want to edit
+                    conditionsOff.forEach((obj) => {
+                        if (!conditionsToTurnOff[obj.condition]) {
+                            conditionsToTurnOff[obj.condition] = [];
+                            conditionsToTurnOff[obj.condition].affectees = [];
+                        }
+                        conditionsToTurnOff[obj.condition].affectees.push(obj.affectedpID);
+                        conditionsToTurnOff[obj.condition].affectees = [...new Set(conditionsToTurnOff[obj.condition].affectees)]
+                    })
 
-        //             disableConditionsString += condition.value;
+                    disableConditionsString += condition.value;
 
-        //             await dbQuery(
-        //                 "GET",
-        //                 "disableCondition/" +
-        //                 condition.getAttribute("data-cpid") +
-        //                 "/" +
-        //                 currentRound +
-        //                 "/" +
-        //                 condition.getAttribute(
-        //                     "data-participant-affected"
-        //                 ) +
-        //                 "/" +
-        //                 pID
-        //             )
-        //         }
-        //     }
-
-
-        //     ctApp.forEach((participant) => {
-        //         Object.keys(conditionsToTurnOff).forEach(async (condition) => {
-
-        //             if (!conditionsToTurnOff[condition]["condition_name"]) {
-        //                 conditionsToTurnOff[condition]["condition_name"] = getConditionNameById(condition);
-        //                 const creator = await ctApp.filter((participant) => {
-        //                     return participant.pID == getCreatorById(condition);
-        //                 });
-        //                 conditionsToTurnOff[condition]["creator"] = creator.length > 0 ? creator[0].character_name : null;
-        //                 conditionsToTurnOff[condition]["creator_numeric"] = creator[0].numeric_value ? creator[0].numeric_value : null;
-        //             }
+                    await dbQuery(
+                        "GET",
+                        "disableCondition/" +
+                        condition.getAttribute("data-cpid") +
+                        "/" +
+                        currentRound +
+                        "/" +
+                        condition.getAttribute(
+                            "data-participant-affected"
+                        ) +
+                        "/" +
+                        pID
+                    )
+                }
+            }
 
 
-        //             function getConditionNameById(idToFind) {
-        //                 const conditionsArray = participant.conditionsArray;
-        //                 for (const condition of conditionsArray) {
-        //                     if (condition.conditionID == parseInt(idToFind)) {
-        //                         return condition.description;
-        //                     }
-        //                 }
-        //                 return null; // Return null if no match is found
-        //             }
+            ctApp.forEach((participant) => {
+                Object.keys(conditionsToTurnOff).forEach(async (condition) => {
 
-        //             function getCreatorById(idToFind) {
-        //                 const conditionsArray = participant.conditionsArray;
-        //                 for (const condition of conditionsArray) {
-        //                     if (condition.conditionID == parseInt(idToFind)) {
-        //                         return condition.pID;
-        //                     }
-        //                 }
-        //                 return null; // Return null if no match is found
-        //             }
-
-        //         })
-        //     })
+                    if (!conditionsToTurnOff[condition]["condition_name"]) {
+                        conditionsToTurnOff[condition]["condition_name"] = getConditionNameById(condition);
+                        const creator = await ctApp.filter((participant) => {
+                            return participant.pID == getCreatorById(condition);
+                        });
+                        conditionsToTurnOff[condition]["creator"] = creator.length > 0 ? creator[0].character_name : null;
+                        conditionsToTurnOff[condition]["creator_numeric"] = creator[0].numeric_value ? creator[0].numeric_value : null;
+                    }
 
 
+                    function getConditionNameById(idToFind) {
+                        const conditionsArray = participant.conditionsArray;
+                        for (const condition of conditionsArray) {
+                            if (condition.conditionID == parseInt(idToFind)) {
+                                return condition.description;
+                            }
+                        }
+                        return null; // Return null if no match is found
+                    }
 
-        // }
-        // await processConditions();
-        // Object.keys(conditionsToTurnOff).forEach((condition) => {
-        //     let string = conditionsToTurnOff[condition].creator + (conditionsToTurnOff[condition].creator_numeric ? " &num;" + conditionsToTurnOff[condition].creator_numeric : "") + "&apos;s " + conditionsToTurnOff[condition].condition_name + " ends for "
-        //     conditionsToTurnOff[condition].affectees.forEach((affectee, index) => {
-        //         let x = ctApp.find((participant) => {
-        //             return participant.pID == affectee
-        //         })
-        //         string += index < conditionsToTurnOff[condition].affectees.length ? " [" + x.character_name + (x.numeric_value ? " &num;" + x.numeric_value : "") + "]" : ""
-        //     })
-        //     if (notes == "-") {
-        //         notes = string
-        //     } else {
-        //         notes += " | " + string
-        //     }
-        // })
-        // disableConditionsString = disableConditionsString || "-";
+                    function getCreatorById(idToFind) {
+                        const conditionsArray = participant.conditionsArray;
+                        for (const condition of conditionsArray) {
+                            if (condition.conditionID == parseInt(idToFind)) {
+                                return condition.pID;
+                            }
+                        }
+                        return null; // Return null if no match is found
+                    }
+
+                })
+            })
+
+
+
+        }
+        await processConditions();
+        Object.keys(conditionsToTurnOff).forEach((condition) => {
+            let string = conditionsToTurnOff[condition].creator + (conditionsToTurnOff[condition].creator_numeric ? " &num;" + conditionsToTurnOff[condition].creator_numeric : "") + "&apos;s " + conditionsToTurnOff[condition].condition_name + " ends for "
+            conditionsToTurnOff[condition].affectees.forEach((affectee, index) => {
+                let x = ctApp.find((participant) => {
+                    return participant.pID == affectee
+                })
+                string += index < conditionsToTurnOff[condition].affectees.length ? " [" + x.character_name + (x.numeric_value ? " &num;" + x.numeric_value : "") + "]" : ""
+            })
+            if (notes == "-") {
+                notes = string
+            } else {
+                notes += " | " + string
+            }
+        })
+        disableConditionsString = disableConditionsString || "-";
 
         let hit = 0;
         if (
@@ -2332,7 +2324,7 @@
             // nextToolID: nextToolID, 
             target_pIDString: target_pIDString
         }
-
+        xxx = updateData
         // let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
         // await dbQuery("GET", dataAction);
 
@@ -3025,7 +3017,7 @@
             actionString = weaponTextInput[0].value;
             nextToolID = "0";
         }
-
+        actionString = actionString.replace("'","&apos;")
         // determine hits and combine them into string, like "0/1" (for miss/hit)
         let targets = document.getElementsByName("participants");
         let targetHits = [];
@@ -3239,6 +3231,7 @@
         toolNum = toolNum == "" ? 0 : toolNum;
 
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
+        // alert(dataAction);
         await dbQuery("GET", dataAction);
 
         let round = currentRound;
