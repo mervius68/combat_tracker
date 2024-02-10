@@ -1434,10 +1434,10 @@
         // Example usage
         const targetIDToRetrieve = aIDObject.targetID;
         const actionObj = getCombinedObjectByTargetID(targetIDToRetrieve);
-        yyy = actionObj
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
+
         let participantID = html.getAttribute("data-participant");
         let characterID = ctApp.find((participant) => {
             return participant.pID == participantID;
@@ -1930,7 +1930,7 @@
         submit.setAttribute("data-row", dataNavSelected)
         submit.setAttribute("data-selected-pid", participantID)
         submit.setAttribute("data-current-round", currentRound);
-        submit.setAttribute("onclick", `submitUpdateAction(${dataAidValue})`);
+        submit.setAttribute("onclick", `submitUpdateAction(${dataAidValue}, ${actionObj.ct_tbl_action.pID})`);
         submit.classList.add("button");
         submit.classList.add("modalSubmit");
         // let submitGoToCondition = document.createElement("button");
@@ -2017,11 +2017,10 @@
         modalIsOpen = true;
     }
 
-    async function submitUpdateAction(dataAidValue, forceCondition = 0) {
+    async function submitUpdateAction(dataAidValue, pID) {
         const data = document.querySelector(".modalSubmit");
         const dataNav = data.getAttribute("data-row");
         const currentRound = data.getAttribute("data-current-round");
-        const pID = data.getAttribute("data-selected-pid");
 
         let holdingOneRound = 0;
 
@@ -2302,15 +2301,67 @@
         toolNum = toolNum == "" ? 0 : toolNum;
 
         // we need to update ct_tbl_action
-        // let updateData = 
-        // await dbQueryPost("submitUpdateAction", updateData)
-        // we may need to insert new record(s) in ct_tbl_target, if new target created
-        // we may need to delete ct_tbl_target record(s), if target removed
+        /////// we may need to insert new record(s) in ct_tbl_target, if new target created
+        /////// we may need to delete ct_tbl_target record(s), if target removed
+        ///////////// if so, we may need to update ct_tbl_target records where ct_tbl_target.target_pID == target pID && tID > target's tID
+        /////// we may need to update ct_tbl_target record(s), if target damage changed 
+        // we may need to delete conditions (if one was selected originally but now NOT) 
+        /////// if so, we need to delete condition_affectees
+        // we may need to end conditions (below the line)
+        // we may need to open conditions modal
+
+        const update = {
+            ct_tbl_action: {
+                update: {
+                    aID: dataAidValue,
+                    notes: notes,
+                    targetID: true,
+                }
+            }, 
+            ct_tbl_target: {
+                insert: {
+
+                }, 
+                update: {
+
+                }, 
+                delete: {
+
+                }
+            }, 
+            ct_tbl_condition: {
+                delete: {
+
+                }
+            }, 
+            ct_tbl_condition_affectee: {
+                delete: {
+
+                }
+            }, 
+            tbl_tool: {
+                insert: {
+
+                },
+                delete: {
+
+                }
+            }
+        }
+
+        // Split the string into an array
+        let arr2 = target_pIDString.split(',');
+
+        // Combine the two arrays into an object
+        let targetsObj = {};
+        arr2.forEach((value, index) => {
+            targetsObj[value] = parseInt(damage[index]);
+        });
 
         const updateData = {
             aID: dataAidValue,
             action_type: actionCategory,
-            currentRound: currentRound,
+            round: currentRound,
             eID: ctApp[0].eID,
             toolID: toolNum,
             action: actionString,
@@ -2322,9 +2373,27 @@
             disableConditionsString: disableConditionsString,
             // nextAID: nextAID,
             // nextToolID: nextToolID, 
-            target_pIDString: target_pIDString
+            target_pIDString: target_pIDString,
+            targets: targetsObj
         }
         xxx = updateData
+
+        // let's convert damage and target_pIDString into single object:
+        // let targets = [];
+        // targets.push({
+        //      ${target_pID}: damage
+        // })
+
+        // is there a concentration already in effect?
+        // if so, does it end now?
+        //      if that concentration is selected from end-condition list, all good
+        //      if not, alert user that old concentration will end at this point (OK / Cancel)
+        // does a condition created by this action change?
+        // new condition, or delete condition?
+        //      delete condition => delete associated condition and condition_affectees
+        //      new condition => delete associated condition and condition_affectees 
+        //          AND create new associated condition (method from submitAction)
+
         // let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
         // await dbQuery("GET", dataAction);
 
@@ -2350,6 +2419,8 @@
                 }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
                 }/${sortedTargetHPs[index]}`;
             await dbQuery("GET", dataTarget);
+
+            // if a target's HP drop to zero or below...
             if (sortedTargetHPs[index] - damage[index] <= 0) {
                 await dbQuery(
                     "GET",
@@ -2374,7 +2445,7 @@
         // Remove the event listener
         modal.removeEventListener("click", modalClickListener);
         modal.style.display = "none";
-        if (concentrationNext == 1 || holding == 1 || forceCondition == 1) {
+        if (concentrationNext == 1 || holding == 1) {
             launchConditionsModal(
                 target_pID,
                 concentrationNext,
@@ -3017,7 +3088,7 @@
             actionString = weaponTextInput[0].value;
             nextToolID = "0";
         }
-        actionString = actionString.replace("'","&apos;")
+        actionString = actionString.replace("'", "&apos;")
         // determine hits and combine them into string, like "0/1" (for miss/hit)
         let targets = document.getElementsByName("participants");
         let targetHits = [];
