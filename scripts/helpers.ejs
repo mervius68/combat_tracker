@@ -1769,8 +1769,8 @@
         const notes = document.createElement("textarea");
         let defaultNotesValue = actionObj.ct_tbl_action.notes == "-" ? "" : actionObj.ct_tbl_action.notes;
         defaultNotesValue = defaultNotesValue
-            .replace("&quest;", "?")
-            .replace("&apos;", "'")
+            .replace("&quest;", "?") // question mark
+            .replace("&apos;", "'")  // apostrophe
         notes.defaultValue = defaultNotesValue;
         notes.setAttribute("rows", "5");
         notes.setAttribute("cols", "30");
@@ -2314,11 +2314,21 @@
         // we may need to end conditions (below the line)
         // we may need to open conditions modal
 
+        console.log("---------**---------");
+        console.log(toolNum);
+        console.log(actionString);
+        console.log(hit);
+        console.log(actionCategory);
+
         const update = {
             ct_tbl_action: {
                 update: {
                     aID: dataAidValue,
+                    action: actionString,
+                    action_type: actionCategory,
+                    hit: hit,
                     notes: notes,
+                    toolID: toolNum
                 }
             }, 
             ct_tbl_target: {

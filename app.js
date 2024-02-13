@@ -745,11 +745,22 @@ app.post("/updateActionDB", (req, res) => {
     console.log(requestData)
 
     const sql1 = `UPDATE ct_tbl_action 
-                  SET notes = ?
+                  SET action_type = ?,
+                        action = ?,
+                        toolID = ?,
+                        hit = ?,
+                        notes = ?
                   WHERE aID = ?
                     `;
 
-    db.run(sql1, [requestData.ct_tbl_action.update.notes, requestData.ct_tbl_action.update.aID], function (err1) {
+    db.run(sql1, [
+        requestData.ct_tbl_action.update.action_type,
+        requestData.ct_tbl_action.update.action,
+        requestData.ct_tbl_action.update.toolID,
+        requestData.ct_tbl_action.update.hit,
+        requestData.ct_tbl_action.update.notes,
+        requestData.ct_tbl_action.update.aID
+    ], function (err1) {
         if (err1) {
             console.log(err1);
             throw err1;
