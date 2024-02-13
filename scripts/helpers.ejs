@@ -1767,7 +1767,11 @@
         const notesLabel = document.createElement("h3");
         notesLabel.innerText = "Notes";
         const notes = document.createElement("textarea");
-        notes.defaultValue = actionObj.ct_tbl_action.notes == "-" ? "" : actionObj.ct_tbl_action.notes;
+        let defaultNotesValue = actionObj.ct_tbl_action.notes == "-" ? "" : actionObj.ct_tbl_action.notes;
+        defaultNotesValue = defaultNotesValue
+            .replace("&quest;", "?")
+            .replace("&apos;", "'")
+        notes.defaultValue = defaultNotesValue;
         notes.setAttribute("rows", "5");
         notes.setAttribute("cols", "30");
         notes.setAttribute("name", "notes");
@@ -2315,7 +2319,6 @@
                 update: {
                     aID: dataAidValue,
                     notes: notes,
-                    targetID: true,
                 }
             }, 
             ct_tbl_target: {
@@ -2349,94 +2352,67 @@
             }
         }
 
-        // Split the string into an array
-        let arr2 = target_pIDString.split(',');
+        await dbQueryPost("updateActionDB", update)
 
-        // Combine the two arrays into an object
-        let targetsObj = {};
-        arr2.forEach((value, index) => {
-            targetsObj[value] = parseInt(damage[index]);
-        });
+        // // let's convert damage and target_pIDString into single object:
+        // // let targets = [];
+        // // targets.push({
+        // //      ${target_pID}: damage
+        // // })
 
-        const updateData = {
-            aID: dataAidValue,
-            action_type: actionCategory,
-            round: currentRound,
-            eID: ctApp[0].eID,
-            toolID: toolNum,
-            action: actionString,
-            pID: pID,
-            nextTargetID: nextTargetID,
-            hit: hit,
-            damage: damage,
-            notes: notes,
-            disableConditionsString: disableConditionsString,
-            // nextAID: nextAID,
-            // nextToolID: nextToolID, 
-            target_pIDString: target_pIDString,
-            targets: targetsObj
-        }
-        xxx = updateData
+        // // is there a concentration already in effect?
+        // // if so, does it end now?
+        // //      if that concentration is selected from end-condition list, all good
+        // //      if not, alert user that old concentration will end at this point (OK / Cancel)
+        // // does a condition created by this action change?
+        // // new condition, or delete condition?
+        // //      delete condition => delete associated condition and condition_affectees
+        // //      new condition => delete associated condition and condition_affectees 
+        // //          AND create new associated condition (method from submitAction)
 
-        // let's convert damage and target_pIDString into single object:
-        // let targets = [];
-        // targets.push({
-        //      ${target_pID}: damage
-        // })
+        // // let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
+        // // await dbQuery("GET", dataAction);
 
-        // is there a concentration already in effect?
-        // if so, does it end now?
-        //      if that concentration is selected from end-condition list, all good
-        //      if not, alert user that old concentration will end at this point (OK / Cancel)
-        // does a condition created by this action change?
-        // new condition, or delete condition?
-        //      delete condition => delete associated condition and condition_affectees
-        //      new condition => delete associated condition and condition_affectees 
-        //          AND create new associated condition (method from submitAction)
+        // let round = currentRound;
+        // targetHits.forEach(async (target, index) => {
+        //     if (
+        //         ctApp.findIndex((participant) => {
+        //             return participant.pID == pID;
+        //         }) >
+        //         ctApp.findIndex((target) => {
+        //             return target.pID == target_pID[index];
+        //         })
+        //     ) {
+        //         round = parseInt(currentRound) + 1;
+        //     } else {
+        //         round = parseInt(currentRound);
+        //     }
 
-        // let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
-        // await dbQuery("GET", dataAction);
+        //     const dataTarget = `submitTargets/${ctApp[0].eID
+        //         }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
+        //             index
+        //         ].trim()}/${actionCategory}/${damage[index]
+        //         }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
+        //         }/${sortedTargetHPs[index]}`;
+        //     await dbQuery("GET", dataTarget);
 
-        let round = currentRound;
-        targetHits.forEach(async (target, index) => {
-            if (
-                ctApp.findIndex((participant) => {
-                    return participant.pID == pID;
-                }) >
-                ctApp.findIndex((target) => {
-                    return target.pID == target_pID[index];
-                })
-            ) {
-                round = parseInt(currentRound) + 1;
-            } else {
-                round = parseInt(currentRound);
-            }
-
-            const dataTarget = `submitTargets/${ctApp[0].eID
-                }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
-                    index
-                ].trim()}/${actionCategory}/${damage[index]
-                }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
-                }/${sortedTargetHPs[index]}`;
-            await dbQuery("GET", dataTarget);
-
-            // if a target's HP drop to zero or below...
-            if (sortedTargetHPs[index] - damage[index] <= 0) {
-                await dbQuery(
-                    "GET",
-                    "terminate/" + target_pID[index] + "/" + round
-                );
-                await dbQuery(
-                    "GET",
-                    "endConditions/" + target_pID[index] + "/" + round
-                );
-            } else {
-                await dbQuery(
-                    "GET",
-                    "revive/" + target_pID[index] + "/"
-                )
-            }
-        });
+        //     // if a target's HP drop to zero or below...
+        //     if (sortedTargetHPs[index] - damage[index] <= 0) {
+        //         await dbQuery(
+        //             "GET",
+        //             "terminate/" + target_pID[index] + "/" + round
+        //         );
+        //         await dbQuery(
+        //             "GET",
+        //             "endConditions/" + target_pID[index] + "/" + round
+        //         );
+        //     } else {
+        //         await dbQuery(
+        //             "GET",
+        //             "revive/" + target_pID[index] + "/"
+        //         )
+        //     }
+        // });
 
 
         load_encounter(ctAppEnc, dataNav);

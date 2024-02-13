@@ -740,6 +740,67 @@ app.post('/addParticipant', (req, res) => {
     res.json({ message: 'Participants added successfully' });
 });
 
+app.post("/updateActionDB", (req, res) => {
+    const requestData = req.body;
+    console.log(requestData)
+
+    const sql1 = `UPDATE ct_tbl_action 
+                  SET notes = ?
+                  WHERE aID = ?
+                    `;
+
+    db.run(sql1, [requestData.ct_tbl_action.update.notes, requestData.ct_tbl_action.update.aID], function (err1) {
+        if (err1) {
+            console.log(err1);
+            throw err1;
+        }
+
+        res.json({ message: 'Action updated successfully' });
+
+
+        // Generate and execute the second SQL query
+        // const sql2 = `
+        //   DELETE FROM ct_tbl_target
+        //   WHERE targetID = ?;
+        // `;
+
+        // db.run(sql2, [requestData.targetID], function (err2) {
+        //     if (err2) {
+        //         console.log(err2);
+        //         throw err2;
+        //     }
+
+        //     // Generate and execute the second SQL query
+        //     const sql3 = `
+        //       DELETE FROM ct_tbl_condition
+        //       WHERE conditionID = ?;
+        //     `;
+
+        //     db.run(sql3, [requestData.conditionID], function (err3) {
+        //         if (err3) {
+        //             console.log(err3);
+        //             throw err3;
+        //         }
+
+        //         // Generate and execute the second SQL query
+        //         const sql4 = `
+        //           DELETE FROM ct_tbl_condition_affectee
+        //           WHERE taID = ?;
+        //         `;
+
+        //         db.run(sql4, [requestData.taID], function (err4) {
+        //             if (err4) {
+        //                 console.log(err4);
+        //                 throw err4;
+        //             }
+
+        //             res.json({ message: 'Action updated successfully' });
+        //         });
+        //     })
+        // })
+    });
+})
+
 app.post('/deleteAction', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
     // Generate and execute the first SQL query
