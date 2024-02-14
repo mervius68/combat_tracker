@@ -1404,45 +1404,19 @@
         const aIDObject = ctActions.find(obj => obj.aID == dataAidValue);
         const targetsArray = await dbQuery("GET", `targets/${aIDObject.targetID}`)
 
-        function getCombinedObjectByTargetID(targetID) {
-            const actionsArray = [aIDObject];
-            const combinedObject = {};
-
-            // Iterate over actionsArray
-            actionsArray.forEach((action) => {
-                const currentTargetID = action.targetID;
-
-                // Create a new object for targetID if it doesn't exist in combinedObject
-                if (!combinedObject[currentTargetID]) {
-                    combinedObject[currentTargetID] = {
-                        ct_tbl_action: action,
-                        ct_tbl_target: [],
-                    };
-                }
-
-                // Add ct_tbl_target objects to the array within the corresponding ct_tbl_action object
-                combinedObject[currentTargetID].ct_tbl_target.push(
-                    targetsArray.filter((target) => target.targetID === currentTargetID)
-                );
-            });
-
-            // Retrieve the combinedObject for the specified targetID
-            const resultForTargetID = combinedObject[targetID];
-            return resultForTargetID;
-        }
-
         // Example usage
         const targetIDToRetrieve = aIDObject.targetID;
         const actionObj = getCombinedObjectByTargetID(targetIDToRetrieve);
+        xxx = actionObj
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
 
-        let participantID = html.getAttribute("data-participant");
+        let participantID = actionObj.ct_tbl_action.pID// html.getAttribute("data-participant");
         let characterID = ctApp.find((participant) => {
             return participant.pID == participantID;
         }).chID;
-        let currentRound = html.getAttribute("data-round");
+        let currentRound = actionObj.ct_tbl_action.round // html.getAttribute("data-round");
         let encounter = ctApp[0].eID;
 
         // get participant's info
@@ -1508,7 +1482,6 @@
         div14.appendChild(defaultTool);
         div14.appendChild(defaultLabel);
         div14.appendChild(br1);
-
         // const targetPID = 60; // Specify the target pID
         for (item of participantTools) {
             let tool = document.createElement("input");
@@ -1523,6 +1496,7 @@
             try {
                 if (item.toolID == actionObj.ct_tbl_action.toolID) {
                     tool.setAttribute("checked", "checked");
+                    tool.setAttribute("data-condition-id", aIDObject.conditionID)
                 }
             }
             catch (err) { }
@@ -2019,6 +1993,33 @@
             return highestAIDObject;
         }
         modalIsOpen = true;
+
+        function getCombinedObjectByTargetID(targetID) {
+            const actionsArray = [aIDObject];
+            const combinedObject = {};
+
+            // Iterate over actionsArray
+            actionsArray.forEach((action) => {
+                const currentTargetID = action.targetID;
+
+                // Create a new object for targetID if it doesn't exist in combinedObject
+                if (!combinedObject[currentTargetID]) {
+                    combinedObject[currentTargetID] = {
+                        ct_tbl_action: action,
+                        ct_tbl_target: [],
+                    };
+                }
+
+                // Add ct_tbl_target objects to the array within the corresponding ct_tbl_action object
+                combinedObject[currentTargetID].ct_tbl_target.push(
+                    targetsArray.filter((target) => target.targetID === currentTargetID)
+                );
+            });
+
+            // Retrieve the combinedObject for the specified targetID
+            const resultForTargetID = combinedObject[targetID];
+            return resultForTargetID;
+        }
     }
 
     async function submitUpdateAction(dataAidValue, pID) {
@@ -2314,11 +2315,16 @@
         // we may need to end conditions (below the line)
         // we may need to open conditions modal
 
-        console.log("---------**---------");
-        console.log(toolNum);
-        console.log(actionString);
-        console.log(hit);
-        console.log(actionCategory);
+        // determine if we need to insert a new target
+        // determine if we need to delete a target
+        // determine if we need to update an existing target
+
+        // any numeric damage change to the target table will require adjustments to calculate forward
+
+        // determine if we need to delete a condition
+        // if name="weapons" and checked="checked" but data-condition-id is in a different HTMLobject,
+        // delete the ct_tbl_condition record where conditionID = data-condition-id
+        // delete the ct_tbl_condition_affectee records where 
 
         const update = {
             ct_tbl_action: {
@@ -2330,36 +2336,36 @@
                     notes: notes,
                     toolID: toolNum
                 }
-            }, 
+            },
             ct_tbl_target: {
                 insert: {
 
-                }, 
+                },
                 update: {
-
-                }, 
-                delete: {
-
-                }
-            }, 
-            ct_tbl_condition: {
-                delete: {
-
-                }
-            }, 
-            ct_tbl_condition_affectee: {
-                delete: {
-
-                }
-            }, 
-            tbl_tool: {
-                insert: {
 
                 },
                 delete: {
 
                 }
-            }
+            },
+            ct_tbl_condition: {
+                delete: {
+
+                }
+            },
+            ct_tbl_condition_affectee: {
+                delete: {
+
+                }
+            }, 
+            // tbl_tool: {
+            //     insert: {
+
+            //     },
+            //     delete: {
+
+            //     }
+            // }
         }
 
         await dbQueryPost("updateActionDB", update)
