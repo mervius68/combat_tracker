@@ -2322,9 +2322,10 @@
         // any numeric damage change to the target table will require adjustments to calculate forward
 
         // determine if we need to delete a condition
-        // if name="weapons" and checked="checked" but data-condition-id is in a different HTMLobject,
+        // if element with data-condition-id is NOT checked,
         // delete the ct_tbl_condition record where conditionID = data-condition-id
         // delete the ct_tbl_condition_affectee records where 
+        //      actionObj.ct_tbl_target.taID == ct_tbl_condition_affectee.taID
 
         const update = {
             ct_tbl_action: {
@@ -2350,12 +2351,12 @@
             },
             ct_tbl_condition: {
                 delete: {
-
+                    aID: actionObj.ct_tbl_action.aID
                 }
             },
             ct_tbl_condition_affectee: {
                 delete: {
-
+                    taID: actionObj.ct_tbl_action.taID
                 }
             }, 
             // tbl_tool: {
