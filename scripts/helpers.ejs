@@ -1407,7 +1407,6 @@
         // Example usage
         const targetIDToRetrieve = aIDObject.targetID;
         const actionObj = getCombinedObjectByTargetID(targetIDToRetrieve);
-        xxx = actionObj
         let modal = document.querySelector("#modal-body");
         let html = document.querySelector(".selected");
         let dataNavSelected = html.getAttribute("data-nav");
@@ -2328,6 +2327,13 @@
         //      actionObj.ct_tbl_target.taID == ct_tbl_condition_affectee.taID
 
         let deleteCondition = false;
+        let conditionElement = document.querySelector('[data-condition-id]')
+        if (conditionElement.checked == false) {
+            deleteCondition = true;
+        }
+        let actionObj = ctActions.find((action) => {
+            return action.aID = dataAidValue
+        })
 
         const update = {
             ct_tbl_action: {
@@ -2353,12 +2359,12 @@
             },
             ct_tbl_condition: {
                 delete: {
-                    aID: deleteCondtion == true ? actionObj.ct_tbl_action.aID : ""
+                    aID: deleteCondition == true ? dataAidValue : ""
                 }
             },
             ct_tbl_condition_affectee: {
                 delete: {
-                    taID: deletCondition == true ? actionObj.ct_tbl_action.taID : ""
+                    taID: deleteCondition == true ? actionObj.taID : ""
                 }
             }, 
             // tbl_tool: {

@@ -766,32 +766,33 @@ app.post("/updateActionDB", (req, res) => {
             throw err1;
         }
 
-        res.json({ message: 'Action updated successfully' });
-
-
         // Generate and execute the second SQL query
-        // const sql2 = `
-        //   DELETE FROM ct_tbl_target
-        //   WHERE targetID = ?;
-        // `;
+        const sql2 = `
+          DELETE FROM ct_tbl_condition
+          WHERE aID = ?;
+        `;
 
-        // db.run(sql2, [requestData.targetID], function (err2) {
-        //     if (err2) {
-        //         console.log(err2);
-        //         throw err2;
-        //     }
+        db.run(sql2, [requestData.ct_tbl_condition.delete.aID], function (err2) {
+            if (err2) {
+                console.log(err2);
+                throw err2;
+            }
 
-        //     // Generate and execute the second SQL query
-        //     const sql3 = `
-        //       DELETE FROM ct_tbl_condition
-        //       WHERE conditionID = ?;
-        //     `;
+        //    Generate and execute the second SQL query
+            const sql3 = `
+              DELETE FROM ct_tbl_condition_affectee
+              WHERE taID = ?;
+            `;
 
-        //     db.run(sql3, [requestData.conditionID], function (err3) {
-        //         if (err3) {
-        //             console.log(err3);
-        //             throw err3;
-        //         }
+            db.run(sql3, [requestData.ct_tbl_condition_affectee.delete.taID], function (err3) {
+                if (err3) {
+                    console.log(err3);
+                    throw err3;
+                }
+                console.log("*******,,,,,,,,")
+                console.log(sql2);
+                console.log(sql3)
+                res.json({ message: 'Action updated successfully' });
 
         //         // Generate and execute the second SQL query
         //         const sql4 = `
@@ -807,8 +808,8 @@ app.post("/updateActionDB", (req, res) => {
 
         //             res.json({ message: 'Action updated successfully' });
         //         });
-        //     })
-        // })
+            })
+        })
     });
 })
 
