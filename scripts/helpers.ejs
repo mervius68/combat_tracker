@@ -75,10 +75,12 @@
         }
         ctActionsConditions = await dbQuery("GET", "actionsConditions/" + encounterID)
 
-        ctActionsConditions.forEach(condition => {
-            condition.row_start = ctApp.findIndex(participant => condition.pID === participant.pID) + 1 + ctApp.length * (condition.start_round - 1);
-            condition.row_stop = ctApp.findIndex(participant => condition.end_pID === participant.pID) + 1 + ctApp.length * (condition.end_round - 1);
-        });
+        // ctActionsConditions.forEach(condition => {
+        //     condition.row_start = ctApp.findIndex(participant => condition.pID === participant.pID) + 1 + ctApp.length * (condition.start_round - 1);
+        //     condition.row_stop = ctApp.findIndex(participant => condition.end_pID === participant.pID) + 1 + ctApp.length * (condition.end_round - 1);
+        // });
+
+        
 
         function mergeArrays(mainArray, secondaryArray) {
             // Create a map of objects in the secondary array using aID as the key
@@ -185,6 +187,14 @@
             });
         });
         totalRounds = Math.max(totalRounds, damageRounds);
+
+        // assign row_start and row_stop properties for affectedArray items within ctApp
+        ctApp.forEach((participant) => {
+            participant.affectedArray.forEach((affected) => {
+                affected.row_start = ctApp.findIndex(participant => affected.pID === participant.pID) + 1 + ctApp.length * (affected.start_round - 1);
+                affected.row_stop = ctApp.findIndex(participant => affected.end_pID === participant.pID) + 1 + ctApp.length * (affected.end_round - 1);
+            })
+        })
 
         // start a loop to build each round
         let mainContainer = document.createElement("div");
@@ -622,11 +632,6 @@
                         let affectedPosition = ctApp.findIndex((item) => {
                             return item.pID == affected.affected_pID;
                         });
-
-                        aaa = endPosition
-                        bbb = causerPosition
-                        ccc = affectedPosition
-                        ddd = affectedParticipant;
 
                         const affectedInit = affectedParticipant?.init;
                         if (
