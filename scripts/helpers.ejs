@@ -75,6 +75,11 @@
         }
         ctActionsConditions = await dbQuery("GET", "actionsConditions/" + encounterID)
 
+        ctActionsConditions.forEach(condition => {
+            condition.row_start = ctApp.findIndex(participant => condition.pID === participant.pID) + 1 + ctApp.length * (condition.start_round - 1);
+            condition.row_stop = ctApp.findIndex(participant => condition.end_pID === participant.pID) + 1 + ctApp.length * (condition.end_round - 1);
+        });
+
         function mergeArrays(mainArray, secondaryArray) {
             // Create a map of objects in the secondary array using aID as the key
             const secondaryMap = new Map();
@@ -618,6 +623,11 @@
                             return item.pID == affected.affected_pID;
                         });
 
+                        aaa = endPosition
+                        bbb = causerPosition
+                        ccc = affectedPosition
+                        ddd = affectedParticipant;
+
                         const affectedInit = affectedParticipant?.init;
                         if (
                             affected.concentration === 0
@@ -664,6 +674,7 @@
                             }
 
                             function populateAffected() {
+
                                 const toolTipHTML =
                                     document.createElement("span");
                                 toolTipHTML.classList.add("tooltip");
@@ -2366,7 +2377,7 @@
                 delete: {
                     taID: deleteCondition == true ? actionObj.taID : ""
                 }
-            }, 
+            },
             // tbl_tool: {
             //     insert: {
 
