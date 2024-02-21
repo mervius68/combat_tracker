@@ -80,7 +80,7 @@
         //     condition.row_stop = ctApp.findIndex(participant => condition.end_pID === participant.pID) + 1 + ctApp.length * (condition.end_round - 1);
         // });
 
-        
+
 
         function mergeArrays(mainArray, secondaryArray) {
             // Create a map of objects in the secondary array using aID as the key
@@ -188,11 +188,15 @@
         });
         totalRounds = Math.max(totalRounds, damageRounds);
 
-        // assign row_start and row_stop properties for affectedArray items within ctApp
+        // assign row_start and row_stop properties for affectedArray and conditionsArray items within ctApp
         ctApp.forEach((participant) => {
             participant.affectedArray.forEach((affected) => {
                 affected.row_start = ctApp.findIndex(participant => affected.pID === participant.pID) + 1 + ctApp.length * (affected.start_round - 1);
                 affected.row_stop = ctApp.findIndex(participant => affected.end_pID === participant.pID) + 1 + ctApp.length * (affected.end_round - 1);
+            })
+            participant.conditionsArray.forEach((condition) => {
+                condition.row_start = ctApp.findIndex(participant => condition.pID === participant.pID) + 1 + ctApp.length * (condition.start_round - 1);
+                condition.row_stop = ctApp.findIndex(participant => condition.end_pID === participant.pID) + 1 + ctApp.length * (condition.end_round - 1);
             })
         })
 
@@ -563,57 +567,62 @@
                                     (index != affectees.length - 1 ? ", " : "");
                             });
 
-                            let toolTipHTML = document.createElement("span");
-                            toolTipHTML.classList.add("tooltip");
-                            toolTipHTML.classList.add("concentration");
-                            toolTipHTML.setAttribute(
-                                "data-condition-id",
-                                condition.conditionID
-                            );
-                            toolTipHTML.setAttribute(
-                                "data-affected-id",
-                                condition.affected_pID
-                            );
-                            toolTipHTML.setAttribute(
-                                "data-taid",
-                                condition.taID
-                            );
-                            toolTipHTML.setAttribute(
-                                "data-causerID",
-                                condition.pID
-                            );
+                            const row = turn.getAttribute("data-nav")
+                            if (condition.row_start <= row && condition.row_stop >= row) {
+                                let toolTipHTML = document.createElement("span");
+                                toolTipHTML.classList.add("tooltip");
+                                toolTipHTML.classList.add("concentration");
+                                toolTipHTML.setAttribute(
+                                    "data-condition-id",
+                                    condition.conditionID
+                                );
+                                toolTipHTML.setAttribute(
+                                    "data-affected-id",
+                                    condition.affected_pID
+                                );
+                                toolTipHTML.setAttribute(
+                                    "data-taid",
+                                    condition.taID
+                                );
+                                toolTipHTML.setAttribute(
+                                    "data-causerID",
+                                    condition.pID
+                                );
 
-                            toolTipHTML.setAttribute("data-this-round", i);
-                            if (parseInt(condition.concentration) == 1) {
-                                toolTipHTML.innerText = "C";
-                            } else if (parseInt(condition.holding) == 1) {
-                                toolTipHTML.innerText = "H";
-                                // let x = document.querySelector("[data-participant='64'][data-round='1'][data-nav]");
-                                // x.nextSibling.nextSibling.innerText += "H";
+                                toolTipHTML.setAttribute("data-this-round", i);
+                                if (parseInt(condition.concentration) == 1) {
+                                    toolTipHTML.innerText = "C";
+                                } else if (parseInt(condition.holding) == 1) {
+                                    toolTipHTML.innerText = "H";
+                                    // let x = document.querySelector("[data-participant='64'][data-round='1'][data-nav]");
+                                    // x.nextSibling.nextSibling.innerText += "H";
+                                }
+                                toolTipHTML.classList.add("hovertwin");
+                                toolTipHTML.setAttribute("data-hover-id", condition.taID);
+                                let toolTipText = document.createElement("span");
+                                toolTipText.classList.add("tooltiptext");
+                                toolTipText.innerHTML =
+                                    condition.description.toUpperCase() +
+                                    "<br><br>" +
+                                    participant.character_name +
+                                    (participant.numeric_value
+                                        ? " #" + participant.numeric_value
+                                        : "") +
+                                    " <span class='arrow-container'></span> " +
+                                    affecteesString;
+                                toolTipHTML.appendChild(toolTipText);
+
+                                // try {
+                                //     let x = document.querySelector("[data-participant='64'][data-round='1'][data-nav]");
+                                //     x.nextSibling.nextSibling.innerHTML += toolTipHTML.outerHTML;
+                                // }
+                                // catch(err) {
+                                turn.nextSibling.nextSibling.innerHTML +=
+                                    toolTipHTML.outerHTML;
+                                // }
                             }
-                            toolTipHTML.classList.add("hovertwin");
-                            toolTipHTML.setAttribute("data-hover-id", condition.taID);
-                            let toolTipText = document.createElement("span");
-                            toolTipText.classList.add("tooltiptext");
-                            toolTipText.innerHTML =
-                                condition.description.toUpperCase() +
-                                "<br><br>" +
-                                participant.character_name +
-                                (participant.numeric_value
-                                    ? " #" + participant.numeric_value
-                                    : "") +
-                                " <span class='arrow-container'></span> " +
-                                affecteesString;
-                            toolTipHTML.appendChild(toolTipText);
 
-                            // try {
-                            //     let x = document.querySelector("[data-participant='64'][data-round='1'][data-nav]");
-                            //     x.nextSibling.nextSibling.innerHTML += toolTipHTML.outerHTML;
-                            // }
-                            // catch(err) {
-                            turn.nextSibling.nextSibling.innerHTML +=
-                                toolTipHTML.outerHTML;
-                            // }
+
 
                         }
                     });
@@ -679,58 +688,62 @@
                             }
 
                             function populateAffected() {
-
-                                const toolTipHTML =
-                                    document.createElement("span");
-                                toolTipHTML.classList.add("tooltip");
-                                toolTipHTML.classList.add("affected");
-                                toolTipHTML.setAttribute(
-                                    "data-condition-id",
-                                    affected.conditionID
-                                );
-                                toolTipHTML.setAttribute(
-                                    "data-affected-id",
-                                    affected.affected_pID
-                                );
-                                toolTipHTML.setAttribute("data-this-round", i);
-                                toolTipHTML.innerHTML = "A";
-                                toolTipHTML.classList.add("hovertwin")
-                                toolTipHTML.setAttribute(
-                                    "data-taid",
-                                    affected.taID
-                                );
-                                toolTipHTML.setAttribute(
-                                    "data-hover-id",
-                                    affected.taID
-                                );
-                                let span5 = document.createElement("span");
-                                span5.classList.add("tooltiptext");
-                                span5.innerHTML =
-                                    affected.description +
-                                    "<br><br>" +
-                                    ctApp.find((participant) => {
-                                        return affected.pID == participant.pID;
-                                    }).character_name +
-                                    (ctApp.find((participant) => {
-                                        return affected.pID == participant.pID;
-                                    }).numeric_value
-                                        ? " #" +
+                                const row = turn.getAttribute("data-nav")
+                                if (affected.row_start <= row && affected.row_stop >= row) {
+                                    const toolTipHTML =
+                                        document.createElement("span");
+                                    toolTipHTML.classList.add("tooltip");
+                                    toolTipHTML.classList.add("affected");
+                                    toolTipHTML.setAttribute(
+                                        "data-condition-id",
+                                        affected.conditionID
+                                    );
+                                    toolTipHTML.setAttribute(
+                                        "data-affected-id",
+                                        affected.affected_pID
+                                    );
+                                    toolTipHTML.setAttribute("data-this-round", i);
+                                    toolTipHTML.innerHTML = "A";
+                                    toolTipHTML.classList.add("hovertwin")
+                                    toolTipHTML.setAttribute(
+                                        "data-taid",
+                                        affected.taID
+                                    );
+                                    toolTipHTML.setAttribute(
+                                        "data-hover-id",
+                                        affected.taID
+                                    );
+                                    let span5 = document.createElement("span");
+                                    span5.classList.add("tooltiptext");
+                                    span5.innerHTML =
+                                        affected.description +
+                                        "<br><br>" +
                                         ctApp.find((participant) => {
-                                            return (
-                                                affected.pID ==
-                                                participant.pID
-                                            );
+                                            return affected.pID == participant.pID;
+                                        }).character_name +
+                                        (ctApp.find((participant) => {
+                                            return affected.pID == participant.pID;
                                         }).numeric_value
-                                        : "") +
-                                    " <span class='arrow-container'></span> " +
-                                    participant.character_name +
-                                    (participant.numeric_value
-                                        ? " #" + participant.numeric_value
-                                        : "");
-                                toolTipHTML.appendChild(span5);
-                                turn.nextSibling.nextSibling.appendChild(
-                                    toolTipHTML
-                                );
+                                            ? " #" +
+                                            ctApp.find((participant) => {
+                                                return (
+                                                    affected.pID ==
+                                                    participant.pID
+                                                );
+                                            }).numeric_value
+                                            : "") +
+                                        " <span class='arrow-container'></span> " +
+                                        participant.character_name +
+                                        (participant.numeric_value
+                                            ? " #" + participant.numeric_value
+                                            : "");
+                                    toolTipHTML.appendChild(span5);
+                                    turn.nextSibling.nextSibling.appendChild(
+                                        toolTipHTML
+                                    );
+                                }
+
+
                             }
                         }
                     });
