@@ -740,21 +740,44 @@ app.post('/addParticipant', (req, res) => {
     res.json({ message: 'Participants added successfully' });
 });
 
-app.post("/updateActionDB", async (req, res) => {
+app.post("/updateActionDB", (req, res) => {
     const requestData = req.body;
     console.log(requestData);
 
-    try {
-        await updateAction(requestData, res);
-        await deleteFromTable('ct_tbl_condition', 'aID', requestData.ct_tbl_condition.delete.aID);
-        await deleteFromTable('ct_tbl_condition_affectee', 'taID', requestData.ct_tbl_condition_affectee.delete.taID);
+    db.serialize(() => {
+        db.run("BEGIN TRANSACTION;");
+        updateAction(requestData, (updateError) => {
+            if (updateError) {
+                db.run("ROLLBACK;");
+                console.log(updateError);
+                res.status(500).json({ error: 'Internal server error during update' });
+                return;
+            }
 
-        res.json({ message: 'Action updated successfully' });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+            deleteFromTable('ct_tbl_condition', 'aID', requestData.ct_tbl_condition.delete.aID, (deleteError1) => {
+                if (deleteError1) {
+                    db.run("ROLLBACK;");
+                    console.log(deleteError1);
+                    res.status(500).json({ error: 'Internal server error during delete from ct_tbl_condition' });
+                    return;
+                }
+
+                deleteFromTable('ct_tbl_condition_affectee', 'taID', requestData.ct_tbl_condition_affectee.delete.taID, (deleteError2) => {
+                    if (deleteError2) {
+                        db.run("ROLLBACK;");
+                        console.log(deleteError2);
+                        res.status(500).json({ error: 'Internal server error during delete from ct_tbl_condition_affectee' });
+                        return;
+                    }
+
+                    db.run("COMMIT;");
+                    res.json({ message: 'Action updated successfully' });
+                });
+            });
+        });
+    });
 });
+
 
 async function updateAction(requestData, res) {
     const sql = `
@@ -903,7 +926,7 @@ app.get("/chidCheck/:chID/", (req, res) => {
 });
 
 app.get("/getLatestParticipant/", (req, res) => {
-    let sql = `SELECT * FROM ct_tbl_participant
+    let sql = `SELECT pID FROM ct_tbl_participant
         ORDER BY pID DESC limit 1;
             `;
     let query = db.all(sql, [], (err, results) => {

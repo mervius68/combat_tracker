@@ -2,7 +2,7 @@
     let cellCountVertical,
         participantsHpsByRound;
 
-    async function load_encounter(encounterCode = 0, dataNav = 1) {
+    async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         modalIsOpen = false // global variable is created
 
         const encounterData = await dbQuery("GET", "getEncounterID")
@@ -13,9 +13,9 @@
         document.removeEventListener("keydown", keydownEventListener);
         document.removeEventListener("keydown", clickEventListener);
         cellCountVertical = 1;
-        const getLatestID = await dbQuery("GET", "latest_eID");
-        const latestID = getLatestID.eID;
-        const encounterID = savedEncounterPlaceholder || encounterCode || latestID;
+        // const getLatestID = await dbQuery("GET", "latest_eID");
+        // const latestID = getLatestID.eID;
+        const encounterID = savedEncounterPlaceholder || encounterCode // || latestID;
         let encounter = await dbQuery(
             "GET",
             "selected_encounter/" + encounterID
@@ -26,14 +26,21 @@
             } - ${encounter[0]?.location || ""} (${encounter[0]?.description || ""
             })`;
 
-        const originalParticipants = await dbQuery("GET", "participants/" + encounterID);
+
+
+        const originalParticipants = getCtApp == true ? await dbQuery("GET", "participants/" + encounterID) : ctApp
+        ctApp = originalParticipants ? [...originalParticipants] : null
+
         for (participant of originalParticipants) {
             const newNames = await dbQuery("GET", "updatedNames/" + participant.pID)
             participant.character_name = newNames[0].character_name
         }
 
         // set ctApp to originalParticipants before using reduce method on originalParticipants
-        ctApp = [...originalParticipants]
+
+
+
+
         const getEncounter = await dbQuery("GET", "getLatestEncounterID");
         if (encounterCode == 0) {
             ctAppEnc = savedEncounterPlaceholder || getEncounter.eID;
@@ -493,6 +500,7 @@
                     turn.nextSibling.nextSibling.innerHTML = characterDisplay;
 
                     // if character has a condition/concentration, show icon with tooltip
+            
                     participant.conditionsArray.forEach(async (condition) => {
                         let affecteesStill = await dbQuery(
                             "GET",
@@ -501,6 +509,15 @@
                             "/" +
                             i
                         );
+
+                        // let affecteesStill = ctApp.filter(item => {
+                        //     return item.affectedArray.some(affectedItem => {
+                        //         return affectedItem.conditionID === condition.conditionID && affectedItem.end_round >= i;
+                        //     });
+                        // });
+
+                        // xxx = filteredArray;
+                        yyy = affecteesStill;
 
                         const maxValue = Math.max(
                             ...affecteesStill.map((obj) => obj.end_round)
@@ -3335,6 +3352,41 @@
         // alert(dataAction);
         await dbQuery("GET", dataAction);
 
+        let ctActionObject = {
+            result_aID: nextAID,
+            result_eID: ctApp[0].eID,
+            result_pID: pID,
+            aID: nextAID,
+            eID: ctApp[0].eID,
+            round: currentRound,
+            pID: pID,
+            targetID: nextTargetID,
+            action_type: actionCategory,
+            action: actionString,
+            toolID: nextToolID,
+            hit: hit,
+            notes: notes,
+            // row: null, // Assuming static or derived value
+            // chID: 58, // Assuming static or derived value
+            toolName: actionString,
+            // damage_dice: "5d8", // Assuming static or derived value
+            // save: null, // Assuming static or derived value
+            // description: null, // Assuming static or derived value
+            // concentration: 0, // Assuming static or derived value
+            // holding: 1, // Assuming static or derived value
+            // holding_one_round: 0, // Assuming static or derived value
+            // conditionID: 11, // Assuming static or derived value
+            // start_position: null, // Assuming static or derived value
+            // end_position: null, // Assuming static or derived value
+            // cpID: 137, // Assuming static or derived value
+            // taID: 12, // Assuming static or derived value
+            // caID: 14, // Assuming static or derived value
+            // start_round: 1, // Assuming static or derived value
+            // end_round: 11, // Assuming static or derived value
+            // end_pID: result_pID // Assuming static or derived value
+        }
+        ctActions.push(ctActionObject);
+
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
             if (
@@ -3356,6 +3408,7 @@
                 ].trim()}/${actionCategory}/${damage[index]
                 }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
                 }/${sortedTargetHPs[index]}`;
+
             await dbQuery("GET", dataTarget);
             if (sortedTargetHPs[index] - damage[index] <= 0) {
                 await dbQuery(
@@ -3374,8 +3427,7 @@
             }
         });
 
-
-        load_encounter(ctAppEnc, dataNav);
+        load_encounter(ctAppEnc, dataNav, false);
         let modal = document.querySelector(".modal");
 
         // Remove the event listener
@@ -5029,7 +5081,7 @@
         // we have a group array containing objects, where each object gets action in the db
 
         for (const obj of group) {
-            const chidCheck = await dbQuery("GET", "chidCheck/" + obj.chID)
+            // const chidCheck = await dbQuery("GET", "chidCheck/" + obj.chID)
             let latestParticipant = await dbQuery("GET", "getLatestParticipant")
             obj.pID = parseInt(latestParticipant[0].pID) + 1
             await dbQueryPost("updateEncounterParticipants", obj)
