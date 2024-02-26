@@ -2374,7 +2374,7 @@
 
         let deleteCondition = false;
         let conditionElement = document.querySelector('[data-condition-id]')
-        if (conditionElement.checked == false) {
+        if (conditionElement?.checked == false) {
             deleteCondition = true;
         }
         let actionObj = ctActions.find((action) => {

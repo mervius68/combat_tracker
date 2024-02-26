@@ -769,13 +769,12 @@ app.post("/updateActionDB", (req, res) => {
                         res.status(500).json({ error: 'Internal server error during delete from ct_tbl_condition_affectee' });
                         return;
                     }
-
-                    db.run("COMMIT;");
-                    res.json({ message: 'Action updated successfully' });
                 });
             });
         });
     });
+    db.run("COMMIT;");
+    res.json({ message: 'Action updated successfully' });
 });
 
 
