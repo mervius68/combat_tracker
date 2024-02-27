@@ -500,7 +500,7 @@
                     turn.nextSibling.nextSibling.innerHTML = characterDisplay;
 
                     // if character has a condition/concentration, show icon with tooltip
-            
+
                     participant.conditionsArray.forEach(async (condition) => {
                         let affecteesStill = await dbQuery(
                             "GET",
@@ -1743,11 +1743,12 @@
                 } else {
                     target.setAttribute("data-stored-damage", 0)
                 }
-                if (targetParticipant.pID == participant.pID && targetParticipant.damage == 0) {
+                if (targetParticipant.pID == participant.pID
+                    && targetParticipant.damage == 0
+                    && actionObj.ct_tbl_action.hit == 1) {
                     target.defaultValue = "x"
                     target.setAttribute("data-stored-damage", 0)
                 }
-
             })
             target.classList.add("text_field");
             target.classList.add("numeric");
@@ -2374,9 +2375,10 @@
 
         let deleteCondition = false;
         let conditionElement = document.querySelector('[data-condition-id]')
-        if (conditionElement?.checked == false) {
-            deleteCondition = true;
-        }
+        // if (conditionElement?.checked == false) {
+        //     deleteCondition = true;
+        // }
+        deleteCondition = conditionElement?.checked == false ? false : true;
         let actionObj = ctActions.find((action) => {
             return action.aID = dataAidValue
         })
