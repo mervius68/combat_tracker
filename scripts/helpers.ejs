@@ -510,15 +510,6 @@
                             i
                         );
 
-                        // let affecteesStill = ctApp.filter(item => {
-                        //     return item.affectedArray.some(affectedItem => {
-                        //         return affectedItem.conditionID === condition.conditionID && affectedItem.end_round >= i;
-                        //     });
-                        // });
-
-                        // xxx = filteredArray;
-                        yyy = affecteesStill;
-
                         const maxValue = Math.max(
                             ...affecteesStill.map((obj) => obj.end_round)
                         );
@@ -1730,26 +1721,33 @@
         redAfterSelection.forEach((item) => {
             redAfterSelectionParticipants.push(parseInt(item.getAttribute("data-participant")))
         })
+
+        // populate targets
         allParticipants.forEach((participant) => {
-            // const newArray = targetsArray.filter((item) => {
-            //     return item.target_pID == 
-            // })
             let target = document.createElement("input");
             target.setAttribute("type", "text");
+
+            // populate 'x' or damage amount in input field as needed
             actionObj.ct_tbl_target[0].forEach((targetParticipant) => {
-                if (targetParticipant.pID == participant.pID) {
-                    target.defaultValue = targetParticipant.damage
-                    target.setAttribute("data-stored-damage", targetParticipant.damage)
+                const isSameParticipant = targetParticipant.pID == participant.pID;
+                const noDamageAndHit = isSameParticipant && targetParticipant.damage == 0 && actionObj.ct_tbl_action.hit == 1;
+
+                if (noDamageAndHit) {
+                    target.defaultValue = "x";
+                    target.setAttribute("data-original-value", "x")
+                } else if (isSameParticipant) {
+                    target.defaultValue = targetParticipant.damage;
+                    target.setAttribute("data-original-value", targetParticipant.damage)
                 } else {
-                    target.setAttribute("data-stored-damage", 0)
+                    target.setAttribute("data-original-value", "")
                 }
-                if (targetParticipant.pID == participant.pID
-                    && targetParticipant.damage == 0
-                    && actionObj.ct_tbl_action.hit == 1) {
-                    target.defaultValue = "x"
-                    target.setAttribute("data-stored-damage", 0)
-                }
-            })
+
+                const damageValue = isSameParticipant && !noDamageAndHit ? targetParticipant.damage : 0;
+                target.setAttribute("data-stored-damage", damageValue);
+                target.setAttribute("data-hit", noDamageAndHit ? "1" : "0")
+                target.setAttribute("data-targetID", isSameParticipant && !noDamageAndHit ? targetParticipant.targetID : "0")
+            });
+            yyy = ctActions;
             target.classList.add("text_field");
             target.classList.add("numeric");
             target.setAttribute("name", "participants");
@@ -1777,13 +1775,12 @@
             let br3 = document.createElement("br");
             div16.appendChild(target);
             div16.appendChild(targetLabel);
-
             div16.appendChild(br3);
-
         });
 
         divRight.appendChild(div16);
 
+        // populate Notes section
         const notesLabel = document.createElement("h3");
         notesLabel.innerText = "Notes";
         const notes = document.createElement("textarea");
@@ -1835,7 +1832,6 @@
         //         self.findIndex((t) => t.conditionID === obj.conditionID)
         // );
         conditionsInEffect.forEach((condition) => {
-
             if (condition.end_round == currentRound && condition.end_pID == participantID) {
 
             } else {
@@ -2350,6 +2346,50 @@
         }
         toolNum = toolNum == "default" ? 0 : toolNum;
         toolNum = toolNum == "" ? 0 : toolNum;
+
+        // figure out any changes in damage
+        const damageAmountElements = document.getElementsByName("participants");
+        xxx = damageAmountElements;
+
+        let changed = false
+        let numberChanges = 0;
+        for (target of damageAmountElements) {
+            const newValue = target.value || "";
+            const oldValue = target.getAttribute("data-stored-damage");
+            const originalValue = target.getAttribute("data-original-value")
+            const hit = target.getAttribute("data-hit");
+            if (originalValue == "" && newValue != "") {
+                numberChanges += 1
+                console.log("a")
+            }
+            if (originalValue != "" && newValue == "") {
+                
+                    numberChanges += 1
+                    console.log("b")
+            }
+        }
+        console.log("Number of changes: " + numberChanges)
+
+        for (damagedParticipant of damageAmountElements) {
+            const pID = damagedParticipant.getAttribute("data-pid");
+            const newValue = damagedParticipant.value || "";
+            const oldValue = damagedParticipant.getAttribute("data-stored-damage");
+            // console.log(pID)
+            // console.log(oldValue)
+            // console.log(newValue)
+            // console.log("************")
+
+            // determine if targets have changed
+            // if so, let's delete all the old ones (updating hit points cascading)
+            //      and create new ones
+            // if not, determine if damages have changed
+            //      if so, we can update existing ct_tbl_target records (up)
+            //          determine if damage to targets has changed
+
+
+
+        }
+
 
         // we need to update ct_tbl_action
         /////// we may need to insert new record(s) in ct_tbl_target, if new target created

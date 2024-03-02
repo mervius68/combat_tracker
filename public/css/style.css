@@ -158,6 +158,11 @@ input {
     visibility: hidden;
 }
 
+[data-participant] [data-aid]:hover {
+    cursor: pointer;
+}
+
+
 .dropdown {
     font-size: 1.5em;
     padding: .2em;
