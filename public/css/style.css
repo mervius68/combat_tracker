@@ -158,7 +158,7 @@ input {
     visibility: hidden;
 }
 
-[data-participant] [data-aid]:hover {
+[data-aid]:hover {
     cursor: pointer;
 }
 

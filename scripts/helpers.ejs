@@ -1744,6 +1744,7 @@
 
                 const damageValue = isSameParticipant && !noDamageAndHit ? targetParticipant.damage : 0;
                 target.setAttribute("data-stored-damage", damageValue);
+                target.setAttribute("data-tid", targetParticipant.tID)
                 target.setAttribute("data-hit", noDamageAndHit ? "1" : "0")
                 target.setAttribute("data-targetID", isSameParticipant && !noDamageAndHit ? targetParticipant.targetID : "0")
             });
@@ -2360,15 +2361,25 @@
             const hit = target.getAttribute("data-hit");
             if (originalValue == "" && newValue != "") {
                 numberChanges += 1
-                console.log("a")
             }
             if (originalValue != "" && newValue == "") {
-                
                     numberChanges += 1
-                    console.log("b")
             }
         }
-        console.log("Number of changes: " + numberChanges)
+
+        let targetUpdateArray = []
+        if (numberChanges == 0) {
+            // let's update the existing records
+            for (target of damageAmountElements) {
+                const obj = {
+                    tID: 5,
+                }
+                targetUpdateArray.push(obj);
+            }
+
+        } else {
+            // let's delete the existing target records and create new ones
+        }
 
         for (damagedParticipant of damageAmountElements) {
             const pID = damagedParticipant.getAttribute("data-pid");
