@@ -1727,11 +1727,14 @@
             let target = document.createElement("input");
             target.setAttribute("type", "text");
 
+            let currentAction = actionObj.ct_tbl_target[0].filter((obj) => {
+                return obj.pID == participant.pID
+            })
+
             // populate 'x' or damage amount in input field as needed
-            actionObj.ct_tbl_target[0].forEach((targetParticipant) => {
+            currentAction.forEach((targetParticipant) => {
                 const isSameParticipant = targetParticipant.pID == participant.pID;
                 const noDamageAndHit = isSameParticipant && targetParticipant.damage == 0 && actionObj.ct_tbl_action.hit == 1;
-
                 if (noDamageAndHit) {
                     target.defaultValue = "x";
                     target.setAttribute("data-original-value", "x")
@@ -2348,58 +2351,59 @@
         toolNum = toolNum == "default" ? 0 : toolNum;
         toolNum = toolNum == "" ? 0 : toolNum;
 
-        // figure out any changes in damage
-        const damageAmountElements = document.getElementsByName("participants");
-        xxx = damageAmountElements;
-
-        let changed = false
-        let numberChanges = 0;
-        for (target of damageAmountElements) {
-            const newValue = target.value || "";
-            const oldValue = target.getAttribute("data-stored-damage");
-            const originalValue = target.getAttribute("data-original-value")
-            const hit = target.getAttribute("data-hit");
-            if (originalValue == "" && newValue != "") {
-                numberChanges += 1
-            }
-            if (originalValue != "" && newValue == "") {
-                    numberChanges += 1
-            }
-        }
-
-        let targetUpdateArray = []
-        if (numberChanges == 0) {
-            // let's update the existing records
-            for (target of damageAmountElements) {
-                const obj = {
-                    tID: 5,
-                }
-                targetUpdateArray.push(obj);
-            }
-
-        } else {
-            // let's delete the existing target records and create new ones
-        }
-
-        for (damagedParticipant of damageAmountElements) {
-            const pID = damagedParticipant.getAttribute("data-pid");
-            const newValue = damagedParticipant.value || "";
-            const oldValue = damagedParticipant.getAttribute("data-stored-damage");
-            // console.log(pID)
-            // console.log(oldValue)
-            // console.log(newValue)
-            // console.log("************")
-
-            // determine if targets have changed
-            // if so, let's delete all the old ones (updating hit points cascading)
-            //      and create new ones
-            // if not, determine if damages have changed
-            //      if so, we can update existing ct_tbl_target records (up)
-            //          determine if damage to targets has changed
 
 
+        // let changed = false
+        // let numberChanges = 0;
+        // for (target of damageAmountElements) {
+        //     const newValue = target.value || "";
+        //     const oldValue = target.getAttribute("data-stored-damage");
+        //     const originalValue = target.getAttribute("data-original-value")
+        //     const hit = target.getAttribute("data-hit");
+        //     if (originalValue == "" && newValue != "") {
+        //         numberChanges += 1
+        //     }
+        //     if (originalValue != "" && newValue == "") {
+        //             numberChanges += 1
+        //     }
+        // }
 
-        }
+        // let targetUpdateArray = []
+        // if (numberChanges == 0) {
+        //     // let's update the existing records
+        //     for (target of damageAmountElements) {
+        //         const obj = {
+        //             tID: 5,
+        //             hit: target.getAttribute("data-hit"),
+        //             pID: target.getAttribute("data-pid"),
+
+        //         }
+        //         targetUpdateArray.push(obj);
+        //     }
+
+        // } else {
+        //     // let's delete the existing target records and create new ones
+        // }
+
+        // for (damagedParticipant of damageAmountElements) {
+        //     const pID = damagedParticipant.getAttribute("data-pid");
+        //     const newValue = damagedParticipant.value || "";
+        //     const oldValue = damagedParticipant.getAttribute("data-stored-damage");
+        //     // console.log(pID)
+        //     // console.log(oldValue)
+        //     // console.log(newValue)
+        //     // console.log("************")
+
+        //     // determine if targets have changed
+        //     // if so, let's delete all the old ones (updating hit points cascading)
+        //     //      and create new ones
+        //     // if not, determine if damages have changed
+        //     //      if so, we can update existing ct_tbl_target records (up)
+        //     //          determine if damage to targets has changed
+
+
+
+        // }
 
 
         // we need to update ct_tbl_action
@@ -2429,7 +2433,8 @@
         // if (conditionElement?.checked == false) {
         //     deleteCondition = true;
         // }
-        deleteCondition = conditionElement?.checked == false ? false : true;
+        // alert(conditionElement.outerHTML)
+        deleteCondition = conditionElement.getAttribute("data-condition-id");
         let actionObj = ctActions.find((action) => {
             return action.aID = dataAidValue
         })
@@ -2446,24 +2451,18 @@
                 }
             },
             ct_tbl_target: {
-                insert: {
-
-                },
-                update: {
-
-                },
-                delete: {
-
-                }
+                insert: [],
+                update: [],
+                delete: []
             },
             ct_tbl_condition: {
                 delete: {
-                    aID: deleteCondition == true ? dataAidValue : ""
+                    aID: deleteCondition == true ? dataAidValue : null
                 }
             },
             ct_tbl_condition_affectee: {
                 delete: {
-                    taID: deleteCondition == true ? actionObj.taID : ""
+                    taID: deleteCondition == true ? actionObj.taID : null
                 }
             },
             // tbl_tool: {
@@ -2475,6 +2474,60 @@
             //     }
             // }
         }
+
+        // figure out any changes in damage
+        const damageAmountElements = document.getElementsByName("participants");
+
+        for (target of damageAmountElements) {
+            const newValue = target.value || "";
+            const originalValue = target.getAttribute("data-original-value")
+            const hit = target.getAttribute("data-hit")
+            const pid = target.getAttribute("data-pid")
+            // const storedDamage = target.getAttribute("data-stored-damage")
+            const targetID = target.getAttribute("data-targetid")
+            const tID = target.getAttribute("data-tid")
+            if (originalValue != newValue) {
+                // if the new value is a number
+                if (Number.isInteger(newValue)) {
+                    // originalValue == number
+                    // update record
+                    // originalValue == ""
+                    // insert record
+                    // originalValue == "x"
+                    // update record
+                } else if (newValue == "x") {
+                    // if the new value is 'x'
+                    if (Number.isInteger(originalValue)) {
+                        //  update records (action & target)
+                        //      hit: 1, 
+                        //      damage: 0,
+                        //      aID: aID,
+                        //      tID: tID
+                    } else if (originalValue == "") {
+                        const insertRecord = {
+                            //  insert record (target)
+                            //      damage: 0,
+                            //      targetID: 
+                            //      eID: 
+                            //      round:
+                            //      pID:
+                            //      target_pID:
+                            //      damage: 
+                        }
+
+                    }
+                } else if (newValue == "") {
+                    // if the new value input is '', delete record from ct_tbl_target
+                    const deleteRecord = {
+                        tID: tID,
+                    }
+                    if (deleteRecord.tID != null) {
+                        update.ct_tbl_target.delete.push(deleteRecord);
+                    }
+                }
+            }
+        }
+
 
         await dbQueryPost("updateActionDB", update)
 
