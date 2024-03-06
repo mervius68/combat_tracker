@@ -2429,12 +2429,12 @@
         //      actionObj.ct_tbl_target.taID == ct_tbl_condition_affectee.taID
 
         let deleteCondition = false;
-        let conditionElement = document.querySelector('[data-condition-id]')
+        let conditionElement = document?.querySelector('[data-condition-id]')
         // if (conditionElement?.checked == false) {
         //     deleteCondition = true;
         // }
         // alert(conditionElement.outerHTML)
-        deleteCondition = conditionElement.getAttribute("data-condition-id");
+        deleteCondition = conditionElement?.getAttribute("data-condition-id");
         let actionObj = ctActions.find((action) => {
             return action.aID = dataAidValue
         })
@@ -2483,38 +2483,48 @@
             const originalValue = target.getAttribute("data-original-value")
             const hit = target.getAttribute("data-hit")
             const pid = target.getAttribute("data-pid")
-            // const storedDamage = target.getAttribute("data-stored-damage")
             const targetID = target.getAttribute("data-targetid")
             const tID = target.getAttribute("data-tid")
             if (originalValue != newValue) {
                 // if the new value is a number
-                if (Number.isInteger(newValue)) {
-                    // originalValue == number
-                    // update record
-                    // originalValue == ""
-                    // insert record
-                    // originalValue == "x"
-                    // update record
+                if (Number.isInteger(parseInt(newValue))) {
+                    // if original value is number or 'x'
+                    if (Number.isInteger(parseInt(originalValue)) && originalValue != "x") {
+                        const updateRecord = {
+                            tID: tID, 
+                            damage: newValue
+                        }
+                        update.ct_tbl_target.update.push(updateRecord);
+                    } else if (originalValue == null || originalValue == "") {
+                        // if original value is empty
+                        const insertRecord = {
+                            targetID: targetID,
+                            eID: ctApp[0].eID,
+                            round: currentRound,
+                            pID: pID,
+                            target_pID: target_pID,
+                            damage: newValue
+                        }
+                        update.ct_tbl_target.insert.push(insertRecord);
+                    }
                 } else if (newValue == "x") {
                     // if the new value is 'x'
-                    if (Number.isInteger(originalValue)) {
-                        //  update records (action & target)
-                        //      hit: 1, 
-                        //      damage: 0,
-                        //      aID: aID,
-                        //      tID: tID
-                    } else if (originalValue == "") {
-                        const insertRecord = {
-                            //  insert record (target)
-                            //      damage: 0,
-                            //      targetID: 
-                            //      eID: 
-                            //      round:
-                            //      pID:
-                            //      target_pID:
-                            //      damage: 
+                    if (Number.isInteger(parseInt(originalValue)) && originalValue != "0") {
+                        const updateRecord = {
+                            damage: 0,
+                            tID: tID
                         }
-
+                        update.ct_tbl_target.update.push(updateRecord);
+                    } else if (originalValue == "0") {
+                        // const insertRecord = {
+                        //     targetID: targetID,
+                        //     eID: ctApp[0].eID,
+                        //     round: currentRound,
+                        //     pID: pID,
+                        //     target_pID: target_pID,
+                        //     damage: newValue
+                        // }
+                        // update.ct_tbl_target.insert.push(insertRecord);
                     }
                 } else if (newValue == "") {
                     // if the new value input is '', delete record from ct_tbl_target
