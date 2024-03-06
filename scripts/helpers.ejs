@@ -2485,7 +2485,7 @@
             const pid = target.getAttribute("data-pid")
             const targetID = target.getAttribute("data-targetid")
             const tID = target.getAttribute("data-tid")
-            if (originalValue != newValue) {
+            if (originalValue !== newValue) {
                 // if the new value is a number
                 if (Number.isInteger(parseInt(newValue))) {
                     // if original value is number or 'x'
@@ -2515,16 +2515,16 @@
                             tID: tID
                         }
                         update.ct_tbl_target.update.push(updateRecord);
-                    } else if (originalValue == "0") {
-                        // const insertRecord = {
-                        //     targetID: targetID,
-                        //     eID: ctApp[0].eID,
-                        //     round: currentRound,
-                        //     pID: pID,
-                        //     target_pID: target_pID,
-                        //     damage: newValue
-                        // }
-                        // update.ct_tbl_target.insert.push(insertRecord);
+                    } else if (originalValue == null) {
+                        const insertRecord = {
+                            targetID: targetID,
+                            eID: ctApp[0].eID,
+                            round: currentRound,
+                            pID: pID,
+                            target_pID: target_pID,
+                            damage: newValue
+                        }
+                        update.ct_tbl_target.insert.push(insertRecord);
                     }
                 } else if (newValue == "") {
                     // if the new value input is '', delete record from ct_tbl_target
