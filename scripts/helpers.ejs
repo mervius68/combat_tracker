@@ -2486,18 +2486,19 @@
             const targetID = target.getAttribute("data-targetid")
             const tID = target.getAttribute("data-tid")
             if (originalValue !== newValue) {
+                let record = { tID: tID };
                 // if the new value is a number
                 if (Number.isInteger(parseInt(newValue))) {
                     // if original value is number or 'x'
                     if (Number.isInteger(parseInt(originalValue)) && originalValue != "x") {
-                        const updateRecord = {
+                        record = {
                             tID: tID, 
                             damage: newValue
                         }
-                        update.ct_tbl_target.update.push(updateRecord);
+                        update.ct_tbl_target.update.push(record);
                     } else if (originalValue == null || originalValue == "") {
                         // if original value is empty
-                        const insertRecord = {
+                        record = {
                             targetID: targetID,
                             eID: ctApp[0].eID,
                             round: currentRound,
@@ -2505,18 +2506,18 @@
                             target_pID: target_pID,
                             damage: newValue
                         }
-                        update.ct_tbl_target.insert.push(insertRecord);
+                        update.ct_tbl_target.insert.push(record);
                     }
                 } else if (newValue == "x") {
                     // if the new value is 'x'
                     if (Number.isInteger(parseInt(originalValue)) && originalValue != "0") {
-                        const updateRecord = {
+                        record = {
                             damage: 0,
                             tID: tID
                         }
-                        update.ct_tbl_target.update.push(updateRecord);
+                        update.ct_tbl_target.update.push(record);
                     } else if (originalValue == null) {
-                        const insertRecord = {
+                        record = {
                             targetID: targetID,
                             eID: ctApp[0].eID,
                             round: currentRound,
@@ -2524,15 +2525,15 @@
                             target_pID: target_pID,
                             damage: newValue
                         }
-                        update.ct_tbl_target.insert.push(insertRecord);
+                        update.ct_tbl_target.insert.push(record);
                     }
                 } else if (newValue == "") {
                     // if the new value input is '', delete record from ct_tbl_target
-                    const deleteRecord = {
+                    record = {
                         tID: tID,
                     }
-                    if (deleteRecord.tID != null) {
-                        update.ct_tbl_target.delete.push(deleteRecord);
+                    if (record.tID != null) {
+                        update.ct_tbl_target.delete.push(record);
                     }
                 }
             }
