@@ -2482,7 +2482,7 @@
             const newValue = target.value || "";
             const originalValue = target.getAttribute("data-original-value")
             const hit = target.getAttribute("data-hit")
-            const pid = target.getAttribute("data-pid")
+            const pID = target.getAttribute("data-pid")
             const targetID = target.getAttribute("data-targetid")
             const tID = target.getAttribute("data-tid")
             if (originalValue !== newValue) {
@@ -2493,7 +2493,12 @@
                     if (Number.isInteger(parseInt(originalValue)) && originalValue != "x") {
                         record = {
                             tID: tID, 
-                            damage: newValue
+                            targetID: targetID,
+                            damage: newValue, 
+                            eID: ctApp[0].eID,
+                            round: currentRound,
+                            pID: pID,
+                            originalDamage: originalValue
                         }
                         update.ct_tbl_target.update.push(record);
                     } else if (originalValue == null || originalValue == "") {
@@ -2503,8 +2508,8 @@
                             eID: ctApp[0].eID,
                             round: currentRound,
                             pID: pID,
-                            target_pID: target_pID,
-                            damage: newValue
+                            damage: newValue,
+                            originalDamage: originalValue
                         }
                         update.ct_tbl_target.insert.push(record);
                     }
@@ -2513,7 +2518,12 @@
                     if (Number.isInteger(parseInt(originalValue)) && originalValue != "0") {
                         record = {
                             damage: 0,
-                            tID: tID
+                            tID: tID,
+                            targetID: targetID,
+                            eID: ctApp[0].eID,
+                            round: currentRound,
+                            pID: pID,
+                            originalDamage: originalValue,
                         }
                         update.ct_tbl_target.update.push(record);
                     } else if (originalValue == null) {
@@ -2522,8 +2532,8 @@
                             eID: ctApp[0].eID,
                             round: currentRound,
                             pID: pID,
-                            target_pID: target_pID,
-                            damage: newValue
+                            damage: newValue, 
+                            originalDamage: originalValue
                         }
                         update.ct_tbl_target.insert.push(record);
                     }

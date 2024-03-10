@@ -740,45 +740,80 @@ app.post('/addParticipant', (req, res) => {
     res.json({ message: 'Participants added successfully' });
 });
 
-app.post("/updateActionDB", (req, res) => {
-    const requestData = req.body;
-    console.log(requestData);
-
-    db.serialize(() => {
-        db.run("BEGIN TRANSACTION;");
-        updateAction(requestData, (updateError) => {
-            if (updateError) {
-                db.run("ROLLBACK;");
-                console.log(updateError);
-                res.status(500).json({ error: 'Internal server error during update' });
-                return;
-            }
-
-            deleteFromTable('ct_tbl_condition', 'aID', requestData.ct_tbl_condition.delete.aID, (deleteError1) => {
-                if (deleteError1) {
-                    db.run("ROLLBACK;");
-                    console.log(deleteError1);
-                    res.status(500).json({ error: 'Internal server error during delete from ct_tbl_condition' });
-                    return;
-                }
-
-                deleteFromTable('ct_tbl_condition_affectee', 'taID', requestData.ct_tbl_condition_affectee.delete.taID, (deleteError2) => {
-                    if (deleteError2) {
-                        db.run("ROLLBACK;");
-                        console.log(deleteError2);
-                        res.status(500).json({ error: 'Internal server error during delete from ct_tbl_condition_affectee' });
-                        return;
-                    }
-                });
-            });
+// Wrap db.run in a Promise to make it work with async/await
+function runDbQuery(sql, params = []) {
+    return new Promise((resolve, reject) => {
+        db.run(sql, params, function(err) {
+            if (err) reject(err);
+            else resolve(this);
         });
     });
-    db.run("COMMIT;");
-    res.json({ message: 'Action updated successfully' });
+}
+
+app.post("/updateActionDB", async (req, res) => {
+    const requestData = req.body;
+    console.log(requestData.ct_tbl_target.update);
+
+    try {
+        await runDbQuery("BEGIN TRANSACTION;");
+
+        // Update Action
+        if (requestData.ct_tbl_action && requestData.ct_tbl_action.update) {
+            await updateAction(requestData);
+        }
+
+        // Update Targets
+        requestData.ct_tbl_target.update.forEach(async (obj) => {
+            // console.log(obj)
+            await updateTarget(obj);
+            await updateHPCascade(obj);
+            // adjust new_hps where...
+        })
+
+        // Delete Targets
+        requestData.ct_tbl_target.delete.forEach((obj) => {
+            // delete targets
+            // await deleteTarget
+        })
+
+        // Delete from ct_tbl_condition
+        if (requestData.ct_tbl_condition && requestData.ct_tbl_condition.delete && requestData.ct_tbl_condition.delete.aID) {
+            await deleteFromTable('ct_tbl_condition', 'aID', requestData.ct_tbl_condition.delete.aID);
+        }
+
+        // Delete from ct_tbl_condition_affectee
+        if (requestData.ct_tbl_condition_affectee && requestData.ct_tbl_condition_affectee.delete && requestData.ct_tbl_condition_affectee.delete.taID) {
+            await deleteFromTable('ct_tbl_condition_affectee', 'taID', requestData.ct_tbl_condition_affectee.delete.taID);
+        }
+
+        await runDbQuery("COMMIT;");
+        res.json({ message: 'Action updated successfully' });
+    } catch (error) {
+        await runDbQuery("ROLLBACK;");
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
+async function updateHPCascade(obj) {
+    const diff = parseInt(obj.damage) - parseInt(obj.originalDamage)
+    const sql = `
+        UPDATE ct_tbl_target
+        SET new_hp = new_hp - ?
+        WHERE targetID > ?
+            AND target_pID = ?
+            AND eID = ?
+    `
+    console.log(sql)
+    await runQuery(sql, [
+        diff,
+        obj.targetID,
+        obj.pID,
+        obj.eID,
+    ])
+}
 
-async function updateAction(requestData, res) {
+async function updateAction(requestData) {
     const sql = `
         UPDATE ct_tbl_action 
         SET action_type = ?,
@@ -799,24 +834,32 @@ async function updateAction(requestData, res) {
     ]);
 }
 
-async function deleteFromTable(table, conditionColumn, conditionValue) {
+async function updateTarget(target) {
+    const difference = parseInt(target.damage) - parseInt(target.originalDamage)
     const sql = `
-        DELETE FROM ${table}
-        WHERE ${conditionColumn} = ?;
-    `;
+        UPDATE ct_tbl_target
+        SET damage = ?,
+            new_hp = new_hp - ?
+        WHERE tID = ?
+    `
+    await runQuery(sql, [
+        target.damage,
+        difference,
+        target.tID
+    ])
+}
 
+async function deleteFromTable(table, conditionColumn, conditionValue) {
+    const sql = `DELETE FROM ${table} WHERE ${conditionColumn} = ?;`;
     await runQuery(sql, [conditionValue]);
 }
 
+
 async function runQuery(sql, params) {
     return new Promise((resolve, reject) => {
-        db.run(sql, params, function (err) {
-            if (err) {
-                console.log(err);
-                reject(err);
-            } else {
-                resolve();
-            }
+        db.run(sql, params, function(err) {
+            if (err) reject(err);
+            else resolve(this);
         });
     });
 }
