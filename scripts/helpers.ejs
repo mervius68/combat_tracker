@@ -40,12 +40,12 @@
 
 
 
-
         const getEncounter = await dbQuery("GET", "getLatestEncounterID");
+        console.log("got here")
+        
         if (encounterCode == 0) {
             ctAppEnc = savedEncounterPlaceholder || getEncounter.eID;
         }
-
         const encounteredNames = new Set();
         const duplicateNames = new Set();
         const resultArray = [];
@@ -140,17 +140,20 @@
 
         // build the damageArray property for each participant; sub-arrays represent rounds
         ctApp.forEach((participant) => {
-            participant.damageArray = [];
+            participant.damageArray = []; // Initialize the damageArray for each participant
             for (let i = 0; i < damageRounds; i++) {
                 participant.damageArray[i] = [];
                 if (Array.isArray(participant.damageArray[i - 1])) {
-                    participant.damageArray[i].push(
-                        participant.damageArray[i - 1][
-                        participant.damageArray[i - 1].length - 1
-                        ]
-                    );
+                    // Push the last element of the previous round, if it exists
+                    participant.damageArray[i].push({
+                        aID: participant.damageArray[i - 1][participant.damageArray[i - 1].length - 1].aID,
+                        tID: participant.damageArray[i - 1][participant.damageArray[i - 1].length - 1].tID,
+                        newHP: participant.damageArray[i - 1][participant.damageArray[i - 1].length - 1].newHP,
+                        targetID: ctApp.find(item => item.aID === this.aID)?.targetID
+                    });
                 } else {
-                    participant.damageArray[i].push(participant.starting_hp);
+                    // Otherwise, initialize with the participant's starting HP
+                    participant.damageArray[i].push({ aID: null, tID: null, newHP: participant.starting_hp, targetID: ctApp.find(item => item.aID === this.aID)?.targetID });
                 }
                 let x = participantsHpsByRound.filter((target) => {
                     return (
@@ -159,17 +162,18 @@
                     );
                 });
                 x.forEach((item) => {
-                    if (item.target_pID == participant.pID) {
-                        participant.damageArray[i].push(item.new_hp);
-                    }
+                    console.log(item)
+                    // For each item, push an object with tID and newHP
+                    participant.damageArray[i].push({ aID: item.aID, tID: item.tID, newHP: item.new_hp, targetID: item.targetID });
                 });
                 participant.damageArray = participant.damageArray.map((arr) => {
-                    return arr.filter((num, i) => {
-                        return i === 0 || num !== arr[i - 1];
+                    return arr.filter((num, index) => {
+                        return index === 0 || num.newHP !== arr[index - 1].newHP;
                     });
                 });
             }
         });
+
 
         // build a conditionsArray and affectedArray properties for the participant
         ctApp.forEach((participant) => {
@@ -412,7 +416,7 @@
             let roundActions = ctActions.filter((action) => {
                 return action.round == i;
             });
-
+            
             // populate participants
             let participantHTML;
             ctApp.forEach(async (participant) => {
@@ -457,9 +461,9 @@
                     if (participant.damageArray[i - 1]) {
                         participant.damageArray[i - 1].forEach((hp, index) => {
                             hps +=
-                                (hp == participant.starting_hp
-                                    ? "<b>" + hp + "</b>"
-                                    : hp) +
+                                (hp.newHP == participant.starting_hp
+                                    ? "<b>" + hp.newHP + "</b>"
+                                    : hp.newHP) +
                                 (index <
                                     participant.damageArray[i - 1].length - 1
                                     ? ", "
@@ -469,9 +473,9 @@
                     } else {
                         participant.damageArray[i - 2].forEach((hp, index) => {
                             hps =
-                                (hp == participant.starting_hp
-                                    ? "<b>" + hp + "</b>"
-                                    : hp) +
+                                (hp.newHP == participant.starting_hp
+                                    ? "<b>" + hp.newHP + "</b>"
+                                    : hp.newHP) +
                                 (index <
                                     participant.damageArray[i - 2].length - 1
                                     ? ", "
@@ -1733,6 +1737,7 @@
 
             // populate 'x' or damage amount in input field as needed
             currentAction.forEach((targetParticipant) => {
+                console.log("targetParticipant: ", targetParticipant)
                 const isSameParticipant = targetParticipant.pID == participant.pID;
                 const noDamageAndHit = isSameParticipant && targetParticipant.damage == 0 && actionObj.ct_tbl_action.hit == 1;
                 if (noDamageAndHit) {
@@ -1749,6 +1754,7 @@
                 target.setAttribute("data-stored-damage", damageValue);
                 target.setAttribute("data-tid", targetParticipant.tID)
                 target.setAttribute("data-hit", noDamageAndHit ? "1" : "0")
+                target.setAttribute("data-max-hp", participant.max_hp)
                 target.setAttribute("data-targetID", isSameParticipant && !noDamageAndHit ? targetParticipant.targetID : "0")
             });
             yyy = ctActions;
@@ -2484,6 +2490,7 @@
             const hit = target.getAttribute("data-hit")
             const pID = target.getAttribute("data-pid")
             const targetID = target.getAttribute("data-targetid")
+            const maxHP = target.getAttribute("data-max-hp");
             const tID = target.getAttribute("data-tid")
             if (originalValue !== newValue) {
                 let record = { tID: tID };
@@ -2492,17 +2499,22 @@
                     // if original value is number or 'x'
                     if (Number.isInteger(parseInt(originalValue)) && originalValue != "x") {
                         record = {
-                            tID: tID, 
+                            aID: dataAidValue,
+                            tID: tID,
                             targetID: targetID,
-                            damage: newValue, 
+                            damage: newValue,
                             eID: ctApp[0].eID,
                             round: currentRound,
-                            pID: pID,
-                            originalDamage: originalValue
+                            pID: pID, // pID of target
+                            originalDamage: originalValue,
+                            maxHP: maxHP
                         }
                         update.ct_tbl_target.update.push(record);
+                        // are there any affected records downstream?
+                        // look in ctApp for targets in damageArray where
+                        // aID > dataAidValue and ctApp pID = pID
                     } else if (originalValue == null || originalValue == "") {
-                        // if original value is empty
+                        // if original value is empty...
                         record = {
                             targetID: targetID,
                             eID: ctApp[0].eID,
@@ -2514,9 +2526,10 @@
                         update.ct_tbl_target.insert.push(record);
                     }
                 } else if (newValue == "x") {
-                    // if the new value is 'x'
+                    // if the new value is 'x'...
                     if (Number.isInteger(parseInt(originalValue)) && originalValue != "0") {
                         record = {
+                            aID: dataAidValue,
                             damage: 0,
                             tID: tID,
                             targetID: targetID,
@@ -2524,18 +2537,21 @@
                             round: currentRound,
                             pID: pID,
                             originalDamage: originalValue,
+                            maxHP: maxHP
                         }
                         update.ct_tbl_target.update.push(record);
+                        // are there any affected records downstream?
                     } else if (originalValue == null) {
                         record = {
                             targetID: targetID,
                             eID: ctApp[0].eID,
                             round: currentRound,
                             pID: pID,
-                            damage: newValue, 
+                            damage: newValue,
                             originalDamage: originalValue
                         }
                         update.ct_tbl_target.insert.push(record);
+                        
                     }
                 } else if (newValue == "") {
                     // if the new value input is '', delete record from ct_tbl_target
@@ -5205,12 +5221,12 @@
             }
         }
 
+        console.log("a")
         // we have a group array containing objects, where each object gets action in the db
-
         for (const obj of group) {
             // const chidCheck = await dbQuery("GET", "chidCheck/" + obj.chID)
             let latestParticipant = await dbQuery("GET", "getLatestParticipant")
-            obj.pID = parseInt(latestParticipant[0].pID) + 1
+            obj.pID = parseInt(latestParticipant[0]?.pID || 0) + 1
             await dbQueryPost("updateEncounterParticipants", obj)
             await dbQueryPost("addParticipant", obj)
         }

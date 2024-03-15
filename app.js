@@ -184,7 +184,8 @@ app.get("/hpsByRound/:encounter", (req, res) => {
     let encounter = req.params.encounter;
     let sql = `SELECT *
                 FROM ct_tbl_target
-                WHERE eID = ${encounter} ORDER BY tID;
+                LEFT JOIN ct_tbl_action ON ct_tbl_target.targetID = ct_tbl_action.targetID
+                WHERE ct_tbl_target.eID = ${encounter} ORDER BY tID;
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -752,7 +753,6 @@ function runDbQuery(sql, params = []) {
 
 app.post("/updateActionDB", async (req, res) => {
     const requestData = req.body;
-    console.log(requestData.ct_tbl_target.update);
 
     try {
         await runDbQuery("BEGIN TRANSACTION;");
@@ -764,10 +764,10 @@ app.post("/updateActionDB", async (req, res) => {
 
         // Update Targets
         requestData.ct_tbl_target.update.forEach(async (obj) => {
-            // console.log(obj)
+            let latestHP = await selectRecentHP(obj);
+            obj.latestHP = latestHP || obj.maxHP;
             await updateTarget(obj);
             await updateHPCascade(obj);
-            // adjust new_hps where...
         })
 
         // Delete Targets
@@ -796,22 +796,60 @@ app.post("/updateActionDB", async (req, res) => {
 });
 
 async function updateHPCascade(obj) {
+    console.log(obj);
     const diff = parseInt(obj.damage) - parseInt(obj.originalDamage)
     const sql = `
         UPDATE ct_tbl_target
-        SET new_hp = new_hp - ?
-        WHERE targetID > ?
+        SET new_hp = CASE 
+            WHEN new_hp - ? <= 0 THEN 0 
+            ELSE new_hp - ?
+            END
+        WHERE tID IN (
+            select tID from ct_tbl_action 
+            left join ct_tbl_target on ct_tbl_action.targetID = ct_tbl_target.targetID 
+            where aID > ? 
+            and ct_tbl_target.target_pID = ?
+        )
             AND target_pID = ?
             AND eID = ?
     `
-    console.log(sql)
     await runQuery(sql, [
-        diff,
-        obj.targetID,
+        diff,        
+        diff,        
+        obj.aID,
+        // obj.targetID,
+        obj.pID,
         obj.pID,
         obj.eID,
     ])
+    console.log(sql)
 }
+
+function selectRecentHP(obj) {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT new_hp FROM ct_tbl_target 
+            WHERE tID < ? 
+                AND eID = ?
+                AND target_pID = ?
+            ORDER BY tID DESC
+            LIMIT 1
+        `;
+        // Assuming 'db' is your SQLite database connection
+        db.get(sql, [
+            obj.tID,
+            obj.eID,
+            obj.pID
+        ], (err, row) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(row ? row.new_hp : null);
+            }
+        });
+    });
+}
+
+
 
 async function updateAction(requestData) {
     const sql = `
@@ -835,16 +873,17 @@ async function updateAction(requestData) {
 }
 
 async function updateTarget(target) {
-    const difference = parseInt(target.damage) - parseInt(target.originalDamage)
+    let newHP = parseInt(target.latestHP) - parseInt(target.damage)
+    newHP = newHP < 0 ? 0 : newHP;
     const sql = `
         UPDATE ct_tbl_target
         SET damage = ?,
-            new_hp = new_hp - ?
+            new_hp = ?
         WHERE tID = ?
     `
     await runQuery(sql, [
         target.damage,
-        difference,
+        newHP,
         target.tID
     ])
 }
