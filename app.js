@@ -873,8 +873,8 @@ async function updateAction(requestData) {
 }
 
 async function updateTarget(target) {
-    let newHP = parseInt(target.latestHP) - parseInt(target.damage)
-    newHP = newHP < 0 ? 0 : newHP;
+    // let newHP = parseInt(target.latestHP) - parseInt(target.damage)
+    // newHP = newHP < 0 ? 0 : newHP;
     const sql = `
         UPDATE ct_tbl_target
         SET damage = ?,
@@ -883,7 +883,7 @@ async function updateTarget(target) {
     `
     await runQuery(sql, [
         target.damage,
-        newHP,
+        target.newHP,
         target.tID
     ])
 }
