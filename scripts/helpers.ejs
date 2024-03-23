@@ -1742,20 +1742,20 @@
                 const noDamageAndHit = isSameParticipant && targetParticipant.damage == 0 && actionObj.ct_tbl_action.hit == 1;
                 if (noDamageAndHit) {
                     target.defaultValue = "x";
-                    target.setAttribute("data-original-value", "x")
+                    target.setAttribute("data-originalvalue", "x")
                 } else if (isSameParticipant) {
                     target.defaultValue = targetParticipant.damage;
-                    target.setAttribute("data-original-value", targetParticipant.damage)
+                    target.setAttribute("data-originalvalue", targetParticipant.damage)
                 } else {
-                    target.setAttribute("data-original-value", "")
+                    target.setAttribute("data-originalvalue", "")
                 }
 
                 const damageValue = isSameParticipant && !noDamageAndHit ? targetParticipant.damage : 0;
                 target.setAttribute("data-stored-damage", damageValue);
                 target.setAttribute("data-tid", targetParticipant.tID)
                 target.setAttribute("data-hit", noDamageAndHit ? "1" : "0")
-                target.setAttribute("data-max-hp", participant.max_hp)
-                target.setAttribute("data-new-hp", targetParticipant.new_hp)
+                target.setAttribute("data-maxhp", participant.max_hp)
+                target.setAttribute("data-newhp", targetParticipant.new_hp)
                 target.setAttribute("data-targetID", isSameParticipant && !noDamageAndHit ? targetParticipant.targetID : "0")
             });
             yyy = ctActions;
@@ -2365,7 +2365,7 @@
         // for (target of damageAmountElements) {
         //     const newValue = target.value || "";
         //     const oldValue = target.getAttribute("data-stored-damage");
-        //     const originalValue = target.getAttribute("data-original-value")
+        //     const originalValue = target.getAttribute("data-originalvalue")
         //     const hit = target.getAttribute("data-hit");
         //     if (originalValue == "" && newValue != "") {
         //         numberChanges += 1
@@ -2487,31 +2487,25 @@
 
         for (target of damageAmountElements) {
             const newValue = target.value || "";
-            const originalValue = target.getAttribute("data-original-value")
-            const hit = target.getAttribute("data-hit")
-            const pID = target.getAttribute("data-pid")
-            const targetID = target.getAttribute("data-targetid")
-            const maxHP = target.getAttribute("data-max-hp");
-            const baseHP = target.getAttribute("data-new-hp");
-            const tID = target.getAttribute("data-tid")
-            if (originalValue !== newValue) {
-                let record = { tID: tID };
+            const dataAttributes = target.dataset;
+            if (dataAttributes.originalvalue !== newValue) {
+                let record = { tID: dataAttributes.tid };
                 // if the new value is a number
                 if (Number.isInteger(parseInt(newValue))) {
                     // if original value is number or 'x'
                     let bufferHP;
-                    if (Number.isInteger(parseInt(originalValue)) && originalValue != "x") {
-                        let newHP = baseHP == 0 ? 0 : parseInt(baseHP) - parseInt(newValue) + parseInt(originalValue)
+                    if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {
+                        let newHP = dataAttributes.newhp == 0 ? 0 : parseInt(dataAttributes.newhp) - parseInt(newValue) + parseInt(dataAttributes.originalvalue)
                         record = {
                             aID: dataAidValue,
-                            tID: tID,
-                            targetID: targetID,
+                            tID: dataAttributes.tid,
+                            targetID: dataAttributes.targetid,
                             damage: newValue,
                             eID: ctApp[0].eID,
                             round: currentRound,
-                            pID: pID, // pID of target
-                            originalDamage: originalValue,
-                            maxHP: maxHP, 
+                            pID: dataAttributes.pid, // pID of target
+                            originalDamage: dataAttributes.originalvalue,
+                            maxHP: dataAttributes.maxhp, 
                             newHP: newHP
                         }
                         if (record.newHP < 0) {
@@ -2542,44 +2536,44 @@
 
                         // look in ctApp for targets in damageArray where
                         // aID > dataAidValue and ctApp pID = pID
-                    } else if (originalValue == null || originalValue == "") {
+                    } else if (dataAttributes.originalvalue == null || dataAttributes.originalvalue == "") {
                         // if original value is empty...
                         record = {
-                            targetID: targetID,
+                            targetID: dataAttributes.targetid,
                             eID: ctApp[0].eID,
                             round: currentRound,
-                            pID: pID,
+                            pID: dataAttributes.pid,
                             damage: newValue,
-                            originalDamage: originalValue
+                            originalDamage: dataAttributes.originalvalue
                         }
                         update.ct_tbl_target.insert.push(record);
                     }
                 } else if (newValue == "x") {
                     // if the new value is 'x'...
-                    if (Number.isInteger(parseInt(originalValue)) && originalValue != "0") {
+                    if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "0") {
                         // let newHP = baseHP == 0 ? 0 : parseInt(baseHP) - parseInt(newValue) + parseInt(originalValue)
                         record = {
                             aID: dataAidValue,
                             damage: 0,
-                            tID: tID,
-                            targetID: targetID,
+                            tID: dataAttributes.tid,
+                            targetID: dataAttributes.targetid,
                             eID: ctApp[0].eID,
                             round: currentRound,
-                            pID: pID,
-                            originalDamage: originalValue,
-                            maxHP: maxHP,
-                            newHP: baseHP
+                            pID: dataAttributes.pid,
+                            originalDamage: dataAttributes.originalvalue,
+                            maxHP: dataAttributes.maxhp,
+                            newHP: dataAttributes.newhp
                         }
                         update.ct_tbl_target.update.push(record);
                         // are there any affected records downstream?
-                    } else if (originalValue == null) {
+                    } else if (dataAttributes.originalvalue == null) {
                         record = {
-                            targetID: targetID,
+                            targetID: dataAttributes.targetid,
                             eID: ctApp[0].eID,
                             round: currentRound,
-                            pID: pID,
+                            pID: dataAttributes.pid,
                             damage: newValue,
-                            originalDamage: originalValue
+                            originalDamage: dataAttributes.originalvalue
                         }
                         update.ct_tbl_target.insert.push(record);
 
@@ -2587,7 +2581,7 @@
                 } else if (newValue == "") {
                     // if the new value input is '', delete record from ct_tbl_target
                     record = {
-                        tID: tID,
+                        tID: dataAttributes.tid,
                     }
                     if (record.tID != null) {
                         update.ct_tbl_target.delete.push(record);
