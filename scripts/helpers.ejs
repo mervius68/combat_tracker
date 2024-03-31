@@ -41,7 +41,7 @@
 
 
         const getEncounter = await dbQuery("GET", "getLatestEncounterID");
-        console.log("got here")
+        // console.log("got here")
 
         if (encounterCode == 0) {
             ctAppEnc = savedEncounterPlaceholder || getEncounter.eID;
@@ -2505,7 +2505,7 @@
                             round: currentRound,
                             pID: dataAttributes.pid, // pID of target
                             originalDamage: dataAttributes.originalvalue,
-                            maxHP: dataAttributes.maxhp, 
+                            maxHP: dataAttributes.maxhp,
                             newHP: newHP
                         }
                         if (record.newHP < 0) {
@@ -2529,9 +2529,10 @@
                                 });
                             }
                         });
-                        console.log(downstreamArray);
+                        console.log("downstreams: ", downstreamArray);
                         downstreamArray.forEach((target) => {
-                            console.log(target);
+                            console.log("*****************")
+                            console.log("target: ", target);
                         })
 
                         // look in ctApp for targets in damageArray where
