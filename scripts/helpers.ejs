@@ -162,7 +162,7 @@
                     );
                 });
                 x.forEach((item) => {
-                    console.log(item)
+                    // console.log(item)
                     // For each item, push an object with tID and newHP
                     participant.damageArray[i].push({ aID: item.aID, tID: item.tID, newHP: item.new_hp, targetID: item.targetID });
                 });
@@ -1737,7 +1737,7 @@
 
             // populate 'x' or damage amount in input field as needed
             currentAction.forEach((targetParticipant) => {
-                console.log("targetParticipant: ", targetParticipant)
+                // console.log("targetParticipant: ", targetParticipant)
                 const isSameParticipant = targetParticipant.pID == participant.pID;
                 const noDamageAndHit = isSameParticipant && targetParticipant.damage == 0 && actionObj.ct_tbl_action.hit == 1;
                 if (noDamageAndHit) {
@@ -1755,7 +1755,7 @@
                 target.setAttribute("data-tid", targetParticipant.tID)
                 target.setAttribute("data-hit", noDamageAndHit ? "1" : "0")
                 target.setAttribute("data-maxhp", participant.max_hp)
-                target.setAttribute("data-newhp", targetParticipant.new_hp)
+                target.setAttribute("data-hp", targetParticipant.new_hp)
                 target.setAttribute("data-targetID", isSameParticipant && !noDamageAndHit ? targetParticipant.targetID : "0")
             });
             yyy = ctActions;
@@ -2492,10 +2492,10 @@
                 let record = { tID: dataAttributes.tid };
                 // if the new value is a number
                 if (Number.isInteger(parseInt(newValue))) {
-                    // if original value is number or 'x'
-                    let bufferHP;
+                    // if original value is number
                     if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {
-                        let newHP = dataAttributes.newhp == 0 ? 0 : parseInt(dataAttributes.newhp) - parseInt(newValue) + parseInt(dataAttributes.originalvalue)
+                        let diff = parseInt(dataAttributes.originalvalue) - parseInt(newValue);
+                        let newHP = dataAttributes.hp == 0 ? 0 : (parseInt(dataAttributes.hp)) - parseInt(newValue) + parseInt(dataAttributes.originalvalue)
                         record = {
                             aID: dataAidValue,
                             tID: dataAttributes.tid,
@@ -2511,7 +2511,6 @@
                         if (record.newHP < 0) {
                             record.newHP = 0
                         }
-                        bufferHP = record.newHP
                         update.ct_tbl_target.update.push(record);
 
                         // are there any affected records downstream?
@@ -2530,9 +2529,20 @@
                             }
                         });
                         console.log("downstreams: ", downstreamArray);
+                        let bufferHP = record.newHP;
+                        
+                        if (!isNaN(record.newHP) && record.newHP !== undefined && record.newHP !== null) {
+                            bufferHP = parseInt(record.newHP);
+                        }
+                        console.log(bufferHP)
+                        // = parseInt(target.newHP)
+                        // console.log("typeof BufferHP: ", typeof bufferHP)
+                        // console.log("typeof diff: ", typeof diff)
                         downstreamArray.forEach((target) => {
-                            console.log("*****************")
-                            console.log("target: ", target);
+                            console.log("*************")
+                            console.log("bufferHP: " , bufferHP)
+                            target.newHP += diff;
+                            console.log("target.newHP: " , target.newHP) // 26
                         })
 
                         // look in ctApp for targets in damageArray where
@@ -2563,7 +2573,7 @@
                             pID: dataAttributes.pid,
                             originalDamage: dataAttributes.originalvalue,
                             maxHP: dataAttributes.maxhp,
-                            newHP: dataAttributes.newhp
+                            newHP: dataAttributes.hp
                         }
                         update.ct_tbl_target.update.push(record);
                         // are there any affected records downstream?
