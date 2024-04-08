@@ -182,7 +182,9 @@ app.get("/participants/:encounter", (req, res) => {
 
 app.get("/hpsByRound/:encounter", (req, res) => {
     let encounter = req.params.encounter;
-    let sql = `SELECT *
+    let sql = `SELECT 
+                ct_tbl_target.round AS result_round,
+                *
                 FROM ct_tbl_target
                 LEFT JOIN ct_tbl_action ON ct_tbl_target.targetID = ct_tbl_action.targetID
                 WHERE ct_tbl_target.eID = ${encounter} ORDER BY tID;

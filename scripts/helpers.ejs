@@ -157,15 +157,17 @@
                 }
                 let x = participantsHpsByRound.filter((target) => {
                     return (
-                        target.round == i + 1 &&
+                        target.result_round == i + 1 &&
                         target.target_pID == participant.pID
                     );
                 });
                 x.forEach((item) => {
                     // console.log(item)
                     // For each item, push an object with tID and newHP
-                    participant.damageArray[i].push({ aID: item.aID, tID: item.tID, newHP: item.new_hp, targetID: item.targetID });
-                });
+                    if (item.target_pID == participant.pID) {
+                        participant.damageArray[i].push({ aID: item.aID, tID: item.tID, newHP: item.new_hp, targetID: item.targetID });
+                    }
+               });
                 participant.damageArray = participant.damageArray.map((arr) => {
                     return arr.filter((num, index) => {
                         return index === 0 || num.newHP !== arr[index - 1].newHP;
