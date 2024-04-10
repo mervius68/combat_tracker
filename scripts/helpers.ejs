@@ -211,14 +211,18 @@
         // start a loop to build each round
         let mainContainer = document.createElement("div");
         let roundButtonElements = document.querySelector(".display_rounds_buttons_here")
+        roundButtonElements.innerHTML = ""
+        const buttonAll = document.createElement("button");
+        buttonAll.setAttribute("onclick", "display_round()")
+        buttonAll.innerText = "ALL"
+        buttonAll.classList.add("round-button")
+        roundButtonElements.appendChild(buttonAll);
         for (let i = 1; i <= totalRounds + 1; i++) {
-            if (i > 1) {
-                const button = document.createElement("button");
-                button.setAttribute("onclick", "display_round(" + i + ")")
-                button.innerText = i
-                roundButtonElements.appendChild(button);
-            }
-
+            const button = document.createElement("button");
+            button.setAttribute("onclick", "display_round(" + i + ")")
+            button.innerText = i
+            button.classList.add("round-button")
+            roundButtonElements.appendChild(button);
 
             // build the wireframe of first section (participants);
             const ctRound = document.createElement("div");
@@ -1144,6 +1148,7 @@
                     document.removeEventListener("keyup", keyupEventListener);
                 }
             }
+
         }
 
         document.addEventListener("keyup", keyupEventListener);
@@ -3225,6 +3230,7 @@
         // selectedWeapons[0]?.removeAttribute("checked")
         // selectedWeapons[1]?.setAttribute("checked", "checked");
         modalIsOpen = true;
+
 
         function findHighestAIDByPID(array, targetPID) {
             // Filter the array to include only objects with the specified pID
@@ -5427,7 +5433,7 @@
         // Select all divs with the data-round attribute that are direct children of .ct_round_container elements
         // Selects direct child divs and h2s with the data-round attribute within .ct_round_container elements
         const roundElements = document.querySelectorAll('.ct_round_container > div[data-round], .ct_round_container > h2[data-round], .round_header_text');
-
+        const roundButtons = document.querySelectorAll('.round-button')
         roundElements.forEach((ele) => {
             let dataRound = ele.getAttribute("data-round");
 
@@ -5439,7 +5445,13 @@
             if (!roundValue) {
                 ele.classList.remove("dont_show")
             }
-            // alert(ele.getAttribute("data-round"))
+        })
+        roundButtons.forEach((button) => {
+            if (roundValue == button.innerText) {
+                button.classList.add("selected_button")
+            } else {
+                button.classList.remove("selected_button")
+            }
         })
 
     }

@@ -12,7 +12,10 @@ input {
     margin-top: 5px;
 }
 
-
+.selected_button {
+    outline: 8px solid black;
+    background-color: pink;
+}
 
 .ct_grid4columns {
     display: grid;
