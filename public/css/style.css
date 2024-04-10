@@ -678,3 +678,7 @@ strong {
 .initValues {
     margin-right: 20px;
 }
+
+.dont_show {
+    display: none
+}

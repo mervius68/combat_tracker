@@ -82,11 +82,6 @@
         }
         ctActionsConditions = await dbQuery("GET", "actionsConditions/" + encounterID)
 
-        // ctActionsConditions.forEach(condition => {
-        //     condition.row_start = ctApp.findIndex(participant => condition.pID === participant.pID) + 1 + ctApp.length * (condition.start_round - 1);
-        //     condition.row_stop = ctApp.findIndex(participant => condition.end_pID === participant.pID) + 1 + ctApp.length * (condition.end_round - 1);
-        // });
-
 
 
         function mergeArrays(mainArray, secondaryArray) {
@@ -167,7 +162,7 @@
                     if (item.target_pID == participant.pID) {
                         participant.damageArray[i].push({ aID: item.aID, tID: item.tID, newHP: item.new_hp, targetID: item.targetID });
                     }
-               });
+                });
                 participant.damageArray = participant.damageArray.map((arr) => {
                     return arr.filter((num, index) => {
                         return index === 0 || num.newHP !== arr[index - 1].newHP;
@@ -215,7 +210,15 @@
 
         // start a loop to build each round
         let mainContainer = document.createElement("div");
+        let roundButtonElements = document.querySelector(".display_rounds_buttons_here")
         for (let i = 1; i <= totalRounds + 1; i++) {
+            if (i > 1) {
+                const button = document.createElement("button");
+                button.setAttribute("onclick", "display_round(" + i + ")")
+                button.innerText = i
+                roundButtonElements.appendChild(button);
+            }
+
 
             // build the wireframe of first section (participants);
             const ctRound = document.createElement("div");
@@ -401,6 +404,8 @@
             const headerText = document.createElement("h2");
             headerText.textContent =
                 i == totalRounds + 1 ? "" : "Round " + (i + 1);
+            headerText.setAttribute("data-round", i + 1)
+
             mainContainer.appendChild(headerText);
 
             const divCM = document.createElement("div");
@@ -2245,7 +2250,7 @@
 
         let notesElement = document.querySelector(".notes_text");
         let notes = notesElement.value || "-";
-        notes = notes.replace("'", "&apos;").replace("#", "&num;").replace("?", "&quest;")
+        notes = notes.replaceAll("'", "&apos;").replaceAll("#", "&num;").replaceAll("?", "&quest;")
         if (notes == "") {
             notes = "-";
         }
@@ -2532,7 +2537,7 @@
                         });
                         console.log("downstreams: ", downstreamArray);
                         let bufferHP = record.newHP;
-                        
+
                         if (!isNaN(record.newHP) && record.newHP !== undefined && record.newHP !== null) {
                             bufferHP = parseInt(record.newHP);
                         }
@@ -2542,9 +2547,9 @@
                         // console.log("typeof diff: ", typeof diff)
                         downstreamArray.forEach((target) => {
                             console.log("*************")
-                            console.log("bufferHP: " , bufferHP)
+                            console.log("bufferHP: ", bufferHP)
                             target.newHP += diff;
-                            console.log("target.newHP: " , target.newHP) // 26
+                            console.log("target.newHP: ", target.newHP) // 26
                         })
 
                         // look in ctApp for targets in damageArray where
@@ -3316,7 +3321,7 @@
             actionString = weaponTextInput[0].value;
             nextToolID = "0";
         }
-        actionString = actionString.replace("'", "&apos;")
+        actionString = actionString.replaceAll("'", "&apos;")
         // determine hits and combine them into string, like "0/1" (for miss/hit)
         let targets = document.getElementsByName("participants");
         let targetHits = [];
@@ -3414,7 +3419,7 @@
 
         let notesElement = document.querySelector(".notes_text");
         let notes = notesElement.value || "-";
-        notes = notes.replace("'", "&apos;").replace("#", "&num;").replace("?", "&quest;")
+        notes = notes.replaceAll("'", "&apos;").replace("#", "&num;").replace("?", "&quest;")
         if (notes == "") {
             notes = "-";
         }
@@ -5415,6 +5420,28 @@
                 await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1))
             })
         })
+    }
+
+    function display_round(roundValue) {
+        // collect the data-round values
+        // Select all divs with the data-round attribute that are direct children of .ct_round_container elements
+        // Selects direct child divs and h2s with the data-round attribute within .ct_round_container elements
+        const roundElements = document.querySelectorAll('.ct_round_container > div[data-round], .ct_round_container > h2[data-round], .round_header_text');
+
+        roundElements.forEach((ele) => {
+            let dataRound = ele.getAttribute("data-round");
+
+            if (roundValue != dataRound) {
+                ele.classList.add("dont_show")
+            } else {
+                ele.classList.remove("dont_show")
+            }
+            if (!roundValue) {
+                ele.classList.remove("dont_show")
+            }
+            // alert(ele.getAttribute("data-round"))
+        })
+
     }
 
 </script>
