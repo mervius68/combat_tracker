@@ -3,6 +3,7 @@
         participantsHpsByRound;
 
     async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
+        const selectedRound = document.querySelector(".selected_button")
         modalIsOpen = false // global variable is created
 
         const encounterData = await dbQuery("GET", "getEncounterID")
@@ -210,19 +211,24 @@
 
         // start a loop to build each round
         let mainContainer = document.createElement("div");
-        let roundButtonElements = document.querySelector(".display_rounds_buttons_here")
+        let roundButtonElements = document.querySelector(".displayRounds_buttons_here")
         roundButtonElements.innerHTML = ""
         const buttonAll = document.createElement("button");
-        buttonAll.setAttribute("onclick", "display_round()")
+        buttonAll.setAttribute("onclick", "displayRound()")
         buttonAll.innerText = "ALL"
         buttonAll.classList.add("round-button")
         roundButtonElements.appendChild(buttonAll);
         for (let i = 1; i <= totalRounds + 1; i++) {
             const button = document.createElement("button");
-            button.setAttribute("onclick", "display_round(" + i + ")")
+            button.setAttribute("onclick", "displayRound(" + i + ")")
             button.innerText = i
             button.classList.add("round-button")
             roundButtonElements.appendChild(button);
+
+            if (selectedRound && selectedRound.innerText == i) {
+                button.classList.add("selected_button")
+                displayRound(i)
+            }
 
             // build the wireframe of first section (participants);
             const ctRound = document.createElement("div");
@@ -884,6 +890,10 @@
             navify();
         } catch (err) { }
 
+        if (selectedRound) {
+                displayRound(selectedRound.innerText)
+            }
+
         // function to populate the individual actions
         function sendToCoordinate(round, participant, actionType, actionObject, taID) {
             try {
@@ -1167,6 +1177,10 @@
             element.addEventListener('mouseenter', handleMouseEnter);
             element.addEventListener('mouseleave', handleMouseLeave);
         });
+
+        if (selectedRound) {
+            console.log("selected is " + selectedRound.innerText)
+        }
 
         function handleMouseEnter(event) {
             // Get the data-hover-id attribute value of the current element
@@ -4742,6 +4756,10 @@
                     newTarget = document.querySelector(
                         '[data-nav="' + targetNum + '"]'
                     );
+                    const selectedRound = document.querySelector(".selected_button")
+                    if (selectedRound) {
+                        displayRound(newTarget.getAttribute("data-round"))
+                    }
                     newTarget.classList.add("selected");
                     newTarget.nextSibling.classList.add("selected");
                     newTarget.nextSibling.nextSibling.classList.add("selected");
@@ -4782,6 +4800,11 @@
                     newTarget = document.querySelector(
                         '[data-nav="' + targetNum + '"]'
                     );
+                    const selectedRound = document.querySelector(".selected_button")
+                    if (selectedRound) {
+                        displayRound(newTarget.getAttribute("data-round"))
+                    }
+                    
                     newTarget.classList.add("selected");
                     newTarget.nextSibling.classList.add("selected");
                     newTarget.nextSibling.nextSibling.classList.add("selected");
@@ -5428,7 +5451,7 @@
         })
     }
 
-    function display_round(roundValue) {
+    function displayRound(roundValue) {
         // collect the data-round values
         // Select all divs with the data-round attribute that are direct children of .ct_round_container elements
         // Selects direct child divs and h2s with the data-round attribute within .ct_round_container elements
@@ -5453,7 +5476,21 @@
                 button.classList.remove("selected_button")
             }
         })
-
     }
+
+    function getRoundValue(navValue) {
+        // Use the attribute selector to find the element with the specific data-nav value
+        const element = document.querySelector(`[data-nav="${navValue}"]`);
+
+        // Check if the element exists to avoid null reference errors
+        if (element) {
+            // Return the value of the data-round attribute
+            return element.getAttribute('data-round');
+        } else {
+            // Return a default value or null if the element was not found
+            return null;
+        }
+    }
+
 
 </script>

@@ -549,7 +549,7 @@ h3 {
     border-radius: 6px;
     padding: 7px;
     position: absolute;
-    z-index: 1;
+    z-index: 20;
     bottom: 125%;
     left: 50%;
     margin-left: -60px;
@@ -571,7 +571,7 @@ h3 {
 
 .tooltip:hover .tooltiptext {
     visibility: visible;
-    opacity: 0.6;
+    opacity: 1;
 }
 
 .hovertwin {
