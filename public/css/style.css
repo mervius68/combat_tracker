@@ -289,6 +289,7 @@ textarea {
 
 .flex_horizontal {
     display: flex;
+    width: max-content;
 }
 
 .horizontal_bottom {
@@ -397,7 +398,7 @@ input[type="button"] {
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 80vw; /* 80% of the viewport's width */
+    width: 90vw; /* 80% of the viewport's width */
     height: 80vh; /* 80% of the viewport's height */
     background: rgba(0, 0, 0, 0.5); /* Darker background for better contrast */
     z-index: 20;
