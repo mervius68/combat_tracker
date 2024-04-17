@@ -2561,91 +2561,95 @@
                             }
                         });
 
-                        let bufferHP = record.newHP;
-                        // console.log("New: ", bufferHP)
 
-                        // console.log("downstreamArray start 1: ", downstreamArray)
+
+                        async function getDamageArrayFromCtApp(targetPID) {
+                            console.log("Searching for pID:", targetPID, " in ctApp.");
+                            for (const item of ctApp) {
+                                console.log("Current item pID:", item.pID);  // This will show what pID each item has during the loop
+                                if (item.pID === targetPID) {
+                                    return item.damageArray;
+                                }
+                            }
+                            console.log("No matching pID found for", targetPID);
+                            return null;  // This confirms that no item matched the targetPID
+                        }
+
+
+                        async function getPreviousNewHP(dataArray, targetAID) {
+                            let prevNewHP = null;  // Default to null if no previous object or not found
+
+                            // Assuming dataArray is correctly formatted and it's a double array as observed
+                            if (dataArray && dataArray[0]) {
+                                for (let i = 0; i < dataArray[0].length; i++) {
+                                    for (let i = 0; i < dataArray[0].length; i++) {
+                                        if (dataArray[0][i].aID === targetAID) {
+                                            // Check if there's a previous element
+                                            if (i > 0) {
+                                                // Return the newHP of the previous element
+                                                return dataArray[0][i - 1].newHP;
+                                            } else {
+                                                // If there is no previous element, return null or a default value
+                                                console.warn("No previous entry exists for the given aID.");
+                                                return null; // No previous entry exists
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return prevNewHP;
+                        }
+
+                        let dataArray = await getDamageArrayFromCtApp(Number(record.pID));
+                        let bufferHP = null;
+                        if (dataArray) {
+                            // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
+                            bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
+                        }
+                        
+                        bufferHP -= record.damage
+                        console.log("bufferHP for aID " + dataAidValue + ": ", bufferHP);
+
 
                         async function processDownstreamArray(bufferHP) {
-                            // Perform any necessary asynchronous operations before processing downstreamArray
-                            // console.log("downstreamArray start 2: ", downstreamArray);
-
+                            // Assume downstreamArray and other required variables are accessible within this function
                             let conditionMet = false;
+                            let indexToRemove = -1;
 
-                            await new Promise(resolve => {
-                                let indexToRemove = -1;
-                                for (let index = 0; index < downstreamArray.length; index++) {
-                                    const target = downstreamArray[index];
-                                    console.log(bufferHP)
+                            for (let index = 0; index < downstreamArray.length; index++) {
+                                const target = downstreamArray[index];
 
-                                    // bufferHP is HP handed forward
-                                    // diff is the damage cascading forward
-                                    // 21 - diff == previous HP
-                                    // if bufferHP - diff = positive 
-                                    // then newHP = newHP - diff
-                                    // if newHP - diff < 0 then newHP = 0
-                                    // if bufferHP - diff = negative
-                                    // then newHP = 0
-                                    // any subsequent actions where damage > 0
-                                    // newHP = 0
-
-                                    if (conditionMet) {
-                                        // Set the index to remove
-                                        indexToRemove = index;
-                                        break; // exit the loop
+                                // Process the target based on bufferHP and target's properties
+                                if (bufferHP > 0) {
+                                    target.newHP = bufferHP - target.damage;
+                                } else if (bufferHP === 0) {
+                                    if (target.newHP === 0) {
+                                        conditionMet = true;
+                                    } else if (target.newHP > 0 && target.damage <= 0) {
+                                        target.newHP = 0;  // Correcting what seems to be a mistake in assignment
+                                        conditionMet = true;
                                     }
-
-                                    if (bufferHP == 0 && target.newHP == 0) {
-                                        conditionMet = true
-                                    }
-
-                                    if (bufferHP == 0 && target.newHP > 0 && target.damage <= 0) {
-                                        target.newHP == 0
-                                        conditionMet = true
-                                    }
-
-                                    if (bufferHP > 0) {
-                                        target.newHP = bufferHP - target.damage
-                                    }
-
-                                    // make sure newHP isn't negative
-                                    if (target.newHP < 0) {
-                                        target.newHP = 0
-                                    }
-
-                                    // if (bufferHP == 0) {
-                                    //     if (target.damage > 0) {
-                                    //         target.newHP = 0;
-                                    //     } else {
-                                    //         conditionMet = true
-                                    //         target.newHP += target.damage
-                                    //     }
-                                    // } else {
-                                    //     target.newHP += diff;
-                                    // }
-
-
-                                    if (conditionMet) {
-                                        // Set the index to remove
-                                        indexToRemove = index;
-                                        break; // exit the loop
-                                    }
-                                    bufferHP = target.newHP;
-                                    console.log(target.newHP);
-                                    console.log("**********");
                                 }
 
-                                // If condition is met, remove elements from the index to the end of the array
-                                if (indexToRemove >= 0) {
-                                    downstreamArray.splice(indexToRemove);
+                                // Ensure newHP is not negative
+                                target.newHP = Math.max(target.newHP, 0);
+
+                                // Check if condition is met to set the removal index
+                                if (conditionMet) {
+                                    indexToRemove = index;
+                                    break;
                                 }
 
-                                // Resolve the Promise to indicate completion
-                                resolve();
-                            });
+                                // Update bufferHP for the next iteration
+                                bufferHP = target.newHP;
+                            }
 
-                            // console.log("downstreamArray end 1: ", downstreamArray);
+                            // If a condition is met, truncate the array from the found index
+                            if (indexToRemove >= 0) {
+                                downstreamArray.splice(indexToRemove);
+                            }
                         }
+
 
                         // Call the async function with bufferHP as argument
                         await processDownstreamArray(bufferHP);
