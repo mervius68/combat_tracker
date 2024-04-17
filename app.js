@@ -798,7 +798,7 @@ app.post("/updateActionDB", async (req, res) => {
 });
 
 async function updateHPCascade(obj) {
-    console.log(obj);
+    console.log("HEY! ", obj);
     const diff = parseInt(obj.damage) - parseInt(obj.originalDamage)
     const sql = `
         UPDATE ct_tbl_target
