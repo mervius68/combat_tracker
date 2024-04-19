@@ -194,6 +194,7 @@ app.get("/hpsByRound/:encounter", (req, res) => {
             console.log(err);
             throw err;
         }
+        console.log(results);
         res.send(results);
     });
 });
@@ -769,7 +770,7 @@ app.post("/updateActionDB", async (req, res) => {
             let latestHP = await selectRecentHP(obj);
             obj.latestHP = latestHP || obj.maxHP;
             await updateTarget(obj);
-            await updateHPCascade(obj);
+            // await updateHPCascade(obj);
         })
 
         // Delete Targets
@@ -798,7 +799,7 @@ app.post("/updateActionDB", async (req, res) => {
 });
 
 async function updateHPCascade(obj) {
-    console.log("HEY! ", obj);
+    // console.log("HEY! ", obj);
     const diff = parseInt(obj.damage) - parseInt(obj.originalDamage)
     const sql = `
         UPDATE ct_tbl_target

@@ -161,10 +161,11 @@
                     // console.log(item)
                     // For each item, push an object with tID and newHP
                     if (item.target_pID == participant.pID) {
-                        console.log(item);
+                        // console.log(item);
                         participant.damageArray[i].push({ aID: item.aID, tID: item.tID, damage: item.damage, newHP: item.new_hp, targetID: item.targetID });
                     }
                 });
+                participant.damageArrayNotMapped = participant.damageArray;
                 participant.damageArray = participant.damageArray.map((arr) => {
                     return arr.filter((num, index) => {
                         return index === 0 || num.newHP !== arr[index - 1].newHP;
@@ -197,6 +198,7 @@
             });
         });
         totalRounds = Math.max(totalRounds, damageRounds);
+        // console.log(ctApp);
 
         // assign row_start and row_stop properties for affectedArray and conditionsArray items within ctApp
         ctApp.forEach((participant) => {
@@ -1120,7 +1122,7 @@
                 showContextMenu();
             }
             else {
-                console.log(e.target.outerHTML)
+                // console.log(e.target.outerHTML)
             }
 
         };
@@ -2103,6 +2105,7 @@
     }
 
     async function submitUpdateAction(dataAidValue, pID) {
+        const ctAppCopy = await deepCopy(ctApp);
         const data = document.querySelector(".modalSubmit");
         const dataNav = data.getAttribute("data-row");
         const currentRound = data.getAttribute("data-current-round");
@@ -2511,7 +2514,6 @@
 
         // figure out any changes in damage
         const damageAmountElements = document.getElementsByName("participants");
-        console.log(damageAmountElements);
         for (target of damageAmountElements) {
             const newValue = target.value || "";
             const dataAttributes = target.dataset;
@@ -2552,7 +2554,7 @@
                             // Check if the character's pID matches the given value
                             if (character.pID == record.pID) {
                                 // Iterate through each array in the damageArray
-                                character.damageArray.forEach(damageArray => {
+                                character.damageArrayNotMapped.forEach(damageArray => {
                                     // Filter the damageArray based on the condition that aID is greater than the given threshold
                                     const filteredDamageItems = damageArray.filter(damageItem => damageItem.aID !== null && damageItem.aID > dataAidValue);
                                     // Append the filtered items to the result array
@@ -2561,17 +2563,12 @@
                             }
                         });
 
-
-
                         async function getDamageArrayFromCtApp(targetPID) {
-                            console.log("Searching for pID:", targetPID, " in ctApp.");
                             for (const item of ctApp) {
-                                console.log("Current item pID:", item.pID);  // This will show what pID each item has during the loop
                                 if (item.pID === targetPID) {
-                                    return item.damageArray;
+                                    return item.damageArrayNotMapped;
                                 }
                             }
-                            console.log("No matching pID found for", targetPID);
                             return null;  // This confirms that no item matched the targetPID
                         }
 
@@ -2606,30 +2603,55 @@
                             // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
                             bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
                         }
-                        
-                        bufferHP -= record.damage
-                        console.log("bufferHP for aID " + dataAidValue + ": ", bufferHP);
 
+                        bufferHP -= record.damage
+                        if (bufferHP < 0) {
+                            bufferHP = 0
+                        }
 
                         async function processDownstreamArray(bufferHP) {
                             // Assume downstreamArray and other required variables are accessible within this function
                             let conditionMet = false;
                             let indexToRemove = -1;
-
+                            console.log("bufferHP at start of loop: ", bufferHP)
+                            console.log("downstreamArray length: ", downstreamArray.length)
                             for (let index = 0; index < downstreamArray.length; index++) {
                                 const target = downstreamArray[index];
 
+                                if (bufferHP <= 0) {
+                                    bufferHP = 0;
+                                    target.newHP = 0
+                                }
+
                                 // Process the target based on bufferHP and target's properties
+                                // Adjust target.newHP based on bufferHP and target conditions
                                 if (bufferHP > 0) {
+                                    console.log("BufferHP is ", bufferHP)
                                     target.newHP = bufferHP - target.damage;
                                 } else if (bufferHP === 0) {
                                     if (target.newHP === 0) {
-                                        conditionMet = true;
+                                        if (target.damage < 0) {
+                                            target.newHP = -target.damage;  // Convert negative damage to positive HP
+                                        } else {
+                                            target.newHP = bufferHP - target.damage;
+                                            console.log("Target's HP already zero, no damage applied or condition met");
+                                            // if (target.newHP <= 0) {
+                                            //     conditionMet = true;
+                                            // }
+
+                                        }
                                     } else if (target.newHP > 0 && target.damage <= 0) {
-                                        target.newHP = 0;  // Correcting what seems to be a mistake in assignment
+                                        console.log("Reducing target's HP to zero and setting conditionMet");
+                                        target.newHP = 0;
                                         conditionMet = true;
+                                    } else if (target.newHP <= 0 && target.damage <= 0) {
+                                        console.log("Negative HP detected, adjusting HP based on negative damage");
+                                        target.newHP = -target.damage;  // Convert negative damage to restore to HP
+                                        bufferHP = target.newHP;
                                     }
                                 }
+
+
 
                                 // Ensure newHP is not negative
                                 target.newHP = Math.max(target.newHP, 0);
@@ -2639,6 +2661,8 @@
                                     indexToRemove = index;
                                     break;
                                 }
+
+
 
                                 // Update bufferHP for the next iteration
                                 bufferHP = target.newHP;
@@ -2653,7 +2677,41 @@
 
                         // Call the async function with bufferHP as argument
                         await processDownstreamArray(bufferHP);
-                        console.log("downstreamArray end 2: ", downstreamArray);
+                        console.log("downstreamArray end: ", downstreamArray);
+                        console.log(ctAppCopy)
+                        for (const item of ctAppCopy) {
+                            if (item.pID === pID) {
+                                const notMapped = item.damageArrayNotMapped[currentRound - 1];
+                                if (Array.isArray(notMapped)) {
+                                    console.log(`Checking round: ${currentRound - 1}, found ${notMapped.length} entries to compare.`);
+                                    const uniqueInDownstream = downstreamArray.filter(downstreamObj => {
+                                        const isDuplicated = notMapped.some(notMappedObj => {
+                                            // Explicitly convert and compare if necessary
+                                            const isEqual = Number(notMappedObj.aID) === Number(downstreamObj.aID) &&
+                                                Number(notMappedObj.tID) === Number(downstreamObj.tID) &&
+                                                Number(notMappedObj.damage) === Number(downstreamObj.damage) &&
+                                                Number(notMappedObj.newHP) === Number(downstreamObj.newHP) &&
+                                                Number(notMappedObj.targetID) === Number(downstreamObj.targetID);
+                                            if (isEqual) {
+                                                console.log(`Duplicate confirmed:`, { downstreamObj, notMappedObj });
+                                            } else {
+                                                console.log(`Not a match:`, { downstreamObj, notMappedObj });
+                                            }
+                                            return isEqual;
+                                        });
+                                        return !isDuplicated;
+                                    });
+                                    console.log("not duplicated: ", uniqueInDownstream);
+                                    uniqueInDownstream.forEach((item) => {
+                                        update.ct_tbl_target.update.push(item);
+                                    })
+                                } else {
+                                    console.log("notMapped is not an array or does not exist for currentRound:", currentRound);
+                                }
+                            }
+                        }
+
+
 
 
 
@@ -5585,5 +5643,32 @@
         const scrollableDiv = document.querySelector(".modal")
         scrollableDiv.scrollTop = 150;
     }
+
+    function deepCopy(obj) {
+        if (obj === null || typeof obj !== 'object') {
+            return obj;
+        }
+
+        if (obj instanceof Array) {
+            let copy = [];
+            for (let i = 0; i < obj.length; i++) {
+                copy[i] = deepCopy(obj[i]);
+            }
+            return copy;
+        }
+
+        if (obj instanceof Object) {
+            let copy = {};
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    copy[key] = deepCopy(obj[key]);
+                }
+            }
+            return copy;
+        }
+
+        throw new Error("Unable to copy object! Its type isn't supported.");
+    }
+
 
 </script>
