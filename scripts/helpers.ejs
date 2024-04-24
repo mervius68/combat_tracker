@@ -2739,7 +2739,7 @@
                 }
             }
         }
-
+        console.log("selectUpdateAction update value: ", update);
 
         await dbQueryPost("updateActionDB", update)
 
@@ -5064,11 +5064,44 @@
 
     async function deleteAction(dataAidValue) {
 
+        const update = {
+            ct_tbl_action: {
+                update: {
+
+                }
+            },
+            ct_tbl_target: {
+                insert: [],
+                update: [],
+                delete: []
+            },
+            ct_tbl_condition: {
+                delete: {
+
+                }
+            },
+            ct_tbl_condition_affectee: {
+                delete: {
+
+                }
+            },
+            // tbl_tool: {
+            //     insert: {
+
+            //     },
+            //     delete: {
+
+            //     }
+            // }
+        }
+
+        const ctAppCopy = await deepCopy(ctApp);
         const data = {
             aID: dataAidValue
         }
 
         const deleteEm = await dbQuery("GET", "getDeleteActionData/" + dataAidValue)
+        console.log("deleteEm: ", deleteEm)
         deleteEm.forEach((obj) => {
             obj.aID = dataAidValue
         })
@@ -5113,9 +5146,226 @@
             .catch((error) => {
                 // Handle errors here
             });
+
+        // we need target_pID, 
+
+        // figure out any changes in damage
+        let downstreamArray = [];
+        
+        for (target of deleteEm) {
+            //     const newValue = target.value || "";
+            //     const dataAttributes = target.dataset;
+            //     if (dataAttributes.originalvalue !== newValue) {
+            //         let record = { tID: dataAttributes.tid };
+            //         // if the new value is a number
+            //         if (Number.isInteger(parseInt(newValue))) {
+            //             // if original value is number
+            //             if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {
+
+            // are there any affected records downstream?
+
+            ctApp.forEach(character => {
+                // Check if the character's pID matches the given value
+                if (character.pID == target.target_pID) {
+                    // Iterate through each array in the damageArray
+                    character.damageArrayNotMapped.forEach(damageArray => {
+                        // Filter the damageArray based on the condition that aID is greater than the given threshold
+                        const filteredDamageItems = damageArray.filter(damageItem => damageItem.aID !== null && damageItem.aID >= dataAidValue);
+                        // Append the filtered items to the result array
+                        downstreamArray = downstreamArray.concat(filteredDamageItems);
+                    });
+                }
+            });
+            console.log("downstreamArray: ", downstreamArray)
+            let dataArray = await getDamageArrayFromCtApp(Number(target.target_pID));
+            dataArray[0] = dataArray[0].filter(item => item.aID != target.aID);
+            let bufferHP = null;
+            if (dataArray) {
+                // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
+                bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
+            }
+
+            bufferHP -= target.damage
+            if (bufferHP < 0) {
+                bufferHP = 0
+            }
+
+            // Call the async function with bufferHP as argument
+            await processDownstreamArray(bufferHP);
+            for (const item of ctAppCopy) {
+                if (item.pID === target.target_pID) {
+                    const notMapped = item.damageArrayNotMapped[target.round - 1];
+                    if (Array.isArray(notMapped)) {
+                        const uniqueInDownstream = downstreamArray.filter(downstreamObj => {
+                            const isDuplicated = notMapped.some(notMappedObj => {
+                                // Explicitly convert and compare if necessary
+                                const isEqual = Number(notMappedObj.aID) === Number(downstreamObj.aID) &&
+                                    Number(notMappedObj.tID) === Number(downstreamObj.tID) &&
+                                    Number(notMappedObj.damage) === Number(downstreamObj.damage) &&
+                                    Number(notMappedObj.newHP) === Number(downstreamObj.newHP) &&
+                                    Number(notMappedObj.targetID) === Number(downstreamObj.targetID);
+                                return isEqual;
+                            });
+                            return !isDuplicated;
+                        });
+                        uniqueInDownstream.forEach((item, index) => {
+                            // if (index != 0) {
+                            update.ct_tbl_target.update.push(item);
+                            // }
+                        })
+                    }
+                }
+            }
+
+            // look in ctApp for targets in damageArray where
+            // aID > dataAidValue and ctApp pID = pID
+            //             } else if (dataAttributes.originalvalue == null || dataAttributes.originalvalue == "") {
+            //                 // if original value is empty...
+            //                 record = {
+            //                     targetID: dataAttributes.targetid,
+            //                     eID: ctApp[0].eID,
+            //                     round: currentRound,
+            //                     pID: dataAttributes.pid,
+            //                     damage: newValue,
+            //                     originalDamage: dataAttributes.originalvalue
+            //                 }
+            //                 update.ct_tbl_target.insert.push(record);
+            //             }
+            //         } else if (newValue == "x") {
+            //             // if the new value is 'x'...
+            //             if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "0") {
+            //                 // let newHP = baseHP == 0 ? 0 : parseInt(baseHP) - parseInt(newValue) + parseInt(originalValue)
+            //                 record = {
+            //                     aID: dataAidValue,
+            //                     damage: 0,
+            //                     tID: dataAttributes.tid,
+            //                     targetID: dataAttributes.targetid,
+            //                     eID: ctApp[0].eID,
+            //                     round: currentRound,
+            //                     pID: dataAttributes.pid,
+            //                     originalDamage: dataAttributes.originalvalue,
+            //                     maxHP: dataAttributes.maxhp,
+            //                     newHP: dataAttributes.hp
+            //                 }
+            //                 update.ct_tbl_target.update.push(record);
+            //                 // are there any affected records downstream?
+            //             } else if (dataAttributes.originalvalue == null) {
+            //                 record = {
+            //                     targetID: dataAttributes.targetid,
+            //                     eID: ctApp[0].eID,
+            //                     round: currentRound,
+            //                     pID: dataAttributes.pid,
+            //                     damage: newValue,
+            //                     originalDamage: dataAttributes.originalvalue
+            //                 }
+            //                 update.ct_tbl_target.insert.push(record);
+
+            //             }
+            //         } else if (newValue == "") {
+            //             // if the new value input is '', delete record from ct_tbl_target
+            //             record = {
+            //                 tID: dataAttributes.tid,
+            //             }
+            //             if (record.tID != null) {
+            //                 update.ct_tbl_target.delete.push(record);
+            //             }
+            //         }
+            //     }
+        }
+
+        await dbQueryPost("updateActionDB", update)
+
         let html = document.querySelector(".selected");
         let dataNav = html.getAttribute("data-nav");
         load_encounter(ctAppEnc, dataNav);
+
+        async function getDamageArrayFromCtApp(targetPID) {
+            for (const item of ctApp) {
+                if (item.pID === targetPID) {
+                    return item.damageArrayNotMapped;
+                }
+            }
+            return null;  // This confirms that no item matched the targetPID
+        }
+
+        async function getPreviousNewHP(dataArray, targetAID) {
+            let prevNewHP = null;  // Default to null if no previous object or not found
+
+            // Assuming dataArray is correctly formatted and it's a double array as observed
+            if (dataArray && dataArray[0]) {
+                let bestIndex = -1; // Initialize the best index to an invalid value
+
+                // Iterate through the array
+                for (let i = 0; i < dataArray[0].length; i++) {
+                    // Check if current aID is less than targetAID and higher than any previously found aID that also was less than targetAID
+                    if (dataArray[0][i].aID < targetAID && (bestIndex === -1 || dataArray[0][i].aID > dataArray[0][bestIndex].aID)) {
+                        bestIndex = i; // Update the best index to current index
+                    }
+                }
+
+                // After finding the highest aID less than targetAID, return its newHP
+                if (bestIndex !== -1) {
+                    return dataArray[0][bestIndex].newHP; // Return the newHP of the best matched element
+                } else {
+                    // If no such element exists, log a warning and return null
+                    console.warn("No entry exists with aID less than the targetAID.");
+                    return null; // No matching element was found
+                }
+            }
+
+            return prevNewHP;
+        }
+
+        async function processDownstreamArray(bufferHP) {
+            // Assume downstreamArray and other required variables are accessible within this function
+            let conditionMet = false;
+            let indexToRemove = -1;
+            for (let index = 1; index < downstreamArray.length -1; index++) {
+                const target = downstreamArray[index];
+                console.log("a: ", target)
+                if (bufferHP <= 0) {
+                    bufferHP = 0;
+                    target.newHP = 0
+                }
+
+                // Process the target based on bufferHP and target's properties
+                // Adjust target.newHP based on bufferHP and target conditions
+                if (bufferHP > 0) {
+                    target.newHP = bufferHP - target.damage;
+                } else if (bufferHP === 0) {
+                    if (target.newHP === 0) {
+                        if (target.damage < 0) {
+                            target.newHP = -target.damage;  // Convert negative damage to positive HP
+                        } else {
+                            target.newHP = bufferHP - target.damage;
+                        }
+                    } else if (target.newHP > 0 && target.damage <= 0) {
+                        target.newHP = 0;
+                        conditionMet = true;
+                    } else if (target.newHP <= 0 && target.damage <= 0) {
+                        target.newHP = -target.damage;  // Convert negative damage to restore to HP
+                        bufferHP = target.newHP;
+                    }
+                }
+
+                // Ensure newHP is not negative
+                target.newHP = Math.max(target.newHP, 0);
+
+                // Check if condition is met to set the removal index
+                if (conditionMet) {
+                    indexToRemove = index;
+                    break;
+                }
+
+                // Update bufferHP for the next iteration
+                bufferHP = target.newHP;
+            }
+
+            // If a condition is met, truncate the array from the found index
+            if (indexToRemove >= 0) {
+                downstreamArray.splice(indexToRemove);
+            }
+        }
     }
 
     function add_participants_modal() {
