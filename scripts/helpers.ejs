@@ -5101,7 +5101,7 @@
         }
 
         const deleteEm = await dbQuery("GET", "getDeleteActionData/" + dataAidValue)
-        console.log("deleteEm: ", deleteEm)
+        // console.log("deleteEm: ", deleteEm)
         deleteEm.forEach((obj) => {
             obj.aID = dataAidValue
         })
@@ -5139,13 +5139,13 @@
             }
         });
 
-        await dbQueryPost("deleteActionUpdateTargetHPs", updateData)
-            .then((data) => {
-                console.log(data); // Handle the response from the server
-            })
-            .catch((error) => {
-                // Handle errors here
-            });
+        // await dbQueryPost("deleteActionUpdateTargetHPs", updateData)
+        //     .then((data) => {
+        //         console.log(data); // Handle the response from the server
+        //     })
+        //     .catch((error) => {
+        //         // Handle errors here
+        //     });
 
         // we need target_pID, 
 
@@ -5176,16 +5176,16 @@
                     });
                 }
             });
-            console.log("downstreamArray: ", downstreamArray)
             let dataArray = await getDamageArrayFromCtApp(Number(target.target_pID));
             dataArray[0] = dataArray[0].filter(item => item.aID != target.aID);
             let bufferHP = null;
-            if (dataArray) {
+            // if (dataArray) {
                 // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
                 bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
-            }
+            // }
 
-            bufferHP -= target.damage
+
+            // bufferHP -= target.damage
             if (bufferHP < 0) {
                 bufferHP = 0
             }
@@ -5317,12 +5317,18 @@
         }
 
         async function processDownstreamArray(bufferHP) {
+            // bufferHP = downstreamArray[0].newHP
             // Assume downstreamArray and other required variables are accessible within this function
             let conditionMet = false;
             let indexToRemove = -1;
-            for (let index = 1; index < downstreamArray.length -1; index++) {
+            for (let index = 1; index < downstreamArray.length; index++) {
+                if (conditionMet) {
+                    indexToRemove = index;
+                    break;
+                }
+
                 const target = downstreamArray[index];
-                console.log("a: ", target)
+                // console.log("target start: ", target)
                 if (bufferHP <= 0) {
                     bufferHP = 0;
                     target.newHP = 0
@@ -5331,9 +5337,15 @@
                 // Process the target based on bufferHP and target's properties
                 // Adjust target.newHP based on bufferHP and target conditions
                 if (bufferHP > 0) {
+                    // console.log("bufferHP: ", bufferHP)
+                    // console.log("target.newHP: ", target.newHP)
                     target.newHP = bufferHP - target.damage;
-                } else if (bufferHP === 0) {
-                    if (target.newHP === 0) {
+                    if (target.newHP < 0) {
+                        target.newHP = 0
+                    }
+                    // console.log("target.newHP2: ", target.newHP)
+                } else if (bufferHP == 0) {
+                    if (target.newHP == 0) {
                         if (target.damage < 0) {
                             target.newHP = -target.damage;  // Convert negative damage to positive HP
                         } else {
@@ -5347,18 +5359,22 @@
                         bufferHP = target.newHP;
                     }
                 }
-
                 // Ensure newHP is not negative
                 target.newHP = Math.max(target.newHP, 0);
+                if (target.newHP < 0) {
+                        target.newHP = 0
+                    }
 
                 // Check if condition is met to set the removal index
-                if (conditionMet) {
-                    indexToRemove = index;
-                    break;
-                }
+                // if (conditionMet) {
+                //     indexToRemove = index;
+                //     break;
+                // }
 
                 // Update bufferHP for the next iteration
                 bufferHP = target.newHP;
+                // console.log("target end: ", target)
+
             }
 
             // If a condition is met, truncate the array from the found index
@@ -5657,7 +5673,6 @@
             }
         }
 
-        console.log("a")
         // we have a group array containing objects, where each object gets action in the db
         for (const obj of group) {
             // get number to assign new participant in ct_tbl_participant
