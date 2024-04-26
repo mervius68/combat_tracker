@@ -427,7 +427,6 @@
             divCM2.classList.add("custom-cm__item");
             divCM2.classList.add("cmEnd");
             divCM2.innerHTML = "End This Condition";
-            // divCM2.setAttribute("onclick", "endCondition()");
 
             divCM.appendChild(divCM2);
             mainContainer.prepend(divCM);
@@ -2739,70 +2738,8 @@
                 }
             }
         }
-        console.log("selectUpdateAction update value: ", update);
 
         await dbQueryPost("updateActionDB", update)
-
-        // // let's convert damage and target_pIDString into single object:
-        // // let targets = [];
-        // // targets.push({
-        // //      ${target_pID}: damage
-        // // })
-
-        // // is there a concentration already in effect?
-        // // if so, does it end now?
-        // //      if that concentration is selected from end-condition list, all good
-        // //      if not, alert user that old concentration will end at this point (OK / Cancel)
-        // // does a condition created by this action change?
-        // // new condition, or delete condition?
-        // //      delete condition => delete associated condition and condition_affectees
-        // //      new condition => delete associated condition and condition_affectees 
-        // //          AND create new associated condition (method from submitAction)
-
-        // // let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
-        // // await dbQuery("GET", dataAction);
-
-        // let round = currentRound;
-        // targetHits.forEach(async (target, index) => {
-        //     if (
-        //         ctApp.findIndex((participant) => {
-        //             return participant.pID == pID;
-        //         }) >
-        //         ctApp.findIndex((target) => {
-        //             return target.pID == target_pID[index];
-        //         })
-        //     ) {
-        //         round = parseInt(currentRound) + 1;
-        //     } else {
-        //         round = parseInt(currentRound);
-        //     }
-
-        //     const dataTarget = `submitTargets/${ctApp[0].eID
-        //         }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
-        //             index
-        //         ].trim()}/${actionCategory}/${damage[index]
-        //         }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
-        //         }/${sortedTargetHPs[index]}`;
-        //     await dbQuery("GET", dataTarget);
-
-        //     // if a target's HP drop to zero or below...
-        //     if (sortedTargetHPs[index] - damage[index] <= 0) {
-        //         await dbQuery(
-        //             "GET",
-        //             "terminate/" + target_pID[index] + "/" + round
-        //         );
-        //         await dbQuery(
-        //             "GET",
-        //             "endConditions/" + target_pID[index] + "/" + round
-        //         );
-        //     } else {
-        //         await dbQuery(
-        //             "GET",
-        //             "revive/" + target_pID[index] + "/"
-        //         )
-        //     }
-        // });
-
 
         load_encounter(ctAppEnc, dataNav);
         let modal = document.querySelector(".modal");
@@ -5153,17 +5090,7 @@
         let downstreamArray = [];
         
         for (target of deleteEm) {
-            //     const newValue = target.value || "";
-            //     const dataAttributes = target.dataset;
-            //     if (dataAttributes.originalvalue !== newValue) {
-            //         let record = { tID: dataAttributes.tid };
-            //         // if the new value is a number
-            //         if (Number.isInteger(parseInt(newValue))) {
-            //             // if original value is number
-            //             if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {
-
             // are there any affected records downstream?
-
             ctApp.forEach(character => {
                 // Check if the character's pID matches the given value
                 if (character.pID == target.target_pID) {
@@ -5178,7 +5105,7 @@
             });
             let dataArray = await getDamageArrayFromCtApp(Number(target.target_pID));
             dataArray[0] = dataArray[0].filter(item => item.aID != target.aID);
-            let bufferHP = null;
+            let bufferHP = 0;
             // if (dataArray) {
                 // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
                 bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
@@ -5189,7 +5116,8 @@
             if (bufferHP < 0) {
                 bufferHP = 0
             }
-
+            console.log("downstreamArray: ", downstreamArray)
+            console.log("booboo: ", bufferHP)
             // Call the async function with bufferHP as argument
             await processDownstreamArray(bufferHP);
             for (const item of ctAppCopy) {
@@ -5216,63 +5144,15 @@
                     }
                 }
             }
-
-            // look in ctApp for targets in damageArray where
-            // aID > dataAidValue and ctApp pID = pID
-            //             } else if (dataAttributes.originalvalue == null || dataAttributes.originalvalue == "") {
-            //                 // if original value is empty...
-            //                 record = {
-            //                     targetID: dataAttributes.targetid,
-            //                     eID: ctApp[0].eID,
-            //                     round: currentRound,
-            //                     pID: dataAttributes.pid,
-            //                     damage: newValue,
-            //                     originalDamage: dataAttributes.originalvalue
-            //                 }
-            //                 update.ct_tbl_target.insert.push(record);
-            //             }
-            //         } else if (newValue == "x") {
-            //             // if the new value is 'x'...
-            //             if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "0") {
-            //                 // let newHP = baseHP == 0 ? 0 : parseInt(baseHP) - parseInt(newValue) + parseInt(originalValue)
-            //                 record = {
-            //                     aID: dataAidValue,
-            //                     damage: 0,
-            //                     tID: dataAttributes.tid,
-            //                     targetID: dataAttributes.targetid,
-            //                     eID: ctApp[0].eID,
-            //                     round: currentRound,
-            //                     pID: dataAttributes.pid,
-            //                     originalDamage: dataAttributes.originalvalue,
-            //                     maxHP: dataAttributes.maxhp,
-            //                     newHP: dataAttributes.hp
-            //                 }
-            //                 update.ct_tbl_target.update.push(record);
-            //                 // are there any affected records downstream?
-            //             } else if (dataAttributes.originalvalue == null) {
-            //                 record = {
-            //                     targetID: dataAttributes.targetid,
-            //                     eID: ctApp[0].eID,
-            //                     round: currentRound,
-            //                     pID: dataAttributes.pid,
-            //                     damage: newValue,
-            //                     originalDamage: dataAttributes.originalvalue
-            //                 }
-            //                 update.ct_tbl_target.insert.push(record);
-
-            //             }
-            //         } else if (newValue == "") {
-            //             // if the new value input is '', delete record from ct_tbl_target
-            //             record = {
-            //                 tID: dataAttributes.tid,
-            //             }
-            //             if (record.tID != null) {
-            //                 update.ct_tbl_target.delete.push(record);
-            //             }
-            //         }
-            //     }
+            let uniqueArray = downstreamArray.filter((item, index, self) => {
+                index == self.findIndex((t) => {
+                    t.aID == item.aID && t.targetID == item.targetID
+                })
+            })
+            downstreamArray = uniqueArray;
         }
-
+        
+        
         await dbQueryPost("updateActionDB", update)
 
         let html = document.querySelector(".selected");
@@ -5328,7 +5208,7 @@
                 }
 
                 const target = downstreamArray[index];
-                // console.log("target start: ", target)
+
                 if (bufferHP <= 0) {
                     bufferHP = 0;
                     target.newHP = 0
@@ -5374,7 +5254,7 @@
                 // Update bufferHP for the next iteration
                 bufferHP = target.newHP;
                 // console.log("target end: ", target)
-
+                console.log(bufferHP)
             }
 
             // If a condition is met, truncate the array from the found index
@@ -5728,7 +5608,7 @@
 
         await dbQueryPost("removeDuplicateNumericValues", newObj)
             .then((data) => {
-                console.log(data); // Handle the response from the server
+                // console.log(data); // Handle the response from the server
             })
             .catch((error) => {
                 // Handle errors here
