@@ -946,7 +946,7 @@
                     x.classList.add("hovertwin");
                     x.setAttribute("data-hover-id", taID || "0")
                 }
-                x.innerHTML = `<span data-aid=${actionObject.aID}>${actionObject.tool}</span>`;
+                x.innerHTML = `<span class="mouse-able" data-aid=${actionObject.aID}>${actionObject.tool}</span>`;
                 x.nextSibling.innerHTML = actionObject.hit
                 x.nextSibling.nextSibling.innerHTML = actionObject.targetName;
                 x.nextSibling.nextSibling.nextSibling.innerHTML =
@@ -976,7 +976,21 @@
         const contextMenuListener = function (e) {
             e.preventDefault();
             const element = e.target;
-            const dataAidValue = element.dataset.aid;
+            let dataAidValue = element.dataset.aid;
+
+            if (element.dataset.aid) {
+                dataAidValue = element.dataset.aid;
+            } else {
+                // If the clicked element is a <span>, check its parent (the <div>) for the data-aid attribute
+                if (element.tagName.toLowerCase() === 'span' && element.parentElement.dataset.aid) {
+                    dataAidValue = element.parentElement.dataset.aid;
+                } else {
+                    // If neither the clicked element nor its parent have a data-aid attribute, handle the situation accordingly
+                    console.log("No data-aid attribute found in the clicked element or its parent.");
+                    return; // Exit the event handler
+                }
+            }
+
             const contextMenu = document.querySelector(".custom-cm__item")
             contextMenu.innerText = "";
             if (element.classList.contains("affected") || element.classList.contains("concentration")) {
@@ -1165,6 +1179,11 @@
 
         document.addEventListener("keyup", keyupEventListener);
         document.addEventListener("contextmenu", contextMenuListener);
+        document.addEventListener('contextmenu', function (event) {
+            console.log('Right-clicked element:', event.target);
+            console.log("Right-clicked element's parent:", event.target.parentElement)
+        });
+
 
         // fill values for dropdown
         // fillDropdown(encounterCode);
@@ -1470,6 +1489,7 @@
     }
 
     async function updateAction(dataAidValue) {
+        console.log("*****: ", dataAidValue)
         const aIDObject = ctActions.find(obj => obj.aID == dataAidValue);
         const targetsArray = await dbQuery("GET", `targets/${aIDObject.targetID}`)
 
@@ -2607,59 +2627,9 @@
                             bufferHP = 0
                         }
 
-                        async function processDownstreamArray(bufferHP) {
-                            // Assume downstreamArray and other required variables are accessible within this function
-                            let conditionMet = false;
-                            let indexToRemove = -1;
-                            for (let index = 0; index < downstreamArray.length; index++) {
-                                const target = downstreamArray[index];
-
-                                if (bufferHP <= 0) {
-                                    bufferHP = 0;
-                                    target.newHP = 0
-                                }
-
-                                // Process the target based on bufferHP and target's properties
-                                // Adjust target.newHP based on bufferHP and target conditions
-                                if (bufferHP > 0) {
-                                    target.newHP = bufferHP - target.damage;
-                                } else if (bufferHP === 0) {
-                                    if (target.newHP === 0) {
-                                        if (target.damage < 0) {
-                                            target.newHP = -target.damage;  // Convert negative damage to positive HP
-                                        } else {
-                                            target.newHP = bufferHP - target.damage;
-                                        }
-                                    } else if (target.newHP > 0 && target.damage <= 0) {
-                                        target.newHP = 0;
-                                        conditionMet = true;
-                                    } else if (target.newHP <= 0 && target.damage <= 0) {
-                                        target.newHP = -target.damage;  // Convert negative damage to restore to HP
-                                        bufferHP = target.newHP;
-                                    }
-                                }
-
-                                // Ensure newHP is not negative
-                                target.newHP = Math.max(target.newHP, 0);
-
-                                // Check if condition is met to set the removal index
-                                if (conditionMet) {
-                                    indexToRemove = index;
-                                    break;
-                                }
-
-                                // Update bufferHP for the next iteration
-                                bufferHP = target.newHP;
-                            }
-
-                            // If a condition is met, truncate the array from the found index
-                            if (indexToRemove >= 0) {
-                                downstreamArray.splice(indexToRemove);
-                            }
-                        }
 
                         // Call the async function with bufferHP as argument
-                        await processDownstreamArray(bufferHP);
+                        await processDownstreamArray(bufferHP, downstreamArray);
                         for (const item of ctAppCopy) {
                             if (item.pID === pID) {
                                 const notMapped = item.damageArrayNotMapped[currentRound - 1];
@@ -5088,7 +5058,7 @@
 
         // figure out any changes in damage
         let downstreamArray = [];
-        
+
         for (target of deleteEm) {
             // are there any affected records downstream?
             ctApp.forEach(character => {
@@ -5107,8 +5077,8 @@
             dataArray[0] = dataArray[0].filter(item => item.aID != target.aID);
             let bufferHP = 0;
             // if (dataArray) {
-                // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
-                bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
+            // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
+            bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
             // }
 
 
@@ -5119,7 +5089,7 @@
             console.log("downstreamArray: ", downstreamArray)
             console.log("booboo: ", bufferHP)
             // Call the async function with bufferHP as argument
-            await processDownstreamArray(bufferHP);
+            await processDownstreamArray(bufferHP, downstreamArray, 1);
             for (const item of ctAppCopy) {
                 if (item.pID === target.target_pID) {
                     const notMapped = item.damageArrayNotMapped[target.round - 1];
@@ -5151,8 +5121,8 @@
             })
             downstreamArray = uniqueArray;
         }
-        
-        
+
+
         await dbQueryPost("updateActionDB", update)
 
         let html = document.querySelector(".selected");
@@ -5194,73 +5164,6 @@
             }
 
             return prevNewHP;
-        }
-
-        async function processDownstreamArray(bufferHP) {
-            // bufferHP = downstreamArray[0].newHP
-            // Assume downstreamArray and other required variables are accessible within this function
-            let conditionMet = false;
-            let indexToRemove = -1;
-            for (let index = 1; index < downstreamArray.length; index++) {
-                if (conditionMet) {
-                    indexToRemove = index;
-                    break;
-                }
-
-                const target = downstreamArray[index];
-
-                if (bufferHP <= 0) {
-                    bufferHP = 0;
-                    target.newHP = 0
-                }
-
-                // Process the target based on bufferHP and target's properties
-                // Adjust target.newHP based on bufferHP and target conditions
-                if (bufferHP > 0) {
-                    // console.log("bufferHP: ", bufferHP)
-                    // console.log("target.newHP: ", target.newHP)
-                    target.newHP = bufferHP - target.damage;
-                    if (target.newHP < 0) {
-                        target.newHP = 0
-                    }
-                    // console.log("target.newHP2: ", target.newHP)
-                } else if (bufferHP == 0) {
-                    if (target.newHP == 0) {
-                        if (target.damage < 0) {
-                            target.newHP = -target.damage;  // Convert negative damage to positive HP
-                        } else {
-                            target.newHP = bufferHP - target.damage;
-                        }
-                    } else if (target.newHP > 0 && target.damage <= 0) {
-                        target.newHP = 0;
-                        conditionMet = true;
-                    } else if (target.newHP <= 0 && target.damage <= 0) {
-                        target.newHP = -target.damage;  // Convert negative damage to restore to HP
-                        bufferHP = target.newHP;
-                    }
-                }
-                // Ensure newHP is not negative
-                target.newHP = Math.max(target.newHP, 0);
-                if (target.newHP < 0) {
-                        target.newHP = 0
-                    }
-
-                // Check if condition is met to set the removal index
-                // if (conditionMet) {
-                //     indexToRemove = index;
-                //     break;
-                // }
-
-                // Update bufferHP for the next iteration
-                bufferHP = target.newHP;
-                // console.log("target end: ", target)
-                console.log(bufferHP)
-            }
-
-            // If a condition is met, truncate the array from the found index
-            if (indexToRemove >= 0) {
-                downstreamArray.splice(indexToRemove);
-            }
         }
     }
 
@@ -5781,6 +5684,57 @@
 
         throw new Error("Unable to copy object! Its type isn't supported.");
     }
+
+    async function processDownstreamArray(bufferHP, downstreamArray, startIndex = 0) {
+        let conditionMet = false;
+        let indexToRemove = -1;
+        for (let index = startIndex; index < downstreamArray.length; index++) {
+            const target = downstreamArray[index];
+
+            if (bufferHP <= 0) {
+                bufferHP = 0;
+                target.newHP = 0;
+            }
+
+            // Process the target based on bufferHP and target's properties
+            // Adjust target.newHP based on bufferHP and target conditions
+            if (bufferHP > 0) {
+                target.newHP = bufferHP - target.damage;
+            } else if (bufferHP === 0) {
+                if (target.newHP === 0) {
+                    if (target.damage < 0) {
+                        target.newHP = -target.damage;  // Convert negative damage to positive HP
+                    } else {
+                        target.newHP = bufferHP - target.damage;
+                    }
+                } else if (target.newHP > 0 && target.damage <= 0) {
+                    target.newHP = 0;
+                    conditionMet = true;
+                } else if (target.newHP <= 0 && target.damage <= 0) {
+                    target.newHP = -target.damage;  // Convert negative damage to restore to HP
+                    bufferHP = target.newHP;
+                }
+            }
+
+            // Ensure newHP is not negative
+            target.newHP = Math.max(target.newHP, 0);
+
+            // Check if condition is met to set the removal index
+            if (conditionMet) {
+                indexToRemove = index;
+                break;
+            }
+
+            // Update bufferHP for the next iteration
+            bufferHP = target.newHP;
+        }
+
+        // If a condition is met, truncate the array from the found index
+        if (indexToRemove >= 0) {
+            downstreamArray.splice(indexToRemove);
+        }
+    }
+
 
 
 </script>

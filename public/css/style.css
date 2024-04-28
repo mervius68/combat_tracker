@@ -693,3 +693,9 @@ strong {
 .dont_show {
     display: none
 }
+
+.mouse-able:hover {
+    background-color: green;
+    outline: 5px solid green; 
+    color: white;
+}
