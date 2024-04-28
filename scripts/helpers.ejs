@@ -976,19 +976,18 @@
         const contextMenuListener = function (e) {
             e.preventDefault();
             const element = e.target;
-            let dataAidValue = element.dataset.aid;
+            let dataAidValue;
 
-            if (element.dataset.aid) {
-                dataAidValue = element.dataset.aid;
-            } else {
-                // If the clicked element is a <span>, check its parent (the <div>) for the data-aid attribute
-                if (element.tagName.toLowerCase() === 'span' && element.parentElement.dataset.aid) {
-                    dataAidValue = element.parentElement.dataset.aid;
-                } else {
-                    // If neither the clicked element nor its parent have a data-aid attribute, handle the situation accordingly
+            // First, check if the element itself or its parent (if it's a <span>) has the data-aid attribute
+            dataAidValue = element.dataset.aid || (element.tagName.toLowerCase() === 'span' && element.parentElement.dataset.aid) || null;
+
+            // If dataAidValue is still null, check for other attributes or log an error if none are relevant
+            if (!dataAidValue) {
+                if (!element.dataset.nav) {
                     console.log("No data-aid attribute found in the clicked element or its parent.");
-                    return; // Exit the event handler
+                    return; // Exit the event handler if no relevant data attributes are found
                 }
+                // Additional logic for when element has data-nav but no data-aid
             }
 
             const contextMenu = document.querySelector(".custom-cm__item")
