@@ -1077,6 +1077,20 @@ app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState/:taid", (
     });
 });
 
+app.get("/deleteCondition", (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+    let taid = requestData.taid;
+    let sql = `DELETE FROM ct_tbl_condition WHERE taID = '${taid}'`
+    // also delete from ct_tbl_condition_affectee where taID == taid
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send({});
+    });
+});
+
 app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
     let cpID = req.params.cpID;
     let round = req.params.round;

@@ -983,7 +983,7 @@
 
             // If dataAidValue is still null, check for other attributes or log an error if none are relevant
             if (!dataAidValue) {
-                if (!element.dataset.nav) {
+                if (!element.dataset.nav && !element.dataset.taid) {
                     console.log("No data-aid attribute found in the clicked element or its parent.");
                     return; // Exit the event handler if no relevant data attributes are found
                 }
@@ -1007,8 +1007,30 @@
                 const top = clickY + menuHeight > maxY ? maxY - menuHeight : clickY;
                 const left = clickX + menuWidth > maxX ? maxX - menuWidth : clickX;
 
-                contextMenu.innerHTML = "Stop Condition Here";
-                contextMenu.setAttribute("onclick", "endCondition()");
+                // contextMenu.innerHTML = "Stop Condition Here";
+                // contextMenu.setAttribute("onclick", "endCondition()");
+
+                const editCondition = document.createElement("div");
+                editCondition.classList.add("clickable_area")
+                editCondition.classList.add("context_div");
+                editCondition.textContent = "Edit Condition";
+                editCondition.setAttribute("onclick", "editCondition()");
+
+                const stopCondition = document.createElement("div");
+                stopCondition.classList.add("clickable_area")
+                stopCondition.classList.add("context_div");
+                stopCondition.textContent = "Stop Condition";
+                stopCondition.setAttribute("onclick", "endCondition()");
+
+                const endCondition = document.createElement("div");
+                endCondition.classList.add("clickable_area")
+                endCondition.classList.add("context_div");
+                endCondition.textContent = "Delete Condition";
+                endCondition.setAttribute("onclick", "deleteCondition()");
+
+                contextMenu.appendChild(editCondition);
+                contextMenu.appendChild(stopCondition);
+                contextMenu.appendChild(endCondition);
 
                 let cmEnd = document.querySelector(".cmEnd");
                 cmEnd.setAttribute(
@@ -2520,14 +2542,6 @@
                     taID: deleteCondition == true ? actionObj.taID : null
                 }
             },
-            // tbl_tool: {
-            //     insert: {
-
-            //     },
-            //     delete: {
-
-            //     }
-            // }
         }
 
         // figure out any changes in damage
@@ -2543,11 +2557,8 @@
                     if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {
                         let diff = parseInt(dataAttributes.originalvalue) - parseInt(newValue);
                         let newHP = dataAttributes.hp == 0 ? 0 : (parseInt(dataAttributes.hp)) - parseInt(newValue) + parseInt(dataAttributes.originalvalue)
+                        
                         // get previous item's value
-
-
-
-
                         record = {
                             aID: dataAidValue,
                             tID: dataAttributes.tid,
@@ -5572,6 +5583,18 @@
             "/" +
             taid
         );
+        refresh_encounter()
+    }
+
+    async function deleteCondition() {
+        
+        // await dbQueryPost("deleteCondition", data)
+        refresh_encounter()
+    }
+
+    async function editCondition() {
+        
+        // await dbQueryPost("deleteCondition", data)
         refresh_encounter()
     }
 
