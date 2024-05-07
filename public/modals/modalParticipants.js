@@ -74,8 +74,6 @@ async function modalParticipants() {
             leftContainer.appendChild(div2);
         })
 
-        /////////////////////////////////
-
         // right container
         const rightContainer = document.createElement("div");
         rightContainer.classList.add("right-container");
@@ -112,9 +110,6 @@ async function modalParticipants() {
             select.appendChild(option);
         })
 
-
-        /////////////////////////////
-
         monsterContainer.appendChild(select);
 
         const detailsContainer = document.createElement("div");
@@ -125,8 +120,6 @@ async function modalParticipants() {
         detailsInputLabel.innerText = "New Name: "
         detailsContainer.appendChild(detailsInputLabel);
         detailsContainer.appendChild(detailsInput);
-
-
 
         const detailsContainer2 = document.createElement("div");
         detailsContainer2.classList.add("details-container")
@@ -155,7 +148,6 @@ async function modalParticipants() {
         detailsContainer2.appendChild(hpInput);
         detailsContainer2.appendChild(numOpponentsLabel);
         detailsContainer2.appendChild(numOpponents);
-
 
         const btnContainer = document.createElement("div");
         btnContainer.classList.add("update-close-container");
@@ -215,7 +207,6 @@ async function modalParticipants() {
             });
         }
 
-        // const options = document.querySelectorAll('.monsterSelect option');
         // Select the elements
         const monsterSelect = document.getElementById('monsterSelect');
         const hpInputOpp = document.getElementById('hpInputOpp');
@@ -232,6 +223,4 @@ async function modalParticipants() {
             resetNewName.value = ""
         });
         modalIsOpen = true;
-
-
     }

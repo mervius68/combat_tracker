@@ -1,6 +1,6 @@
 // this function defines the modal for creating actions
 
-async function updateAction(dataAidValue) {
+async function modalUpdateAction(dataAidValue) {
         const aIDObject = ctActions.find(obj => obj.aID == dataAidValue);
         const targetsArray = await dbQuery("GET", `targets/${aIDObject.targetID}`)
         const targetIDToRetrieve = aIDObject.targetID;
@@ -387,10 +387,6 @@ async function updateAction(dataAidValue) {
 
         divRight.appendChild(notesLabel);
         divRight.appendChild(notes);
-        // divRight.appendChild(notesLabelStart);
-        // divRight.appendChild(notesStart);
-        // divRight.appendChild(notesLabelEnd);
-        // divRight.appendChild(notesEnd);
 
         divModalTop.appendChild(divRight);
         container.appendChild(divModalTop);
@@ -400,12 +396,6 @@ async function updateAction(dataAidValue) {
         let hr = document.createElement("hr");
         container.appendChild(hr);
 
-        // TURN THIS BACK ON????
-        // conditionsInEffect = conditionsInEffect.filter(
-        //     (obj, index, self) =>
-        //         index ===
-        //         self.findIndex((t) => t.conditionID === obj.conditionID)
-        // );
         conditionsInEffect.forEach((condition) => {
             if (condition.end_round == currentRound && condition.end_pID == participantID) {
 
@@ -528,10 +518,6 @@ async function updateAction(dataAidValue) {
         submit.setAttribute("onclick", `submitUpdateAction(${dataAidValue}, ${actionObj.ct_tbl_action.pID})`);
         submit.classList.add("button");
         submit.classList.add("modalSubmit");
-        // let submitGoToCondition = document.createElement("button");
-        // submitGoToCondition.innerText = "SUBMIT + go to CONDITIONS";
-        // submitGoToCondition.classList.add("button");
-        // submitGoToCondition.setAttribute("onclick", "submitAction('1')");
 
         buttonContainer.appendChild(submit);
         // buttonContainer.appendChild(submitGoToCondition);
@@ -590,9 +576,7 @@ async function updateAction(dataAidValue) {
                 weapon.focus();
             }
         })
-        // selectedWeapons[1]?.focus()
-        // selectedWeapons[0]?.removeAttribute("checked")
-        // selectedWeapons[1]?.setAttribute("checked", "checked");
+
         modalIsOpen = true;
         pushModal();
         function findHighestAIDByPID(array, targetPID) {

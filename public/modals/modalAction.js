@@ -1,6 +1,22 @@
 // modalActions defines the modal for adding an action
 
 async function modalActions() {
+    const holdActions = ["grapple", "disarm", "help", "ready", "shove"];
+    const actionsArray = [
+        "dash",
+        "disarm",
+        "disengage",
+        "dodge",
+        "escape",
+        "grapple",
+        "help",
+        "hide",
+        "improvise",
+        "ready",
+        "search",
+        "shove",
+        "use an object",
+    ];
     let modal = document.querySelector("#modal-body");
     let html = document.querySelector(".selected");
     let dataNavSelected = html.getAttribute("data-nav");
@@ -145,21 +161,7 @@ async function modalActions() {
     let divMiddleLeft = document.createElement("div");
     divMiddleLeft.classList.add("modal_column");
     let anotherDiv = document.createElement("div");
-    let actionsArray = [
-        "dash",
-        "disarm",
-        "disengage",
-        "dodge",
-        "escape",
-        "grapple",
-        "help",
-        "hide",
-        "improvise",
-        "ready",
-        "search",
-        "shove",
-        "use an object",
-    ];
+
     actionsArray.forEach((action) => {
         let actionsRadio = document.createElement("input");
         actionsRadio.setAttribute("type", "radio");
@@ -187,13 +189,7 @@ async function modalActions() {
         label.classList.add("radio_buttons");
         label.innerHTML = action;
         let span2;
-        if (
-            action == "grapple" ||
-            action == "disarm" ||
-            action == "help" ||
-            action == "ready" ||
-            action == "shove"
-        ) {
+        if (holdActions.includes(action)) {
             span2 = document.createElement("span");
             span2.innerHTML = "H";
             span2.classList.add("holding");
@@ -295,7 +291,6 @@ async function modalActions() {
         div16.appendChild(targetLabel);
 
         div16.appendChild(br3);
-
     });
 
     divRight.appendChild(div16);
@@ -326,10 +321,6 @@ async function modalActions() {
 
     divRight.appendChild(notesLabel);
     divRight.appendChild(notes);
-    // divRight.appendChild(notesLabelStart);
-    // divRight.appendChild(notesStart);
-    // divRight.appendChild(notesLabelEnd);
-    // divRight.appendChild(notesEnd);
 
     divModalTop.appendChild(divRight);
     container.appendChild(divModalTop);
@@ -453,8 +444,6 @@ async function modalActions() {
                 }
             }
         }
-
-
     });
 
     container.appendChild(divModalBottom);
@@ -486,56 +475,45 @@ async function modalActions() {
     // Attach the event listener to the modal
     modal.addEventListener("click", modalClickListener);
 
+    // check if target has a concentration to test
     modal.addEventListener("input", function (e) {
-        if (e.target.parentElement.classList.contains("conSaveParent")) {
-            let concentrationStuff =
-                e.target.parentNode.querySelectorAll(".concentration");
-            concentrationStuff.forEach((participant) => {
-                let z = participant.parentElement;
-                if (
-                    participant.parentNode.previousSibling.value != "" &&
-                    participant.parentNode.previousSibling.value != "0" &&
-                    participant.parentNode.previousSibling.value != "00" &&
-                    participant.parentNode.previousSibling.value != "000"
-                ) {
-                    try {
-                        let x = z.querySelector(".conSavingThrowCheck");
-                        z.removeChild(x);
-                    } catch (err) { }
-                    let input =
-                        participant.parentNode.previousSibling.value;
-                    if (input / 2 <= 10) {
-                        input = 10;
-                    } else {
-                        input = Math.floor(input / 2);
-                    }
-                    let span3 = document.createElement("span");
-                    if (parseInt(input)) {
-                        span3.classList.add("conSavingThrowCheck");
-                        span3.innerHTML = `DC CON ${input}`;
-                    }
-                    participant.parentNode.appendChild(span3);
-                } else {
-                    try {
-                        let x = z.querySelector(".conSavingThrowCheck");
-                        z.removeChild(x);
-                    } catch (err) { }
-                }
-            });
+        if (!e.target.parentElement.classList.contains("conSaveParent")) {
+            return;
         }
+
+        const concentrationStuff = e.target.parentNode.querySelectorAll(".concentration");
+
+        concentrationStuff.forEach(participant => {
+            const z = participant.parentElement;
+            const inputValue = participant.parentNode.previousSibling.value;
+
+            try {
+                const x = z.querySelector(".conSavingThrowCheck");
+                z.removeChild(x);
+            } catch (err) { }
+
+            if (!inputValue || inputValue === "0" || inputValue === "00" || inputValue === "000") {
+                return;
+            }
+
+            let savingThrowValue = Math.max(Math.floor(inputValue / 2), 10);
+
+            const span3 = document.createElement("span");
+            span3.classList.add("conSavingThrowCheck");
+            span3.textContent = `DC CON ${savingThrowValue}`;
+
+            participant.parentNode.appendChild(span3);
+        });
     });
-    const selectedWeapons = document.getElementsByName("weapons");
-    selectedWeapons.forEach((weapon) => {
-        if (weapon.checked == true) {
-            weapon.focus();
-        }
-    })
-    // selectedWeapons[1]?.focus()
-    // selectedWeapons[0]?.removeAttribute("checked")
-    // selectedWeapons[1]?.setAttribute("checked", "checked");
+
+    // put focus on radio button that has a check mark
+    const selectedWeapon = document.querySelector('input[name="weapons"]:checked');
+    if (selectedWeapon) {
+        selectedWeapon.focus();
+    }
+
     modalIsOpen = true;
     scrollUp()
-
 
     function findHighestAIDByPID(array, targetPID) {
         // Filter the array to include only objects with the specified pID

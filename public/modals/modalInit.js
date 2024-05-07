@@ -20,8 +20,6 @@ async function modalInit() {
                 return participant.pc == 1
             })
 
-            // write the HTML that fits
-
             const h2 = document.createElement("h2");
             h2.classList.add("center");
             h2.innerText = "Our Heroes!"
@@ -251,5 +249,4 @@ async function modalInit() {
         function showContextMenu(show = true) {
             cm.style.display = show ? "block" : "none";
         }
-
     }

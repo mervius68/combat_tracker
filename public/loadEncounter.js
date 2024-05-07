@@ -1061,7 +1061,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 editAction.classList.add("clickable_area")
                 editAction.classList.add("context_div");
                 editAction.textContent = "Edit Action";
-                editAction.addEventListener("click", () => updateAction(dataAidValue));
+                editAction.addEventListener("click", () => modalUpdateAction(dataAidValue));
 
                 const deleteActionEl = document.createElement("div");
                 deleteActionEl.classList.add("clickable_area")
@@ -1080,7 +1080,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 editAction.classList.add("clickable_area")
                 editAction.classList.add("context_div");
                 editAction.textContent = "Edit Action";
-                editAction.addEventListener("click", () => updateAction(dataAidValue));
+                editAction.addEventListener("click", () => modalUpdateAction(dataAidValue));
 
                 const deleteBonusActionEl = document.createElement("div");
                 deleteBonusActionEl.innerHTML = "Delete Action";
@@ -1096,7 +1096,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 // editAction.classList.add("clickable_area")
                 editAction.classList.add("context_div");
                 editAction.textContent = "Edit Action";
-                editAction.addEventListener("click", () => updateAction(dataAidValue));
+                editAction.addEventListener("click", () => modalUpdateAction(dataAidValue));
 
                 const deleteReactionEl = document.createElement("div");
                 deleteReactionEl.classList.add("context_div")
@@ -1111,7 +1111,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 const editAction = document.createElement("div");
                 editAction.classList.add("context_div");
                 editAction.textContent = "Edit Action";
-                editAction.addEventListener("click", () => updateAction(dataAidValue));
+                editAction.addEventListener("click", () => modalUpdateAction(dataAidValue));
 
                 const deleteOption = document.createElement("div");
                 deleteOption.classList.add("context_div");

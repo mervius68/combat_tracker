@@ -168,7 +168,6 @@ async function modalConditions(
 
         let h7 = document.createElement("h3");
         h7.innerHTML = "Concentration Begins?";
-        // let br8 = document.createElement("br");
         let radioButton1 = document.createElement("input");
         radioButton1.setAttribute("type", "radio");
         radioButton1.setAttribute("name", "concentration");
@@ -198,7 +197,6 @@ async function modalConditions(
         let br9 = document.createElement("br");
 
         div17.appendChild(h7);
-        // div17.appendChild(br8);
         div17.appendChild(radioButton1);
         div17.appendChild(label2);
         div17.appendChild(radioButton2);
@@ -207,7 +205,6 @@ async function modalConditions(
 
         let h9 = document.createElement("h3");
         h9.innerHTML = "Holding Begins?";
-        // let br10 = document.createElement("br");
         let radioButton3 = document.createElement("input");
         radioButton3.setAttribute("type", "radio");
         radioButton3.setAttribute("name", "holding");
@@ -327,7 +324,6 @@ async function modalConditions(
         container.appendChild(bottomMiddleDiv);
         container.appendChild(bottomRightDiv);
         container.appendChild(buttonContainer);
-        // container.appendChild(submit);
 
         modal.innerHTML = container.outerHTML;
         modalIsOpen = true;
