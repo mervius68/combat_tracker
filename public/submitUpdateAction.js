@@ -1,3 +1,5 @@
+// this function takes info from the updateAction modal and updates database
+
 async function submitUpdateAction(dataAidValue, pID) {
     const ctAppCopy = await deepCopy(ctApp);
     const data = document.querySelector(".modalSubmit");

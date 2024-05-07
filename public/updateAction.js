@@ -1,3 +1,5 @@
+// this function defines the modal for creating actions
+
 async function updateAction(dataAidValue) {
         const aIDObject = ctActions.find(obj => obj.aID == dataAidValue);
         const targetsArray = await dbQuery("GET", `targets/${aIDObject.targetID}`)
