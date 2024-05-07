@@ -1,3 +1,4 @@
 {
-    "terminal.integrated.cwd": ""
+    "terminal.integrated.cwd": "",
+    "workbench.tree.indent": 35
 }

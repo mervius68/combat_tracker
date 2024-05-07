@@ -26,10 +26,17 @@ const db = new sqlite3.Database(
 // Now, the code reads the database name from the database.txt file
 // located in the combat_databases folder.
 
+// app.use("/submitUpdateAction.js", function(req, res, next) {
+//   res.type("application/javascript");
+//   next();
+// });
 
 app.use(express.json());
 app.use(express.static("public"));
 app.set("view engine", "ejs");
+
+
+
 
 // This pulls index.ejs to the root folder location of the site.
 app.get("/", function (req, res) {
@@ -1077,19 +1084,30 @@ app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState/:taid", (
     });
 });
 
-app.get("/deleteCondition", (req, res) => {
+app.post("/deleteCondition", (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
     let taid = requestData.taid;
-    let sql = `DELETE FROM ct_tbl_condition WHERE taID = '${taid}'`
-    // also delete from ct_tbl_condition_affectee where taID == taid
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        res.send({});
+    let sql1 = `DELETE FROM ct_tbl_condition WHERE taID = '${taid}'`;
+    let sql2 = `DELETE FROM ct_tbl_condition_affectee WHERE taID = '${taid}'`;
+    db.serialize(() => {
+        db.run(sql1, (err1) => {
+            if (err1) {
+                console.log(err1);
+                throw err1;
+            }
+
+            db.run(sql2, (err2) => {
+                if (err2) {
+                    console.log(err2);
+                    throw err2;
+                }
+
+                res.send({});
+            });
+        });
     });
 });
+
 
 app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
     let cpID = req.params.cpID;
