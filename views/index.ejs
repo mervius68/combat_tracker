@@ -1,24 +1,38 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <link
-            href="css/style.css"
-            rel="stylesheet"
-            type="text/css"
-            media="all"
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta
-            http-equiv="Content-Type"
-            content="text/html; charset=utf8_unicode_ci"
-        />
-        <script src="/loadEncounter.js"></script>
-        <script src="/submitUpdateAction.js"></script>
-        <script src="/updateAction.js"></script>
-        <%- include ('../scripts/helpers'); %>
-    </head>
-    <body onload="load_encounter()">
-        <%- include ('modal.ejs'); %>
+
+<head>
+    <link href="css/style.css" rel="stylesheet" type="text/css" media="all" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf8_unicode_ci" />
+    <script src="/loadEncounter.js"></script>
+
+    <script src="/modalParticipants.js"></script>
+    <script src="/updateParticipantList.js"></script>
+
+    <!-- action modals -->
+    <script src="/modalAction.js"></script>
+    <script src="/submitAction.js"></script>
+    <script src="/updateAction.js"></script>
+    <script src="/submitUpdateAction.js"></script>
+
+    <!-- condition modals -->
+    <script src="/modalCondition.js"></script>
+    <script src="/submitCondition.js"></script>
+
+    <!-- initiative modal (group) -->
+    <script src="/adjustInitModal.js"></script>
+    <script src="/submitInitModal.js"></script>
+
+    <!-- HP and initiatve adjusters (individual) -->
+    <script src="/adjustHPModal.js"></script>
+    <script src="/modalInit.js"></script>
+
+    <%- include ('../scripts/helpers'); %>
+</head>
+
+<body onload="load_encounter()">
+    <%- include ('modal.ejs'); %>
         <h1 class="main_header"></h1>
         <button class="button newBtn" onclick="identify_latest()">New</button>
         <select class="dropdown initDropdown">
@@ -32,8 +46,8 @@
             <button onclick="displayRound()">ALL</button>
             <button onclick="displayRound(1)">1</button>
         </span>
-        
-        
+
+
         <h2 class="round_header_text" data-round="1">Round 1</h2>
         <div class="ct_round_container">
             <div class="ct_round" data-round="1">
@@ -42,19 +56,10 @@
                     <div class="section header ct_turn_bookends">HP</div>
                     <div class="section header ct_turn_bookends">Character</div>
                     <div class="section header ct_turn_bookends">Init</div>
-                    <div
-                        class="section ct_turn_bookends center"
-                        data-participant="1"
-                    ></div>
-                    <div
-                        class="section ct_turn_bookends center"
-                        data-participant="1"
-                    ></div>
+                    <div class="section ct_turn_bookends center" data-participant="1"></div>
+                    <div class="section ct_turn_bookends center" data-participant="1"></div>
                     <div class="section ct_turn_bookends" data-participant="1"></div>
-                    <div
-                        class="section ct_turn_bookends center"
-                        data-participant="1"
-                    ></div>
+                    <div class="section ct_turn_bookends center" data-participant="1"></div>
                     <div class="section ct_turn_bookends" data-participant="2"></div>
                     <div class="section ct_turn_bookends" data-participant="2"></div>
                     <div class="section ct_turn_bookends" data-participant="2"></div>
@@ -144,5 +149,6 @@
                 </div>
             </div>
         </div>
-    </body>
+</body>
+
 </html>
