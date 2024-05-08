@@ -284,81 +284,6 @@ async function submitUpdateAction(dataAidValue, pID) {
     toolNum = toolNum == "default" ? 0 : toolNum;
     toolNum = toolNum == "" ? 0 : toolNum;
 
-    // let changed = false
-    // let numberChanges = 0;
-    // for (target of damageAmountElements) {
-    //     const newValue = target.value || "";
-    //     const oldValue = target.getAttribute("data-stored-damage");
-    //     const originalValue = target.getAttribute("data-originalvalue")
-    //     const hit = target.getAttribute("data-hit");
-    //     if (originalValue == "" && newValue != "") {
-    //         numberChanges += 1
-    //     }
-    //     if (originalValue != "" && newValue == "") {
-    //             numberChanges += 1
-    //     }
-    // }
-
-    // let targetUpdateArray = []
-    // if (numberChanges == 0) {
-    //     // let's update the existing records
-    //     for (target of damageAmountElements) {
-    //         const obj = {
-    //             tID: 5,
-    //             hit: target.getAttribute("data-hit"),
-    //             pID: target.getAttribute("data-pid"),
-
-    //         }
-    //         targetUpdateArray.push(obj);
-    //     }
-
-    // } else {
-    //     // let's delete the existing target records and create new ones
-    // }
-
-    // for (damagedParticipant of damageAmountElements) {
-    //     const pID = damagedParticipant.getAttribute("data-pid");
-    //     const newValue = damagedParticipant.value || "";
-    //     const oldValue = damagedParticipant.getAttribute("data-stored-damage");
-    //     // console.log(pID)
-    //     // console.log(oldValue)
-    //     // console.log(newValue)
-    //     // console.log("************")
-
-    //     // determine if targets have changed
-    //     // if so, let's delete all the old ones (updating hit points cascading)
-    //     //      and create new ones
-    //     // if not, determine if damages have changed
-    //     //      if so, we can update existing ct_tbl_target records (up)
-    //     //          determine if damage to targets has changed
-
-
-
-    // }
-
-
-    // we need to update ct_tbl_action
-    /////// we may need to insert new record(s) in ct_tbl_target, if new target created
-    /////// we may need to delete ct_tbl_target record(s), if target removed
-    ///////////// if so, we may need to update ct_tbl_target records where ct_tbl_target.target_pID == target pID && tID > target's tID
-    /////// we may need to update ct_tbl_target record(s), if target damage changed 
-    // we may need to delete conditions (if one was selected originally but now NOT) 
-    /////// if so, we need to delete condition_affectees
-    // we may need to end conditions (below the line)
-    // we may need to open conditions modal
-
-    // determine if we need to insert a new target
-    // determine if we need to delete a target
-    // determine if we need to update an existing target
-
-    // any numeric damage change to the target table will require adjustments to calculate forward
-
-    // determine if we need to delete a condition
-    // if element with data-condition-id is NOT checked,
-    // delete the ct_tbl_condition record where conditionID = data-condition-id
-    // delete the ct_tbl_condition_affectee records where 
-    //      actionObj.ct_tbl_target.taID == ct_tbl_condition_affectee.taID
-
     let deleteCondition = false;
     let conditionElement = document?.querySelector('[data-condition-id]')
     // if (conditionElement?.checked == false) {
@@ -589,7 +514,8 @@ async function submitUpdateAction(dataAidValue, pID) {
     await dbQueryPost("updateActionDB", update)
     let nextAID = await dbQuery("GET", "getNewAID");
     if (nextAID.length > 0 && nextAID[0].aID != undefined) {
-        nextAID = nextAID[0].aID + 1;
+        nextAID = nextAID[0].aID;
+        // nextAID = nextAID[0].aID + 1;
     } else {
         nextAID = 1;
     }
@@ -600,7 +526,9 @@ async function submitUpdateAction(dataAidValue, pID) {
     // Remove the event listener
     modal.removeEventListener("click", modalClickListener);
     modal.style.display = "none";
-    if (concentrationNext == 1 || holding == 1) {
+        console.log("a: ", conditionCurrent.getAttribute("data-condition-id"))
+    console.log("b: ", actionObj.conditionID)
+    if ((concentrationNext == 1 || holding == 1) && !conditionCurrent?.getAttribute("data-condition-id")) {
         launchConditionsModal(
             target_pID,
             concentrationNext,
