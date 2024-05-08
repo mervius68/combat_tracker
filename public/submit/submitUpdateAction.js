@@ -8,14 +8,6 @@ async function submitUpdateAction(dataAidValue, pID) {
 
     let holdingOneRound = 0;
 
-    // // determine next available targetID
-    // let nextTargetID = await dbQuery("GET", "getNextTargetID");
-    // if (nextTargetID.length > 0 && nextTargetID[0].targetID != undefined) {
-    //     nextTargetID = nextTargetID[0].targetID + 1;
-    // } else {
-    //     nextTargetID = 1;
-    // }
-
     // get weapon radio buttons
     let weaponTextInput = document.getElementsByName("weaponTextInput");
     let concentrationNext = 0;
@@ -356,7 +348,8 @@ async function submitUpdateAction(dataAidValue, pID) {
                         pID: dataAttributes.pid, // pID of target
                         originalDamage: dataAttributes.originalvalue,
                         maxHP: dataAttributes.maxhp,
-                        newHP: newHP
+                        newHP: newHP,
+                        hit: 1
                     }
                     if (record.newHP < 0) {
                         record.newHP = 0
@@ -464,7 +457,112 @@ async function submitUpdateAction(dataAidValue, pID) {
                     }
                     update.ct_tbl_target.insert.push(record);
                 } else if (dataAttributes.originalvalue == "x") {
-                    console.log("got here, baby toots")
+                    let diff = 0 - parseInt(newValue);
+                    let newHP = dataAttributes.hp == 0 ? 0 : (parseInt(dataAttributes.hp)) - parseInt(newValue)
+                    
+                    // get previous item's value
+                    record = {
+                        aID: dataAidValue,
+                        tID: dataAttributes.tid,
+                        targetID: dataAttributes.targetid,
+                        damage: newValue,
+                        eID: ctApp[0].eID,
+                        round: currentRound,
+                        pID: dataAttributes.pid, // pID of target
+                        originalDamage: 0,
+                        maxHP: dataAttributes.maxhp,
+                        newHP: newHP,
+                        hit: diff == 0 ? 0 : 1
+                    }
+                    if (record.newHP < 0) {
+                        record.newHP = 0
+                    }
+                    
+                    update.ct_tbl_target.update.push(record);
+                    
+                    let downstreamArray = [];
+                    ctApp.forEach(character => {
+                        // Check if the character's pID matches the given value
+                        if (character.pID == record.pID) {
+                            // Iterate through each array in the damageArray
+                            character.damageArrayNotMapped.forEach(damageArray => {
+                                // Filter the damageArray based on the condition that aID is greater than the given threshold
+                                const filteredDamageItems = damageArray.filter(damageItem => damageItem.aID !== null && damageItem.aID > dataAidValue);
+                                // Append the filtered items to the result array
+                                downstreamArray = downstreamArray.concat(filteredDamageItems);
+                            });
+                        }
+                    });
+
+                    async function getDamageArrayFromCtApp(targetPID) {
+                        for (const item of ctApp) {
+                            if (item.pID === targetPID) {
+                                return item.damageArrayNotMapped;
+                            }
+                        }
+                        return null;  // This confirms that no item matched the targetPID
+                    }
+
+                    async function getPreviousNewHP(dataArray, targetAID) {
+                        let prevNewHP = null;  // Default to null if no previous object or not found
+
+                        // Assuming dataArray is correctly formatted and it's a double array as observed
+                        if (dataArray && dataArray[0]) {
+                            for (let i = 0; i < dataArray[0].length; i++) {
+                                for (let i = 0; i < dataArray[0].length; i++) {
+                                    if (dataArray[0][i].aID === targetAID) {
+                                        // Check if there's a previous element
+                                        if (i > 0) {
+                                            // Return the newHP of the previous element
+                                            return dataArray[0][i - 1].newHP;
+                                        } else {
+                                            // If there is no previous element, return null or a default value
+                                            console.warn("No previous entry exists for the given aID.");
+                                            return null; // No previous entry exists
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        return prevNewHP;
+                    }
+
+                    let dataArray = await getDamageArrayFromCtApp(Number(record.pID));
+                    let bufferHP = null;
+                    if (dataArray) {
+                        // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
+                        bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
+                    }
+
+                    bufferHP -= record.damage
+                    if (bufferHP < 0) {
+                        bufferHP = 0
+                    }
+
+                    // Call the async function with bufferHP as argument
+                    await processDownstreamArray(bufferHP, downstreamArray);
+                    for (const item of ctAppCopy) {
+                        if (item.pID === pID) {
+                            const notMapped = item.damageArrayNotMapped[currentRound - 1];
+                            if (Array.isArray(notMapped)) {
+                                const uniqueInDownstream = downstreamArray.filter(downstreamObj => {
+                                    const isDuplicated = notMapped.some(notMappedObj => {
+                                        // Explicitly convert and compare if necessary
+                                        const isEqual = Number(notMappedObj.aID) === Number(downstreamObj.aID) &&
+                                            Number(notMappedObj.tID) === Number(downstreamObj.tID) &&
+                                            Number(notMappedObj.damage) === Number(downstreamObj.damage) &&
+                                            Number(notMappedObj.newHP) === Number(downstreamObj.newHP) &&
+                                            Number(notMappedObj.targetID) === Number(downstreamObj.targetID);
+                                        return isEqual;
+                                    });
+                                    return !isDuplicated;
+                                });
+                                uniqueInDownstream.forEach((item) => {
+                                    update.ct_tbl_target.update.push(item);
+                                })
+                            }
+                        }
+                    }
                 }
             } else if (newValue == "x") {
                 // if the new value is 'x'...
