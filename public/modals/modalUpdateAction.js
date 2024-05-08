@@ -80,7 +80,6 @@ async function modalUpdateAction(dataAidValue) {
         div14.appendChild(defaultLabel);
         div14.appendChild(br1);
         // const targetPID = 60; // Specify the target pID
-        console.log("participantTools: ", participantTools)
         for (item of participantTools) {
             let tool = document.createElement("input");
             tool.setAttribute("type", "radio");
@@ -301,7 +300,6 @@ async function modalUpdateAction(dataAidValue) {
 
             // populate 'x' or damage amount in input field as needed
             currentAction.forEach((targetParticipant) => {
-                // console.log("targetParticipant: ", targetParticipant)
                 const isSameParticipant = targetParticipant.pID == participant.pID;
                 const noDamageAndHit = isSameParticipant && targetParticipant.damage == 0 && actionObj.ct_tbl_action.hit == 1;
                 if (noDamageAndHit) {
@@ -570,7 +568,6 @@ async function modalUpdateAction(dataAidValue) {
             }
         });
         const selectedWeapons = document.getElementsByName("weapons");
-        console.log("selectedWeapons: ", selectedWeapons)
         selectedWeapons.forEach((weapon) => {
             if (weapon.checked == true) {
                 weapon.focus();

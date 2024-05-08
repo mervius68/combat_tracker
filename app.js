@@ -378,7 +378,6 @@ app.get("/targetsHP/:target_pID", (req, res) => {
             console.log(err);
             throw err;
         }
-        // console.log(results);
         res.send(results);
     });
 });
@@ -694,7 +693,6 @@ app.post('/deleteParticipant', (req, res) => {
 
 app.post('/updateEncounterParticipants', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
-    // console.log(requestData);
     // Generate the SQL query
     const sql = `
       INSERT INTO ct_tbl_encounter (pID, eID) 
@@ -805,7 +803,6 @@ app.post("/updateActionDB", async (req, res) => {
 });
 
 async function updateHPCascade(obj) {
-    // console.log("HEY! ", obj);
     const diff = parseInt(obj.damage) - parseInt(obj.originalDamage)
     const sql = `
         UPDATE ct_tbl_target

@@ -37,10 +37,6 @@ async function submitUpdateAction(dataAidValue, pID) {
         }
         catch (err) { }
 
-        console.log(Array.from(weapons).find((weapon) => {
-            return weapon.checked == true;
-        }))
-
         concentrationNext =
             Array.from(weapons)
                 .find((weapon) => {
@@ -294,7 +290,6 @@ async function submitUpdateAction(dataAidValue, pID) {
     let actionObj = ctActions.find((action) => {
         return action.aID = dataAidValue
     })
-    console.log("actionObj: ", actionObj);
     const update = {
         ct_tbl_action: {
             update: {
@@ -313,7 +308,7 @@ async function submitUpdateAction(dataAidValue, pID) {
         },
         ct_tbl_condition: {
             delete: {
-                aID: deleteCondition == true ? dataAidValue : null, 
+                aID: deleteCondition == true ? dataAidValue : null,
                 // taID: actionObj.taID
             }
         },
@@ -468,6 +463,8 @@ async function submitUpdateAction(dataAidValue, pID) {
                         originalDamage: dataAttributes.originalvalue
                     }
                     update.ct_tbl_target.insert.push(record);
+                } else if (dataAttributes.originalvalue == "x") {
+                    console.log("got here, baby toots")
                 }
             } else if (newValue == "x") {
                 // if the new value is 'x'...
@@ -513,21 +510,13 @@ async function submitUpdateAction(dataAidValue, pID) {
 
     await dbQueryPost("updateActionDB", update)
     let nextAID = await dbQuery("GET", "getNewAID");
-    if (nextAID.length > 0 && nextAID[0].aID != undefined) {
-        nextAID = nextAID[0].aID;
-        // nextAID = nextAID[0].aID + 1;
-    } else {
-        nextAID = 1;
-    }
+    nextAID = nextAID.length > 0 && nextAID[0].aID != undefined ? nextAID[0].aID : 1;
 
     load_encounter(ctAppEnc, dataNav);
     let modal = document.querySelector(".modal");
-
-    // Remove the event listener
     modal.removeEventListener("click", modalClickListener);
     modal.style.display = "none";
-        console.log("a: ", conditionCurrent.getAttribute("data-condition-id"))
-    console.log("b: ", actionObj.conditionID)
+    
     if ((concentrationNext == 1 || holding == 1) && !conditionCurrent?.getAttribute("data-condition-id")) {
         launchConditionsModal(
             target_pID,

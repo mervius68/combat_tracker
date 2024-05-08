@@ -36,10 +36,8 @@ async function submitInitModal(PC) {
 
             await dbQueryPost("orderInitiative", postData)
                 .then((data) => {
-                    console.log(data); // Handle the response from the server
                 })
                 .catch((error) => {
-                    // Handle errors here
                 });
 
             // where pID = newOrderPids[x], set numeric_value = reorderedNumericValues[x] and init = sortedValues[x]
@@ -86,10 +84,8 @@ async function submitInitModal(PC) {
 
             await dbQueryPost("orderInitiative", postData)
                 .then((data) => {
-                    console.log(data); // Handle the response from the server
                 })
                 .catch((error) => {
-                    // Handle errors here
                 });
 
 

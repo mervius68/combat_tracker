@@ -466,7 +466,6 @@
         }
         await dbQueryPost("deleteNote", data)
             .then((data) => {
-                console.log(data);
             })
             .catch((error) => {
             });
@@ -481,10 +480,8 @@
         }
         await dbQueryPost("deleteParticipant", data)
             .then((data) => {
-                console.log(data); // Handle the response from the server
             })
             .catch((error) => {
-                // Handle errors here
             });
         refresh_encounter();
     }
@@ -528,7 +525,6 @@
         }
 
         const deleteEm = await dbQuery("GET", "getDeleteActionData/" + dataAidValue)
-        // console.log("deleteEm: ", deleteEm)
         deleteEm.forEach((obj) => {
             obj.aID = dataAidValue
         })
@@ -540,10 +536,8 @@
         }
         await dbQueryPost("deleteAction", deleteData)
             .then((data) => {
-                console.log(data); // Handle the response from the server
             })
             .catch((error) => {
-                // Handle errors here
             });
 
         let updateData = {};
@@ -565,16 +559,6 @@
                 updateData[index] = { object };
             }
         });
-
-        // await dbQueryPost("deleteActionUpdateTargetHPs", updateData)
-        //     .then((data) => {
-        //         console.log(data); // Handle the response from the server
-        //     })
-        //     .catch((error) => {
-        //         // Handle errors here
-        //     });
-
-        // we need target_pID, 
 
         // figure out any changes in damage
         let downstreamArray = [];
@@ -606,8 +590,7 @@
             if (bufferHP < 0) {
                 bufferHP = 0
             }
-            console.log("downstreamArray: ", downstreamArray)
-            console.log("booboo: ", bufferHP)
+
             // Call the async function with bufferHP as argument
             await processDownstreamArray(bufferHP, downstreamArray, 1);
             for (const item of ctAppCopy) {
@@ -731,10 +714,8 @@
 
         await dbQueryPost("removeDuplicateNumericValues", newObj)
             .then((data) => {
-                // console.log(data); // Handle the response from the server
             })
             .catch((error) => {
-                // Handle errors here
             });
 
 
@@ -797,7 +778,6 @@
     }
 
     async function deleteCondition(data) {
-        console.log("did we get here?")
         await dbQueryPost("deleteCondition", data)
         refresh_encounter()
     }

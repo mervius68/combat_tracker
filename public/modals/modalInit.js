@@ -108,9 +108,6 @@ async function modalInit() {
                     }
                 });
 
-                // Log the array of duplicated numbers to the console
-                console.log('Duplicated Numbers:', Array.from(duplicatedNumbers));
-
                 // Iterate through each left input element
                 leftInputs.forEach(leftInput => {
                     // Get the value of the left input

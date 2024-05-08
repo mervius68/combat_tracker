@@ -40,7 +40,6 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
 
 
         const getEncounter = await dbQuery("GET", "getLatestEncounterID");
-        // console.log("got here")
 
         if (encounterCode == 0) {
             ctAppEnc = savedEncounterPlaceholder || getEncounter.eID;
@@ -156,10 +155,8 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                     );
                 });
                 x.forEach((item) => {
-                    // console.log(item)
                     // For each item, push an object with tID and newHP
                     if (item.target_pID == participant.pID) {
-                        // console.log(item);
                         participant.damageArray[i].push({ aID: item.aID, tID: item.tID, damage: item.damage, newHP: item.new_hp, targetID: item.targetID });
                     }
                 });
@@ -196,7 +193,6 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
             });
         });
         totalRounds = Math.max(totalRounds, damageRounds);
-        // console.log(ctApp);
 
         // assign row_start and row_stop properties for affectedArray and conditionsArray items within ctApp
         ctApp.forEach((participant) => {
@@ -982,7 +978,6 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
             // If dataAidValue is still null, check for other attributes or log an error if none are relevant
             if (!dataAidValue) {
                 if (!element.dataset.nav && !element.dataset.taid) {
-                    console.log("No data-aid attribute found in the clicked element or its parent.");
                     return; // Exit the event handler if no relevant data attributes are found
                 }
                 // Additional logic for when element has data-nav but no data-aid
@@ -1150,10 +1145,6 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 contextMenu.appendChild(deleteCharacter);
                 showContextMenu();
             }
-            else {
-                // console.log(e.target.outerHTML)
-            }
-
         };
 
         function showContextMenu(show = true) {
@@ -1214,10 +1205,6 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
             element.addEventListener('mouseenter', handleMouseEnter);
             element.addEventListener('mouseleave', handleMouseLeave);
         });
-
-        if (selectedRound) {
-            console.log("selected is " + selectedRound.innerText)
-        }
 
         function handleMouseEnter(event) {
             // Get the data-hover-id attribute value of the current element
