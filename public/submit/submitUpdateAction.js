@@ -127,6 +127,7 @@ async function submitUpdateAction(dataAidValue, pID) {
             }
         })
     );
+
     let sortedTargetHPs = [];
     sortedTargetHPs = targetHPsArray
         .reduce((acc, obj) => {
@@ -172,79 +173,9 @@ async function submitUpdateAction(dataAidValue, pID) {
     let conditionsOff = [];
     let conditionsToTurnOff = {};
 
-    async function processConditions() {
-        for (const condition of disableConditionsEle) {
-            if (condition.checked) {
-                const object = {
-                    affectedpID: condition.getAttribute("data-participant-affected"),
-                    condition: condition.getAttribute("data-cpid")
-                }
-                conditionsOff.push(object);           // create arrays for each condition we want to edit
-                conditionsOff.forEach((obj) => {
-                    if (!conditionsToTurnOff[obj.condition]) {
-                        conditionsToTurnOff[obj.condition] = [];
-                        conditionsToTurnOff[obj.condition].affectees = [];
-                    }
-                    conditionsToTurnOff[obj.condition].affectees.push(obj.affectedpID);
-                    conditionsToTurnOff[obj.condition].affectees = [...new Set(conditionsToTurnOff[obj.condition].affectees)]
-                })
 
-                disableConditionsString += condition.value;
-
-                await dbQuery(
-                    "GET",
-                    "disableCondition/" +
-                    condition.getAttribute("data-cpid") +
-                    "/" +
-                    currentRound +
-                    "/" +
-                    condition.getAttribute(
-                        "data-participant-affected"
-                    ) +
-                    "/" +
-                    pID
-                )
-            }
-        }
-
-        ctApp.forEach((participant) => {
-            Object.keys(conditionsToTurnOff).forEach(async (condition) => {
-
-                if (!conditionsToTurnOff[condition]["condition_name"]) {
-                    conditionsToTurnOff[condition]["condition_name"] = getConditionNameById(condition);
-                    const creator = await ctApp.filter((participant) => {
-                        return participant.pID == getCreatorById(condition);
-                    });
-                    conditionsToTurnOff[condition]["creator"] = creator.length > 0 ? creator[0].character_name : null;
-                    conditionsToTurnOff[condition]["creator_numeric"] = creator[0].numeric_value ? creator[0].numeric_value : null;
-                }
-
-
-                function getConditionNameById(idToFind) {
-                    const conditionsArray = participant.conditionsArray;
-                    for (const condition of conditionsArray) {
-                        if (condition.conditionID == parseInt(idToFind)) {
-                            return condition.description;
-                        }
-                    }
-                    return null; // Return null if no match is found
-                }
-
-                function getCreatorById(idToFind) {
-                    const conditionsArray = participant.conditionsArray;
-                    for (const condition of conditionsArray) {
-                        if (condition.conditionID == parseInt(idToFind)) {
-                            return condition.pID;
-                        }
-                    }
-                    return null; // Return null if no match is found
-                }
-
-            })
-        })
-
-    }
     await processConditions();
+
     Object.keys(conditionsToTurnOff).forEach((condition) => {
         let string = conditionsToTurnOff[condition].creator + (conditionsToTurnOff[condition].creator_numeric ? " &num;" + conditionsToTurnOff[condition].creator_numeric : "") + "&apos;s " + conditionsToTurnOff[condition].condition_name + " ends for "
         conditionsToTurnOff[condition].affectees.forEach((affectee, index) => {
@@ -326,14 +257,14 @@ async function submitUpdateAction(dataAidValue, pID) {
     // figure out any changes in damage
     const damageAmountElements = document.getElementsByName("participants");
     for (target of damageAmountElements) {
+        console.log("target: ", target)
         const newValue = target.value || "";
         const dataAttributes = target.dataset;
         if (dataAttributes.originalvalue !== newValue) {
             let record = { tID: dataAttributes.tid };
             // if the new value is a number
-            if (Number.isInteger(parseInt(newValue))) {
-                // if original value is number
-                if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {
+            if (Number.isInteger(parseInt(newValue))) {     // if new value is a number
+                if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {      // original value is number, and new value is number    DONE
                     let diff = parseInt(dataAttributes.originalvalue) - parseInt(newValue);
                     let newHP = dataAttributes.hp == 0 ? 0 : (parseInt(dataAttributes.hp)) - parseInt(newValue) + parseInt(dataAttributes.originalvalue)
 
@@ -445,21 +376,52 @@ async function submitUpdateAction(dataAidValue, pID) {
 
                     // look in ctApp for targets in damageArray where
                     // aID > dataAidValue and ctApp pID = pID
-                } else if (dataAttributes.originalvalue == null || dataAttributes.originalvalue == "") {
-                    // if original value is empty...
-                    record = {
-                        targetID: dataAttributes.targetid,
-                        eID: ctApp[0].eID,
-                        round: currentRound,
-                        pID: dataAttributes.pid,
-                        damage: newValue,
-                        originalDamage: dataAttributes.originalvalue
+                } else if (dataAttributes.originalvalue == null || dataAttributes.originalvalue == "") {                    // original value is "", and new value is number
+
+
+                    // newHP needs to equal dataAttributes.pid's latest action's newHP value, and then subtract parseInt(newValue)
+                    // get object from ctApp where dataAttributes.pid = pID;
+                    // determine position in damageArray where dataAidValue = aID;
+                    // subtract 1 from that position and get newHP value
+                    // let newHP = that object's newHP minus newValue
+
+                    function getDamageNewHP(ctTarget, maxAid) {
+                        if (ctTarget && ctTarget.damageArray.length > 0) {
+                            // Flatten the damageArray to simplify processing
+                            const flatDamageArray = ctTarget.damageArray.flat();
+
+                            // Filter the array for objects where aID is defined and does not exceed maxAid
+                            const validDamages = flatDamageArray.filter(damage => damage.aID !== null && damage.aID <= maxAid);
+
+                            // Find the object with the highest aID that does not exceed maxAid
+                            const highestValidDamage = validDamages.reduce((max, damage) =>
+                                (max === null || damage.aID > max.aID ? damage : max), null);
+
+                            if (highestValidDamage) {
+                                console.log('Highest valid damage object:', highestValidDamage);
+                                return highestValidDamage.newHP;
+                            } else {
+                                // If no valid damage object is found, return the first object in the first sub-array of damageArray
+                                const defaultDamageObject = ctTarget.damageArray[0][0];
+                                console.log('Default damage object:', defaultDamageObject);
+                                return defaultDamageObject.newHP;
+                            }
+                        } else {
+                            console.log('No object found or damageArray is empty');
+                            return null; // Return null if no damageArray is found or it is empty
+                        }
                     }
-                    update.ct_tbl_target.insert.push(record);
-                } else if (dataAttributes.originalvalue == "x") {
+
+                    const ctTarget = ctApp.find(item => item.pID == dataAttributes.pid)
+                    const defaultDamageObjectNewHP = getDamageNewHP(ctTarget, dataAidValue);
+                    // console.log('NewHP:', defaultDamageObjectNewHP);
+
                     let diff = 0 - parseInt(newValue);
-                    let newHP = dataAttributes.hp == 0 ? 0 : (parseInt(dataAttributes.hp)) - parseInt(newValue)
-                    
+                    let newHP = defaultDamageObjectNewHP - parseInt(newValue)
+
+                    // console.log("dataAttributes.pid: ", dataAttributes.pid)
+                    // console.log("datAidValue: ", dataAidValue)
+
                     // get previous item's value
                     record = {
                         aID: dataAidValue,
@@ -477,9 +439,116 @@ async function submitUpdateAction(dataAidValue, pID) {
                     if (record.newHP < 0) {
                         record.newHP = 0
                     }
-                    
+                    update.ct_tbl_target.insert.push(record);
+
+                    let downstreamArray = [];
+                    ctApp.forEach(character => {
+                        // Check if the character's pID matches the given value
+                        if (character.pID == record.pID) {
+                            // Iterate through each array in the damageArray
+                            character.damageArrayNotMapped.forEach(damageArray => {
+                                // Filter the damageArray based on the condition that aID is greater than the given threshold
+                                const filteredDamageItems = damageArray.filter(damageItem => damageItem.aID !== null && damageItem.aID > dataAidValue);
+                                // Append the filtered items to the result array
+                                downstreamArray = downstreamArray.concat(filteredDamageItems);
+                            });
+                        }
+                    });
+
+                    async function getDamageArrayFromCtApp(targetPID) {
+                        for (const item of ctApp) {
+                            if (item.pID === targetPID) {
+                                return item.damageArrayNotMapped;
+                            }
+                        }
+                        return null;  // This confirms that no item matched the targetPID
+                    }
+
+                    async function getPreviousNewHP(dataArray, targetAID) {
+                        let prevNewHP = null;  // Default to null if no previous object or not found
+
+                        // Assuming dataArray is correctly formatted and it's a double array as observed
+                        if (dataArray && dataArray[0]) {
+                            for (let i = 0; i < dataArray[0].length; i++) {
+                                for (let i = 0; i < dataArray[0].length; i++) {
+                                    if (dataArray[0][i].aID === targetAID) {
+                                        // Check if there's a previous element
+                                        if (i > 0) {
+                                            // Return the newHP of the previous element
+                                            return dataArray[0][i - 1].newHP;
+                                        } else {
+                                            // If there is no previous element, return null or a default value
+                                            console.warn("No previous entry exists for the given aID.");
+                                            return null; // No previous entry exists
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        return prevNewHP;
+                    }
+
+                    let dataArray = await getDamageArrayFromCtApp(Number(record.pID));
+                    let bufferHP = null;
+                    if (dataArray) {
+                        // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
+                        bufferHP = await getPreviousNewHP(dataArray, dataAidValue) || record.newHP - diff;
+                    }
+                    // console.log("dataAidValue: ", dataAidValue);
+                    bufferHP -= record.damage
+                    if (bufferHP < 0) {
+                        bufferHP = 0
+                    }
+
+                    // Call the async function with bufferHP as argument
+                    await processDownstreamArray(bufferHP, downstreamArray);
+                    for (const item of ctAppCopy) {
+                        if (item.pID === pID) {
+                            const notMapped = item.damageArrayNotMapped[currentRound - 1];
+                            if (Array.isArray(notMapped)) {
+                                const uniqueInDownstream = downstreamArray.filter(downstreamObj => {
+                                    const isDuplicated = notMapped.some(notMappedObj => {
+                                        // Explicitly convert and compare if necessary
+                                        const isEqual = Number(notMappedObj.aID) === Number(downstreamObj.aID) &&
+                                            Number(notMappedObj.tID) === Number(downstreamObj.tID) &&
+                                            Number(notMappedObj.damage) === Number(downstreamObj.damage) &&
+                                            Number(notMappedObj.newHP) === Number(downstreamObj.newHP) &&
+                                            Number(notMappedObj.targetID) === Number(downstreamObj.targetID);
+                                        return isEqual;
+                                    });
+                                    return !isDuplicated;
+                                });
+                                uniqueInDownstream.forEach((item) => {
+                                    update.ct_tbl_target.update.push(item);
+                                })
+                            }
+                        }
+                    }
+
+                } else if (dataAttributes.originalvalue == "x") {                                                           // original value is "x", and new value is number       DONE
+                    let diff = 0 - parseInt(newValue);
+                    let newHP = dataAttributes.hp == 0 ? 0 : (parseInt(dataAttributes.hp)) - parseInt(newValue)
+
+                    // get previous item's value
+                    record = {
+                        aID: dataAidValue,
+                        tID: dataAttributes.tid,
+                        targetID: dataAttributes.targetid,
+                        damage: newValue,
+                        eID: ctApp[0].eID,
+                        round: currentRound,
+                        pID: dataAttributes.pid, // pID of target
+                        originalDamage: 0,
+                        maxHP: dataAttributes.maxhp,
+                        newHP: newHP,
+                        hit: diff == 0 ? 0 : 1
+                    }
+                    if (record.newHP < 0) {
+                        record.newHP = 0
+                    }
+
                     update.ct_tbl_target.update.push(record);
-                    
+
                     let downstreamArray = [];
                     ctApp.forEach(character => {
                         // Check if the character's pID matches the given value
@@ -564,9 +633,8 @@ async function submitUpdateAction(dataAidValue, pID) {
                         }
                     }
                 }
-            } else if (newValue == "x") {
-                // if the new value is 'x'...
-                if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "0") {
+            } else if (newValue == "x") {                   // if new value is "x"
+                if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "0") {          // if originalvalue is a non-zero number and newvalue is "x"
                     // let newHP = baseHP == 0 ? 0 : parseInt(baseHP) - parseInt(newValue) + parseInt(originalValue)
                     record = {
                         aID: dataAidValue,
@@ -594,7 +662,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     update.ct_tbl_target.insert.push(record);
 
                 }
-            } else if (newValue == "") {
+            } else if (newValue == "") {                    // if new value is ""
                 // if the new value input is '', delete record from ct_tbl_target
                 record = {
                     tID: dataAttributes.tid,
@@ -614,7 +682,7 @@ async function submitUpdateAction(dataAidValue, pID) {
     let modal = document.querySelector(".modal");
     modal.removeEventListener("click", modalClickListener);
     modal.style.display = "none";
-    
+
     if ((concentrationNext == 1 || holding == 1) && !conditionCurrent?.getAttribute("data-condition-id")) {
         launchConditionsModal(
             target_pID,
@@ -624,5 +692,78 @@ async function submitUpdateAction(dataAidValue, pID) {
             holdingOneRound,
             nextAID
         );
+    }
+
+    async function processConditions() {
+        for (const condition of disableConditionsEle) {
+            if (condition.checked) {
+                const object = {
+                    affectedpID: condition.getAttribute("data-participant-affected"),
+                    condition: condition.getAttribute("data-cpid")
+                }
+                conditionsOff.push(object);           // create arrays for each condition we want to edit
+                conditionsOff.forEach((obj) => {
+                    if (!conditionsToTurnOff[obj.condition]) {
+                        conditionsToTurnOff[obj.condition] = [];
+                        conditionsToTurnOff[obj.condition].affectees = [];
+                    }
+                    conditionsToTurnOff[obj.condition].affectees.push(obj.affectedpID);
+                    conditionsToTurnOff[obj.condition].affectees = [...new Set(conditionsToTurnOff[obj.condition].affectees)]
+                })
+
+                disableConditionsString += condition.value;
+
+                await dbQuery(
+                    "GET",
+                    "disableCondition/" +
+                    condition.getAttribute("data-cpid") +
+                    "/" +
+                    currentRound +
+                    "/" +
+                    condition.getAttribute(
+                        "data-participant-affected"
+                    ) +
+                    "/" +
+                    pID
+                )
+            }
+        }
+
+        ctApp.forEach((participant) => {
+            Object.keys(conditionsToTurnOff).forEach(async (condition) => {
+
+                if (!conditionsToTurnOff[condition]["condition_name"]) {
+                    conditionsToTurnOff[condition]["condition_name"] = getConditionNameById(condition);
+                    const creator = await ctApp.filter((participant) => {
+                        return participant.pID == getCreatorById(condition);
+                    });
+                    conditionsToTurnOff[condition]["creator"] = creator.length > 0 ? creator[0].character_name : null;
+                    conditionsToTurnOff[condition]["creator_numeric"] = creator[0].numeric_value ? creator[0].numeric_value : null;
+                }
+
+
+                function getConditionNameById(idToFind) {
+                    const conditionsArray = participant.conditionsArray;
+                    for (const condition of conditionsArray) {
+                        if (condition.conditionID == parseInt(idToFind)) {
+                            return condition.description;
+                        }
+                    }
+                    return null; // Return null if no match is found
+                }
+
+                function getCreatorById(idToFind) {
+                    const conditionsArray = participant.conditionsArray;
+                    for (const condition of conditionsArray) {
+                        if (condition.conditionID == parseInt(idToFind)) {
+                            return condition.pID;
+                        }
+                    }
+                    return null; // Return null if no match is found
+                }
+
+            })
+        })
+
     }
 }

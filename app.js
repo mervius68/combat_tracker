@@ -760,7 +760,8 @@ function runDbQuery(sql, params = []) {
 
 app.post("/updateActionDB", async (req, res) => {
     const requestData = req.body;
-
+    console.log("this: ", requestData);
+    console.log("and: ", requestData.ct_tbl_target)
     try {
         await runDbQuery("BEGIN TRANSACTION;");
 
@@ -777,10 +778,16 @@ app.post("/updateActionDB", async (req, res) => {
             // await updateHPCascade(obj);
         })
 
-        // Delete Targets
-        requestData.ct_tbl_target.delete.forEach((obj) => {
-            // delete targets
-            // await deleteTarget
+        // // Delete Targets
+        // requestData.ct_tbl_target.delete.forEach((obj) => {
+        //     // delete targets
+        //     // await deleteTarget
+        // })
+
+        // Insert Targets
+        requestData.ct_tbl_target.insert.forEach(async (obj) => {
+            // insert target
+            // await insertTarget
         })
 
         // Delete from ct_tbl_condition
