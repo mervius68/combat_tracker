@@ -194,7 +194,7 @@ app.get("/hpsByRound/:encounter", (req, res) => {
                 *
                 FROM ct_tbl_target
                 LEFT JOIN ct_tbl_action ON ct_tbl_target.targetID = ct_tbl_action.targetID
-                WHERE ct_tbl_target.eID = ${encounter} ORDER BY tID;
+                WHERE ct_tbl_target.eID = ${encounter} ORDER BY targetID, tID;
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
@@ -751,7 +751,7 @@ app.post('/addParticipant', (req, res) => {
 // Wrap db.run in a Promise to make it work with async/await
 function runDbQuery(sql, params = []) {
     return new Promise((resolve, reject) => {
-        db.run(sql, params, function(err) {
+        db.run(sql, params, function (err) {
             if (err) reject(err);
             else resolve(this);
         });
@@ -761,7 +761,7 @@ function runDbQuery(sql, params = []) {
 app.post("/updateActionDB", async (req, res) => {
     const requestData = req.body;
     console.log("this: ", requestData);
-    console.log("and: ", requestData.ct_tbl_target)
+    console.log("and: ", requestData.ct_tbl_target.insert)
     try {
         await runDbQuery("BEGIN TRANSACTION;");
 
@@ -787,7 +787,7 @@ app.post("/updateActionDB", async (req, res) => {
         // Insert Targets
         requestData.ct_tbl_target.insert.forEach(async (obj) => {
             // insert target
-            // await insertTarget
+            await insertTarget(obj);
         })
 
         // Delete from ct_tbl_condition
@@ -827,8 +827,8 @@ async function updateHPCascade(obj) {
             AND eID = ?
     `
     await runQuery(sql, [
-        diff,        
-        diff,        
+        diff,
+        diff,
         obj.aID,
         // obj.targetID,
         obj.pID,
@@ -901,6 +901,24 @@ async function updateTarget(target) {
     ])
 }
 
+async function insertTarget(target) {
+    const sql = `
+        INSERT into ct_tbl_target
+        (tID, targetID, eID, round, pID, target_pID, damage, new_hp, temp_hp) VALUES (?,?,?,?,?,?,?,?,?);
+    `
+    await runQuery(sql, [
+        target.tID,
+        target.targetID,
+        target.eID,
+        target.round,
+        target.pID,
+        target.target_pID,
+        target.damage,
+        target.newHP,
+        0
+    ])
+}
+
 async function deleteFromTable(table, conditionColumn, conditionValue) {
     const sql = `DELETE FROM ${table} WHERE ${conditionColumn} = ?;`;
     await runQuery(sql, [conditionValue]);
@@ -909,7 +927,7 @@ async function deleteFromTable(table, conditionColumn, conditionValue) {
 
 async function runQuery(sql, params) {
     return new Promise((resolve, reject) => {
-        db.run(sql, params, function(err) {
+        db.run(sql, params, function (err) {
             if (err) reject(err);
             else resolve(this);
         });

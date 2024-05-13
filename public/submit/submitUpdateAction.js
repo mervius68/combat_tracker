@@ -4,7 +4,7 @@ async function submitUpdateAction(dataAidValue, pID) {
     const ctAppCopy = await deepCopy(ctApp);
     const data = document.querySelector(".modalSubmit");
     const dataNav = data.getAttribute("data-row");
-    const currentRound = data.getAttribute("data-current-round");
+    const currentRound = parseInt(data.getAttribute("data-current-round"));
 
     let holdingOneRound = 0;
 
@@ -257,7 +257,7 @@ async function submitUpdateAction(dataAidValue, pID) {
     // figure out any changes in damage
     const damageAmountElements = document.getElementsByName("participants");
     for (target of damageAmountElements) {
-        console.log("target: ", target)
+        // console.log("target: ", target)
         const newValue = target.value || "";
         const dataAttributes = target.dataset;
         if (dataAttributes.originalvalue !== newValue) {
@@ -273,10 +273,10 @@ async function submitUpdateAction(dataAidValue, pID) {
                         aID: dataAidValue,
                         tID: dataAttributes.tid,
                         targetID: dataAttributes.targetid,
-                        damage: newValue,
+                        damage: parseInt(newValue),
                         eID: ctApp[0].eID,
                         round: currentRound,
-                        pID: dataAttributes.pid, // pID of target
+                        target_pID: parseInt(dataAttributes.pid), // pID of target
                         originalDamage: dataAttributes.originalvalue,
                         maxHP: dataAttributes.maxhp,
                         newHP: newHP,
@@ -292,7 +292,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     let downstreamArray = [];
                     ctApp.forEach(character => {
                         // Check if the character's pID matches the given value
-                        if (character.pID == record.pID) {
+                        if (character.pID == record.target_pID) {
                             // Iterate through each array in the damageArray
                             character.damageArrayNotMapped.forEach(damageArray => {
                                 // Filter the damageArray based on the condition that aID is greater than the given threshold
@@ -336,7 +336,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                         return prevNewHP;
                     }
 
-                    let dataArray = await getDamageArrayFromCtApp(Number(record.pID));
+                    let dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
                     let bufferHP = null;
                     if (dataArray) {
                         // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
@@ -412,29 +412,33 @@ async function submitUpdateAction(dataAidValue, pID) {
                         }
                     }
 
-                    const ctTarget = ctApp.find(item => item.pID == dataAttributes.pid)
+                    const ctTarget = ctApp.find(item => item.pID == dataAttributes.pid);
+                    // console.log("ctTarget: ", ctTarget)
                     const defaultDamageObjectNewHP = getDamageNewHP(ctTarget, dataAidValue);
                     // console.log('NewHP:', defaultDamageObjectNewHP);
 
                     let diff = 0 - parseInt(newValue);
                     let newHP = defaultDamageObjectNewHP - parseInt(newValue)
 
-                    // console.log("dataAttributes.pid: ", dataAttributes.pid)
-                    // console.log("datAidValue: ", dataAidValue)
+                    let damageObj = ctActions.find((item) => {
+                        return item.aID = dataAidValue
+                    })
+                    console.log("damageObj: ", damageObj)
 
                     // get previous item's value
                     record = {
                         aID: dataAidValue,
-                        tID: dataAttributes.tid,
-                        targetID: dataAttributes.targetid,
-                        damage: newValue,
+                        tID: null,
+                        targetID: damageObj.targetID, // get targetID from another target
+                        damage: parseInt(newValue),
                         eID: ctApp[0].eID,
                         round: currentRound,
-                        pID: dataAttributes.pid, // pID of target
+                        target_pID: dataAttributes.pid, // pID of target
                         originalDamage: 0,
-                        maxHP: dataAttributes.maxhp,
+                        maxHP: ctTarget.maxhp,
                         newHP: newHP,
-                        hit: diff == 0 ? 0 : 1
+                        hit: diff == 0 ? 0 : 1,
+                        pID: pID
                     }
                     if (record.newHP < 0) {
                         record.newHP = 0
@@ -444,7 +448,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     let downstreamArray = [];
                     ctApp.forEach(character => {
                         // Check if the character's pID matches the given value
-                        if (character.pID == record.pID) {
+                        if (character.pID == record.target_pID) {
                             // Iterate through each array in the damageArray
                             character.damageArrayNotMapped.forEach(damageArray => {
                                 // Filter the damageArray based on the condition that aID is greater than the given threshold
@@ -488,7 +492,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                         return prevNewHP;
                     }
 
-                    let dataArray = await getDamageArrayFromCtApp(Number(record.pID));
+                    let dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
                     let bufferHP = null;
                     if (dataArray) {
                         // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
@@ -534,10 +538,10 @@ async function submitUpdateAction(dataAidValue, pID) {
                         aID: dataAidValue,
                         tID: dataAttributes.tid,
                         targetID: dataAttributes.targetid,
-                        damage: newValue,
+                        damage: parseInt(newValue),
                         eID: ctApp[0].eID,
-                        round: currentRound,
-                        pID: dataAttributes.pid, // pID of target
+                        round: parseInt(currentRound),
+                        target_pID: parseInt(dataAttributes.pid), // pID of target
                         originalDamage: 0,
                         maxHP: dataAttributes.maxhp,
                         newHP: newHP,
@@ -552,7 +556,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     let downstreamArray = [];
                     ctApp.forEach(character => {
                         // Check if the character's pID matches the given value
-                        if (character.pID == record.pID) {
+                        if (character.pID == record.target_pID) {
                             // Iterate through each array in the damageArray
                             character.damageArrayNotMapped.forEach(damageArray => {
                                 // Filter the damageArray based on the condition that aID is greater than the given threshold
@@ -596,7 +600,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                         return prevNewHP;
                     }
 
-                    let dataArray = await getDamageArrayFromCtApp(Number(record.pID));
+                    let dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
                     let bufferHP = null;
                     if (dataArray) {
                         // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
@@ -643,7 +647,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                         targetID: dataAttributes.targetid,
                         eID: ctApp[0].eID,
                         round: currentRound,
-                        pID: dataAttributes.pid,
+                        target_pID: dataAttributes.pid,
                         originalDamage: dataAttributes.originalvalue,
                         maxHP: dataAttributes.maxhp,
                         newHP: dataAttributes.hp
@@ -655,7 +659,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                         targetID: dataAttributes.targetid,
                         eID: ctApp[0].eID,
                         round: currentRound,
-                        pID: dataAttributes.pid,
+                        target_pID: dataAttributes.pid,
                         damage: newValue,
                         originalDamage: dataAttributes.originalvalue
                     }

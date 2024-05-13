@@ -1188,7 +1188,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         document.addEventListener("contextmenu", contextMenuListener);
         document.addEventListener('contextmenu', function (event) {
             console.log('Right-clicked element:', event.target);
-            console.log("Right-clicked element's parent:", event.target.parentElement)
+            // console.log("Right-clicked element's parent:", event.target.parentElement)
         });
 
 
