@@ -256,7 +256,7 @@ async function submitUpdateAction(dataAidValue, pID) {
 
     // figure out any changes in damage
     const damageAmountElements = document.getElementsByName("participants");
-    
+
     // check to see if the fields are all empty;
     const anyDamageInputUsed = Array.from(damageAmountElements).find((ele) => {
         return ele.value
@@ -264,8 +264,13 @@ async function submitUpdateAction(dataAidValue, pID) {
     // if they're all empty, delete the action
     if (!anyDamageInputUsed) {
         deleteAction(dataAidValue);
+        // load_encounter(ctAppEnc, dataNav);
+        let modal = document.querySelector(".modal");
+        modal.removeEventListener("click", modalClickListener);
+        modal.style.display = "none";
+        return;
     }
-    
+
 
     for (target of damageAmountElements) {
         // console.log("target: ", target)
@@ -767,39 +772,39 @@ async function submitUpdateAction(dataAidValue, pID) {
                     }
                 }
 
-                
-                    async function getDamageArrayFromCtApp(targetPID) {
-                        for (const item of ctApp) {
-                            if (item.pID === targetPID) {
-                                return item.damageArrayNotMapped;
-                            }
+
+                async function getDamageArrayFromCtApp(targetPID) {
+                    for (const item of ctApp) {
+                        if (item.pID === targetPID) {
+                            return item.damageArrayNotMapped;
                         }
-                        return null;  // This confirms that no item matched the targetPID
                     }
+                    return null;  // This confirms that no item matched the targetPID
+                }
 
-                    async function getPreviousNewHP(dataArray, targetAID) {
-                        let prevNewHP = null;  // Default to null if no previous object or not found
+                async function getPreviousNewHP(dataArray, targetAID) {
+                    let prevNewHP = null;  // Default to null if no previous object or not found
 
-                        // Assuming dataArray is correctly formatted and it's a double array as observed
-                        if (dataArray && dataArray[0]) {
+                    // Assuming dataArray is correctly formatted and it's a double array as observed
+                    if (dataArray && dataArray[0]) {
+                        for (let i = 0; i < dataArray[0].length; i++) {
                             for (let i = 0; i < dataArray[0].length; i++) {
-                                for (let i = 0; i < dataArray[0].length; i++) {
-                                    if (dataArray[0][i].aID === targetAID) {
-                                        // Check if there's a previous element
-                                        if (i > 0) {
-                                            // Return the newHP of the previous element
-                                            return dataArray[0][i - 1].newHP;
-                                        } else {
-                                            // If there is no previous element, return null or a default value
-                                            console.warn("No previous entry exists for the given aID.");
-                                            return null; // No previous entry exists
-                                        }
+                                if (dataArray[0][i].aID === targetAID) {
+                                    // Check if there's a previous element
+                                    if (i > 0) {
+                                        // Return the newHP of the previous element
+                                        return dataArray[0][i - 1].newHP;
+                                    } else {
+                                        // If there is no previous element, return null or a default value
+                                        console.warn("No previous entry exists for the given aID.");
+                                        return null; // No previous entry exists
                                     }
                                 }
                             }
                         }
-                        return prevNewHP;
                     }
+                    return prevNewHP;
+                }
 
 
                 function getDamageNewHP(ctTarget, maxAid) {
