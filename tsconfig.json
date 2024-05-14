@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "module": "commonjs",
+        "allowJs": true,
+        "checkJs": true,
+        "outDir": "build",
+        "target": "esnext",
+        "noEmit": true
+    },
+    "include": ["**/*.ts"]
+}

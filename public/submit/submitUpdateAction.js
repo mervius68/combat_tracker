@@ -256,14 +256,26 @@ async function submitUpdateAction(dataAidValue, pID) {
 
     // figure out any changes in damage
     const damageAmountElements = document.getElementsByName("participants");
+    
+    // check to see if the fields are all empty;
+    const anyDamageInputUsed = Array.from(damageAmountElements).find((ele) => {
+        return ele.value
+    })
+    // if they're all empty, delete the action
+    if (!anyDamageInputUsed) {
+        deleteAction(dataAidValue);
+    }
+    
+
     for (target of damageAmountElements) {
         // console.log("target: ", target)
         const newValue = target.value || "";
+        // console.log("newValue: ", newValue)
         const dataAttributes = target.dataset;
         if (dataAttributes.originalvalue !== newValue) {
             let record = { tID: dataAttributes.tid };
             // if the new value is a number
-            if (Number.isInteger(parseInt(newValue))) {     // if new value is a number
+            if (Number.isInteger(parseInt(newValue))) {     // if new value is a number                 DONE
                 if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {      // original value is number, and new value is number    DONE
                     let diff = parseInt(dataAttributes.originalvalue) - parseInt(newValue);
                     let newHP = dataAttributes.hp == 0 ? 0 : (parseInt(dataAttributes.hp)) - parseInt(newValue) + parseInt(dataAttributes.originalvalue)
@@ -376,7 +388,7 @@ async function submitUpdateAction(dataAidValue, pID) {
 
                     // look in ctApp for targets in damageArray where
                     // aID > dataAidValue and ctApp pID = pID
-                } else if (dataAttributes.originalvalue == null || dataAttributes.originalvalue == "") {                    // original value is "", and new value is number
+                } else if (dataAttributes.originalvalue == null || dataAttributes.originalvalue == "") {                    // original value is "", and new value is number        DONE
 
 
                     // newHP needs to equal dataAttributes.pid's latest action's newHP value, and then subtract parseInt(newValue)
@@ -398,12 +410,12 @@ async function submitUpdateAction(dataAidValue, pID) {
                                 (max === null || damage.aID > max.aID ? damage : max), null);
 
                             if (highestValidDamage) {
-                                console.log('Highest valid damage object:', highestValidDamage);
+                                // console.log('Highest valid damage object:', highestValidDamage);
                                 return highestValidDamage.newHP;
                             } else {
                                 // If no valid damage object is found, return the first object in the first sub-array of damageArray
                                 const defaultDamageObject = ctTarget.damageArray[0][0];
-                                console.log('Default damage object:', defaultDamageObject);
+                                // console.log('Default damage object:', defaultDamageObject);
                                 return defaultDamageObject.newHP;
                             }
                         } else {
@@ -423,7 +435,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     let damageObj = ctActions.find((item) => {
                         return item.aID = dataAidValue
                     })
-                    console.log("damageObj: ", damageObj)
+                    // console.log("damageObj: ", damageObj)
 
                     // get previous item's value
                     record = {
@@ -638,7 +650,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     }
                 }
             } else if (newValue == "x") {                   // if new value is "x"
-                if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "0") {          // if originalvalue is a non-zero number and newvalue is "x"
+                if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "0") {          // originalvalue is a number and newvalue is "x"
                     // let newHP = baseHP == 0 ? 0 : parseInt(baseHP) - parseInt(newValue) + parseInt(originalValue)
                     record = {
                         aID: dataAidValue,
@@ -654,7 +666,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     }
                     update.ct_tbl_target.update.push(record);
                     // are there any affected records downstream?
-                } else if (dataAttributes.originalvalue == null) {
+                } else if (dataAttributes.originalvalue == null) {                                                              // original value is "", and new value is "x"
                     record = {
                         targetID: dataAttributes.targetid,
                         eID: ctApp[0].eID,
@@ -666,13 +678,155 @@ async function submitUpdateAction(dataAidValue, pID) {
                     update.ct_tbl_target.insert.push(record);
 
                 }
-            } else if (newValue == "") {                    // if new value is ""
-                // if the new value input is '', delete record from ct_tbl_target
-                record = {
-                    tID: dataAttributes.tid,
+            } else if (newValue == "") {                    // new value is ""
+                if (dataAttributes.originalvalue) {
+                    const ctTarget = ctApp.find(item => item.pID == dataAttributes.pid);
+                    // console.log("ctTarget: ", ctTarget)
+                    const defaultDamageObjectNewHP = getDamageNewHP(ctTarget, dataAidValue);
+                    // console.log('NewHP:', defaultDamageObjectNewHP);
+
+                    let diff = 0;
+                    let newHP = defaultDamageObjectNewHP
+
+                    let damageObj = ctActions.find((item) => {
+                        return item.aID = dataAidValue
+                    })
+
+                    // get previous item's value
+                    record = {
+                        aID: dataAidValue,
+                        tID: parseInt(dataAttributes.tid),
+                        targetID: damageObj.targetID, // get targetID from another target
+                        damage: 0,
+                        eID: ctApp[0].eID,
+                        round: currentRound,
+                        target_pID: parseInt(dataAttributes.pid), // pID of target
+                        originalDamage: 0,
+                        maxHP: ctTarget.maxhp,
+                        newHP: newHP,
+                        hit: diff == 0 ? 0 : 1,
+                        pID: pID
+                    }
+                    // console.log(record)
+                    if (record.newHP < 0) {
+                        record.newHP = 0
+                    }
+                    if (record.tID != null) {
+                        update.ct_tbl_target.delete.push(record);
+                    }
+
+                    let downstreamArray = [];
+                    ctApp.forEach(character => {
+                        // Check if the character's pID matches the given value
+                        if (character.pID == record.target_pID) {
+                            // Iterate through each array in the damageArray
+                            character.damageArrayNotMapped.forEach(damageArray => {
+                                // Filter the damageArray based on the condition that aID is greater than the given threshold
+                                const filteredDamageItems = damageArray.filter(damageItem => damageItem.aID !== null && damageItem.aID > dataAidValue);
+                                // Append the filtered items to the result array
+                                downstreamArray = downstreamArray.concat(filteredDamageItems);
+                            });
+                        }
+                    });
+
+                    let dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
+                    let bufferHP = null;
+                    if (dataArray) {
+                        // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
+                        bufferHP = await getPreviousNewHP(dataArray, dataAidValue) || record.newHP - diff;
+                    }
+                    // console.log("dataAidValue: ", dataAidValue);
+                    bufferHP -= record.damage
+                    if (bufferHP < 0) {
+                        bufferHP = 0
+                    }
+
+                    // Call the async function with bufferHP as argument
+                    await processDownstreamArray(bufferHP, downstreamArray);
+                    for (const item of ctAppCopy) {
+                        if (item.pID === pID) {
+                            const notMapped = item.damageArrayNotMapped[currentRound - 1];
+                            if (Array.isArray(notMapped)) {
+                                const uniqueInDownstream = downstreamArray.filter(downstreamObj => {
+                                    const isDuplicated = notMapped.some(notMappedObj => {
+                                        // Explicitly convert and compare if necessary
+                                        const isEqual = Number(notMappedObj.aID) === Number(downstreamObj.aID) &&
+                                            Number(notMappedObj.tID) === Number(downstreamObj.tID) &&
+                                            Number(notMappedObj.damage) === Number(downstreamObj.damage) &&
+                                            Number(notMappedObj.newHP) === Number(downstreamObj.newHP) &&
+                                            Number(notMappedObj.targetID) === Number(downstreamObj.targetID);
+                                        return isEqual;
+                                    });
+                                    return !isDuplicated;
+                                });
+                                uniqueInDownstream.forEach((item) => {
+                                    update.ct_tbl_target.update.push(item);
+                                })
+                            }
+                        }
+                    }
                 }
-                if (record.tID != null) {
-                    update.ct_tbl_target.delete.push(record);
+
+                
+                    async function getDamageArrayFromCtApp(targetPID) {
+                        for (const item of ctApp) {
+                            if (item.pID === targetPID) {
+                                return item.damageArrayNotMapped;
+                            }
+                        }
+                        return null;  // This confirms that no item matched the targetPID
+                    }
+
+                    async function getPreviousNewHP(dataArray, targetAID) {
+                        let prevNewHP = null;  // Default to null if no previous object or not found
+
+                        // Assuming dataArray is correctly formatted and it's a double array as observed
+                        if (dataArray && dataArray[0]) {
+                            for (let i = 0; i < dataArray[0].length; i++) {
+                                for (let i = 0; i < dataArray[0].length; i++) {
+                                    if (dataArray[0][i].aID === targetAID) {
+                                        // Check if there's a previous element
+                                        if (i > 0) {
+                                            // Return the newHP of the previous element
+                                            return dataArray[0][i - 1].newHP;
+                                        } else {
+                                            // If there is no previous element, return null or a default value
+                                            console.warn("No previous entry exists for the given aID.");
+                                            return null; // No previous entry exists
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        return prevNewHP;
+                    }
+
+
+                function getDamageNewHP(ctTarget, maxAid) {
+                    if (ctTarget && ctTarget.damageArray.length > 0) {
+                        // Flatten the damageArray to simplify processing
+                        const flatDamageArray = ctTarget.damageArray.flat();
+
+                        // Filter the array for objects where aID is defined and does not exceed maxAid
+                        const validDamages = flatDamageArray.filter(damage => damage.aID !== null && damage.aID <= maxAid);
+
+                        // Find the object with the highest aID that does not exceed maxAid
+                        const highestValidDamage = validDamages.reduce((max, damage) =>
+                            (max === null || damage.aID > max.aID ? damage : max), null);
+
+                        if (highestValidDamage) {
+                            // console.log('Highest valid damage object:', highestValidDamage);
+                            return highestValidDamage.newHP;
+                        } else {
+                            // If no valid damage object is found, return the first object in the first sub-array of damageArray
+                            const defaultDamageObject = ctTarget.damageArray[0][0];
+                            // console.log('Default damage object:', defaultDamageObject);
+                            return defaultDamageObject.newHP;
+                        }
+                    } else {
+                        console.log('No object found or damageArray is empty');
+                        return null; // Return null if no damageArray is found or it is empty
+                    }
                 }
             }
         }

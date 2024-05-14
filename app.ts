@@ -1,4 +1,4 @@
-const express = require("express");
+let express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const fs = require("fs");
 const path = require("path");
@@ -10,7 +10,7 @@ const databaseFolder = "databases"; // Name of the folder
 const folderPath = path.join(__dirname, databaseFolder);
 
 // Read the contents of database.txt in the folder
-const databaseName = fs.readFileSync(path.join(folderPath, "database.txt"), "utf8").trim();
+let databaseName = fs.readFileSync(path.join(folderPath, "database.txt"), "utf8").trim();
 if (!databaseName) databaseName = "combat_template"
 // Construct the path to the database file
 const dbPath = path.join(folderPath, `${databaseName}.db`);
@@ -44,7 +44,7 @@ app.get("/", function (req, res) {
 });
 
 app.get("/selected_encounter/:eID", (req, res) => {
-    eID = req.params.eID;
+    const eID = req.params.eID;
     let sql = `SELECT *
                 FROM tbl_encounter
                 WHERE eID = ${eID}
@@ -58,7 +58,7 @@ app.get("/selected_encounter/:eID", (req, res) => {
 });
 
 app.get("/updatedNames/:pID", (req, res) => {
-    pID = req.params.pID;
+    const pID = req.params.pID;
     let sql = `SELECT character_name
                 FROM ct_tbl_participant
                 WHERE pID = ${pID}
@@ -761,7 +761,7 @@ function runDbQuery(sql, params = []) {
 app.post("/updateActionDB", async (req, res) => {
     const requestData = req.body;
     console.log("this: ", requestData);
-    console.log("and: ", requestData.ct_tbl_target.insert)
+    console.log("and: ", requestData.ct_tbl_target.delete)
     try {
         await runDbQuery("BEGIN TRANSACTION;");
 
@@ -778,15 +778,14 @@ app.post("/updateActionDB", async (req, res) => {
             // await updateHPCascade(obj);
         })
 
-        // // Delete Targets
-        // requestData.ct_tbl_target.delete.forEach((obj) => {
-        //     // delete targets
-        //     // await deleteTarget
-        // })
+        // Delete Targets
+        requestData.ct_tbl_target.delete.forEach(async (obj) => {
+            // delete targets
+            await deleteTarget(obj);
+        })
 
         // Insert Targets
         requestData.ct_tbl_target.insert.forEach(async (obj) => {
-            // insert target
             await insertTarget(obj);
         })
 
@@ -898,6 +897,16 @@ async function updateTarget(target) {
         target.damage,
         target.newHP,
         target.tID
+    ])
+}
+
+async function deleteTarget(target) {
+    const sql = `
+        DELETE FROM ct_tbl_target
+        WHERE tID = ?
+    `
+    await runQuery(sql, [
+        target.tID,
     ])
 }
 
