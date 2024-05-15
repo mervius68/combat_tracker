@@ -1,4 +1,4 @@
-<script>
+
     let cellCountVertical,
         participantsHpsByRound;
 
@@ -946,5 +946,3 @@
             downstreamArray.splice(indexToRemove);
         }
     }
-
-</script>

@@ -5,9 +5,10 @@
         "module": "commonjs",
         "allowJs": true,
         "checkJs": true,
-        "outDir": "build",
+        "outDir": "public",
         "target": "esnext",
-        "noEmit": true
+        "noEmit": false,
     },
-    "include": ["**/*.ts"]
+    "include": ["**/*.ts"], 
+    "exclude": ["**/app.ts"]
 }

@@ -273,17 +273,26 @@ async function submitUpdateAction(dataAidValue, pID) {
 
 
     for (target of damageAmountElements) {
+        // console.log(target);
         // console.log("target: ", target)
         const newValue = target.value || "";
         // console.log("newValue: ", newValue)
         const dataAttributes = target.dataset;
+        // if a field has experienced a change...
         if (dataAttributes.originalvalue !== newValue) {
             let record = { tID: dataAttributes.tid };
             // if the new value is a number
             if (Number.isInteger(parseInt(newValue))) {     // if new value is a number                 DONE
                 if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {      // original value is number, and new value is number    DONE
-                    let diff = parseInt(dataAttributes.originalvalue) - parseInt(newValue);
-                    let newHP = dataAttributes.hp == 0 ? 0 : (parseInt(dataAttributes.hp)) - parseInt(newValue) + parseInt(dataAttributes.originalvalue)
+                    let dataArray1 = await getDamageArrayFromCtApp(Number(target.getAttribute("data-pid")));
+                    let newHits = null;
+                    if (dataArray1) {
+                        // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
+                        newHits = await getPreviousNewHP(dataArray1, dataAidValue);
+                        console.log(newHits);
+                    }
+                    
+                    let newHP =  newHits - parseInt(newValue)
 
                     // get previous item's value
                     record = {
@@ -299,6 +308,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                         newHP: newHP,
                         hit: 1
                     }
+                    // console.log(record);
                     if (record.newHP < 0) {
                         record.newHP = 0
                     }
