@@ -287,9 +287,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     let dataArray1 = await getDamageArrayFromCtApp(Number(target.getAttribute("data-pid")));
                     let newHits = null;
                     if (dataArray1) {
-                        // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
                         newHits = await getPreviousNewHP(dataArray1, dataAidValue);
-                        console.log(newHits);
                     }
                     
                     let newHP =  newHits - parseInt(newValue)
