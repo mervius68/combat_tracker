@@ -211,7 +211,7 @@ async function submitUpdateAction(dataAidValue, pID) {
     // alert(conditionElement.outerHTML)
     deleteCondition = conditionElement?.getAttribute("data-condition-id");
     let actionObj = ctActions.find((action) => {
-        return action.aID = dataAidValue
+        return action.aID == dataAidValue
     })
     const update = {
         ct_tbl_action: {
@@ -247,11 +247,14 @@ async function submitUpdateAction(dataAidValue, pID) {
         return weapon.checked == true;
     })
 
+    console.log(actionObj)
+
     if (actionObj.conditionID && conditionCurrent.getAttribute("data-condition-id") != actionObj.conditionID) {
         const data = {
             taid: actionObj.taID
         }
         await dbQueryPost("deleteCondition", data)
+        console.log("didn't get here")
     }
 
     // figure out any changes in damage
@@ -261,10 +264,9 @@ async function submitUpdateAction(dataAidValue, pID) {
     const anyDamageInputUsed = Array.from(damageAmountElements).find((ele) => {
         return ele.value
     })
-    // if they're all empty, delete the action
+    // if they're all empty, delete the action a
     if (!anyDamageInputUsed) {
         deleteAction(dataAidValue);
-        // load_encounter(ctAppEnc, dataNav);
         let modal = document.querySelector(".modal");
         modal.removeEventListener("click", modalClickListener);
         modal.style.display = "none";
@@ -283,120 +285,108 @@ async function submitUpdateAction(dataAidValue, pID) {
             // if the new value is a number
             if (Number.isInteger(parseInt(newValue))) {     // if new value is a number                 DONE
                 if (Number.isInteger(parseInt(dataAttributes.originalvalue)) && dataAttributes.originalvalue != "x") {      // original value is number, and new value is number    DONE
-                    const dataArray1 = await getDamageArrayFromCtApp(Number(target.getAttribute("data-pid")));
-                    const newHits = dataArray1 ? await getPreviousNewHP(dataArray1, dataAidValue) : newHits;
-                    const newHP = newHits - parseInt(newValue);
+                    // Fetch and process data arrays
+                    const pid = Number(target.getAttribute("data-pid"));
+                    const dataArray1 = await getDamageArrayFromCtApp(pid);
+                    const newHits = dataArray1 ? await getPreviousNewHP(dataArray1, dataAidValue) : 0; // Default to 0 if dataArray1 is null
+                    const parsedNewValue = parseInt(newValue);
+                    const newHP = newHits - parsedNewValue;
 
-                    // get previous item's value
-                    record = {
+                    // Create the record
+                    const record = {
                         aID: dataAidValue,
                         tID: dataAttributes.tid,
                         targetID: dataAttributes.targetid,
-                        damage: parseInt(newValue),
+                        damage: parsedNewValue,
                         eID: ctApp[0].eID,
                         round: currentRound,
-                        target_pID: parseInt(dataAttributes.pid), // pID of target
+                        target_pID: parseInt(dataAttributes.pid),
                         originalDamage: dataAttributes.originalvalue,
                         maxHP: dataAttributes.maxhp,
                         newHP: Math.max(newHP, 0), // Ensure newHP is not negative
                         hit: 1
                     };
-                    update.ct_tbl_target.update.push(record);
 
+                    // Update operations
+                    update.ct_tbl_target.update.push(record);
                     downstreamArray = filterAndAppendDamageItems(ctApp, record, dataAidValue, downstreamArray);
 
+                    // Further damage array processing and buffer HP calculations
                     let dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
-                    let bufferHP = null;
-                    if (dataArray) {
-                        bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
-                    }
+                    let bufferHP = dataArray ? await getPreviousNewHP(dataArray, dataAidValue) : 0; // Default to 0 if dataArray is null
+                    bufferHP = Math.max(bufferHP - record.damage, 0);
 
-                    bufferHP -= record.damage
-                    if (bufferHP < 0) {
-                        bufferHP = 0
-                    }
-
-                    // Call the async function with bufferHP as argument
+                    // Async function calls
                     await processDownstreamArray(bufferHP, downstreamArray);
                     updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
                 } else if (dataAttributes.originalvalue == null || dataAttributes.originalvalue == "") {                    // original value is "", and new value is number        DONE
+                    const parsedNewValue = parseInt(newValue);
                     const defaultDamageObjectNewHP = getDamageNewHP(ctTarget, dataAidValue);
+                    let newHP = defaultDamageObjectNewHP - parsedNewValue;
 
-                    let diff = 0 - parseInt(newValue);
-                    let newHP = defaultDamageObjectNewHP - parseInt(newValue)
+                    const damageObj = ctActions.find(item => item.aID === dataAidValue);
 
-                    let damageObj = ctActions.find((item) => {
-                        return item.aID = dataAidValue
-                    })
+                    if (!damageObj) {
+                        console.warn('No damage object found for aID:', dataAidValue);
+                        return; // Exit if no related damage object is found
+                    }
 
-                    // get previous item's value
-                    record = {
+                    // Preparing the record
+                    const record = {
                         aID: dataAidValue,
                         tID: null,
-                        targetID: damageObj.targetID, // get targetID from another target
-                        damage: parseInt(newValue),
+                        targetID: damageObj.targetID,
+                        damage: parsedNewValue,
                         eID: ctApp[0].eID,
                         round: currentRound,
-                        target_pID: dataAttributes.pid, // pID of target
+                        target_pID: dataAttributes.pid,
                         originalDamage: 0,
-                        maxHP: ctTarget.maxhp,
-                        newHP: Math.max(record.newHP, 0),
-                        hit: diff == 0 ? 0 : 1,
+                        maxHP: ctTarget ? ctTarget.maxhp : 0, // Safeguard against undefined ctTarget
+                        newHP: Math.max(newHP, 0),
+                        hit: parsedNewValue === 0 ? 0 : 1,
                         pID: pID
-                    }
+                    };
+
                     update.ct_tbl_target.insert.push(record);
 
                     downstreamArray = filterAndAppendDamageItems(ctApp, record, dataAidValue, downstreamArray);
 
                     let dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
-                    let bufferHP = null;
-                    if (dataArray) {
-                        bufferHP = await getPreviousNewHP(dataArray, dataAidValue) || record.newHP - diff;
-                    }
-
-                    bufferHP -= record.damage
-                    if (bufferHP < 0) {
-                        bufferHP = 0
-                    }
+                    let bufferHP = dataArray ? await getPreviousNewHP(dataArray, dataAidValue) : record.newHP;
+                    bufferHP = Math.max(bufferHP - record.damage, 0);
 
                     // Call the async function with bufferHP as argument
                     await processDownstreamArray(bufferHP, downstreamArray);
                     updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
                 } else if (dataAttributes.originalvalue == "x") {                                                           // original value is "x", and new value is number       DONE
-                    let diff = 0 - parseInt(newValue);
-                    let newHP = dataAttributes.hp == 0 ? 0 : (parseInt(dataAttributes.hp)) - parseInt(newValue)
+                    const parsedNewValue = parseInt(newValue);
+                    const parsedHP = parseInt(dataAttributes.hp);
+                    const newHP = parsedHP === 0 ? 0 : parsedHP - parsedNewValue;
+                    const diff = 0 - parsedNewValue;  // This could also be simplified to -parsedNewValue directly
 
-                    // get previous item's value
-                    record = {
+                    // Creating the record object with appropriate parsing and logical checks
+                    const record = {
                         aID: dataAidValue,
                         tID: dataAttributes.tid,
                         targetID: dataAttributes.targetid,
-                        damage: parseInt(newValue),
+                        damage: parsedNewValue,
                         eID: ctApp[0].eID,
                         round: parseInt(currentRound),
-                        target_pID: parseInt(dataAttributes.pid), // pID of target
+                        target_pID: parseInt(dataAttributes.pid),
                         originalDamage: 0,
-                        maxHP: dataAttributes.maxhp,
-                        newHP: Math.max(record.newHP, 0),
-                        hit: diff == 0 ? 0 : 1
-                    }
-                    update.ct_tbl_target.update.push(record);
+                        maxHP: parseInt(dataAttributes.maxhp),
+                        newHP: Math.max(newHP, 0),
+                        hit: diff === 0 ? 0 : 1
+                    };
 
+                    update.ct_tbl_target.update.push(record);
                     downstreamArray = filterAndAppendDamageItems(ctApp, record, dataAidValue, downstreamArray);
 
-                    let dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
-                    let bufferHP = null;
-                    if (dataArray) {
-                        // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
-                        bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
-                    }
+                    // Fetch previous newHP and calculate bufferHP
+                    const dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
+                    let bufferHP = dataArray ? await getPreviousNewHP(dataArray, dataAidValue) : 0;
+                    bufferHP = Math.max(bufferHP - parsedNewValue, 0);  // Directly subtract parsedNewValue
 
-                    bufferHP -= record.damage
-                    if (bufferHP < 0) {
-                        bufferHP = 0
-                    }
-
-                    // Call the async function with bufferHP as argument
                     await processDownstreamArray(bufferHP, downstreamArray);
                     updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
                 }
@@ -433,49 +423,50 @@ async function submitUpdateAction(dataAidValue, pID) {
                 }
             } else if (newValue == "") {                    // new value is ""
                 if (dataAttributes.originalvalue) {
+                    // Retrieve NewHP based on target and aid value
                     const defaultDamageObjectNewHP = getDamageNewHP(ctTarget, dataAidValue);
 
-                    let diff = 0;
-                    let newHP = defaultDamageObjectNewHP
+                    // Initialize variables
+                    let diff = 0; // Since diff is always 0, consider if this is necessary
+                    let newHP = defaultDamageObjectNewHP;
 
-                    let damageObj = ctActions.find((item) => {
-                        return item.aID = dataAidValue
-                    })
+                    // Correct assignment in find method, and handle potential undefined return
+                    let damageObj = ctActions.find(item => item.aID === dataAidValue);
+                    if (!damageObj) {
+                        console.error('No damage object found for aID:', dataAidValue);
+                        return; // Exit if no damage object is found
+                    }
 
-                    // get previous item's value
-                    record = {
+                    // Construct the record object
+                    let record = {
                         aID: dataAidValue,
                         tID: parseInt(dataAttributes.tid),
-                        targetID: damageObj.targetID, // get targetID from another target
+                        targetID: damageObj.targetID,
                         damage: 0,
                         eID: ctApp[0].eID,
                         round: currentRound,
-                        target_pID: parseInt(dataAttributes.pid), // pID of target
+                        target_pID: parseInt(dataAttributes.pid),
                         originalDamage: 0,
                         maxHP: ctTarget.maxhp,
-                        newHP: newHP,
-                        hit: diff == 0 ? 0 : 1,
+                        newHP: Math.max(newHP, 0), // Ensures newHP is not negative
+                        hit: 0, // Since diff is always 0, hit will always be 0
                         pID: pID
+                    };
+
+                    // Update operations based on tID presence
+                    if (record.tID != null) {
+                        update.ct_tbl_target.delete.push(record);
                     }
 
-                    record.newHP = Math.max(record.newHP, 0);
-                    if (record.tID != null) update.ct_tbl_target.delete.push(record);
-
+                    // Filter and append damage items
                     downstreamArray = filterAndAppendDamageItems(ctApp, record, dataAidValue, downstreamArray);
 
+                    // Fetch damage array and calculate bufferHP
                     let dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
-                    let bufferHP = null;
-                    if (dataArray) {
-                        // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
-                        bufferHP = await getPreviousNewHP(dataArray, dataAidValue) || record.newHP - diff;
-                    }
-                    // console.log("dataAidValue: ", dataAidValue);
-                    bufferHP -= record.damage
-                    if (bufferHP < 0) {
-                        bufferHP = 0
-                    }
+                    let bufferHP = dataArray ? await getPreviousNewHP(dataArray, dataAidValue) : record.newHP;
+                    bufferHP = Math.max(bufferHP - record.damage, 0); // Ensure bufferHP does not go negative
 
-                    // Call the async function with bufferHP as argument
+                    // Process downstream array and update uniquely downstream
                     await processDownstreamArray(bufferHP, downstreamArray);
                     updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
                 }
@@ -503,7 +494,8 @@ async function submitUpdateAction(dataAidValue, pID) {
         );
     }
 
-//////////////////////////////////////////////////////   HELPERS!!!    ****************************************************
+    //////////////////////////////////////////////////////   HELPERS!!!    ****************************************************
+
 
     async function processConditions() {
         for (const condition of disableConditionsEle) {
