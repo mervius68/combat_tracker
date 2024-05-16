@@ -205,10 +205,6 @@ async function submitUpdateAction(dataAidValue, pID) {
 
     let deleteCondition = false;
     let conditionElement = document?.querySelector('[data-condition-id]')
-    // if (conditionElement?.checked == false) {
-    //     deleteCondition = true;
-    // }
-    // alert(conditionElement.outerHTML)
     deleteCondition = conditionElement?.getAttribute("data-condition-id");
     let actionObj = ctActions.find((action) => {
         return action.aID == dataAidValue
