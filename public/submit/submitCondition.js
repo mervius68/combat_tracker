@@ -82,6 +82,5 @@ async function submitCondition(nextAID) {
         await dbQuery("GET", dataConditions);
 
         load_encounter(ctAppEnc, dataNav);
-        let modal = document.querySelector(".modal");
-        modal.style.display = "none";
+        closeModal();
     }

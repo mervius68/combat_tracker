@@ -263,9 +263,7 @@ async function submitUpdateAction(dataAidValue, pID) {
     // if they're all empty, delete the action a
     if (!anyDamageInputUsed) {
         deleteAction(dataAidValue);
-        let modal = document.querySelector(".modal");
-        modal.removeEventListener("click", modalClickListener);
-        modal.style.display = "none";
+        closeModal();
         return;
     }
 
@@ -419,12 +417,8 @@ async function submitUpdateAction(dataAidValue, pID) {
                 }
             } else if (newValue == "") {                    // new value is ""
                 if (dataAttributes.originalvalue) {
-                    // Retrieve NewHP based on target and aid value
-                    const defaultDamageObjectNewHP = getDamageNewHP(ctTarget, dataAidValue);
-
-                    // Initialize variables
-                    let diff = 0; // Since diff is always 0, consider if this is necessary
-                    let newHP = defaultDamageObjectNewHP;
+                    // Initialize newHP based on target and aid value
+                    let newHP = getDamageNewHP(ctTarget, dataAidValue);
 
                     // Correct assignment in find method, and handle potential undefined return
                     let damageObj = ctActions.find(item => item.aID === dataAidValue);
@@ -471,13 +465,11 @@ async function submitUpdateAction(dataAidValue, pID) {
     }
 
     await dbQueryPost("updateActionDB", update)
-    let nextAID = await dbQuery("GET", "getNewAID");
-    nextAID = nextAID.length > 0 && nextAID[0].aID != undefined ? nextAID[0].aID : 1;
+    let nextAvailableActionID = await dbQuery("GET", "getNewAID");
+    nextAvailableActionID = nextAvailableActionID.length > 0 && nextAvailableActionID[0].aID != undefined ? nextAvailableActionID[0].aID : 1;
 
     load_encounter(ctAppEnc, dataNav);
-    let modal = document.querySelector(".modal");
-    modal.removeEventListener("click", modalClickListener);
-    modal.style.display = "none";
+    closeModal();
 
     if ((concentrationNext == 1 || holding == 1) && !conditionCurrent?.getAttribute("data-condition-id")) {
         launchConditionsModal(
@@ -486,12 +478,11 @@ async function submitUpdateAction(dataAidValue, pID) {
             conditionName,
             holding,
             holdingOneRound,
-            nextAID
+            nextAvailableActionID
         );
     }
 
     //////////////////////////////////////////////////////   HELPERS!!!    ****************************************************
-
 
     async function processConditions() {
         for (const condition of disableConditionsEle) {

@@ -799,3 +799,9 @@ async function processDownstreamArray(bufferHP, downstreamArray, startIndex = 0)
         downstreamArray.splice(indexToRemove);
     }
 }
+
+ function turnOffModal() {
+        let modal = document.querySelector(".modal");
+        modal.removeEventListener("click", modalClickListener);
+        modal.style.display = "none";
+    }
