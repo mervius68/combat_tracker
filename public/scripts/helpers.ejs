@@ -428,7 +428,7 @@
             closeModalBox(closeModal);
         });
     }
-    
+
     function closeModal() {
         let modal = document.querySelector(".modal");
         let closeModalButtons = document.querySelectorAll(".close-modal");
@@ -436,29 +436,32 @@
         modalIsOpen = false;
     }
 
-    const clickEventListener = async function (event) {
-        if (event.target.getAttribute("data-nav")) {
-            let myElement = document.querySelectorAll(".selected");
-            let nav = myElement[0].getAttribute("data-nav");
-            let targetNum = Number(nav) + 1;
-            let newTarget;
+    const clickEventListener = async (event) => {
+        const target = event.target;
+        const navAttr = target.getAttribute("data-nav");
+
+        if (navAttr) {
+            const selectedElements = document.querySelectorAll(".selected");
+            const nav = Number(selectedElements[0].getAttribute("data-nav"));
+            const targetNum = nav + 1;
+
             if (nav < cellCountVertical - 1) {
-                myElement.forEach((ele) => {
-                    ele.classList.remove("selected");
-                });
-                newTarget = document.querySelector(
-                    '[data-nav="' + targetNum + '"]'
-                );
-                event.target.classList.add("selected");
-                event.target.nextSibling.classList.add("selected");
-                event.target.nextSibling.nextSibling.classList.add("selected");
-                event.target.nextSibling.nextSibling.nextSibling.classList.add(
-                    "selected"
-                );
+                selectedElements.forEach(ele => ele.classList.remove("selected"));
+
+                const newTarget = document.querySelector(`[data-nav="${targetNum}"]`);
+                target.classList.add("selected");
+
+                let sibling = target.nextSibling;
+                for (let i = 0; i < 3; i++) {
+                    if (sibling) {
+                        sibling.classList.add("selected");
+                        sibling = sibling.nextSibling;
+                    }
+                }
             }
-            // }
         }
     };
+
 
     async function deleteNote(dataAidValue) {
         const data = {
