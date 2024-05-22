@@ -173,7 +173,6 @@ async function submitUpdateAction(dataAidValue, pID) {
     let conditionsOff = [];
     let conditionsToTurnOff = {};
 
-
     await processConditions();
 
     Object.keys(conditionsToTurnOff).forEach((condition) => {
