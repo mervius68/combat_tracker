@@ -320,7 +320,6 @@ async function modalUpdateAction(dataAidValue) {
                 target.setAttribute("data-hp", targetParticipant.new_hp)
                 target.setAttribute("data-targetID", isSameParticipant && !noDamageAndHit ? targetParticipant.targetID : "0")
             });
-            yyy = ctActions;
             target.classList.add("text_field");
             target.classList.add("numeric");
             target.setAttribute("name", "participants");

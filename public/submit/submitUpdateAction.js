@@ -414,8 +414,8 @@ async function submitUpdateAction(dataAidValue, pID) {
                     };
                     update.ct_tbl_target.insert.push(record);
                 }
-            } else if (newValue == "") {                    // new value is ""
-                if (dataAttributes.originalvalue) {
+            } else if (newValue == "" && dataAttributes.originalvalue) {                    // new value is ""
+                if (parseInt(dataAttributes.originalvalue)) {         
                     // Initialize newHP based on target and aid value
                     let newHP = getDamageNewHP(ctTarget, dataAidValue);
 
@@ -458,6 +458,8 @@ async function submitUpdateAction(dataAidValue, pID) {
                     // Process downstream array and update uniquely downstream
                     await processDownstreamArray(bufferHP, downstreamArray);
                     updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
+                } else if (dataAttributes.originalvalue == "x") {
+                    console.log("BIG OL' PIG!")
                 }
             }
         }
