@@ -1,6 +1,7 @@
 // this function takes info from the updateAction modal and updates database
 
 async function submitUpdateAction(dataAidValue, pID) {
+    const g = "got here"
     const ctAppCopy = await deepCopy(ctApp);
     const data = document.querySelector(".modalSubmit");
     const dataNav = data.getAttribute("data-row");
@@ -138,7 +139,7 @@ async function submitUpdateAction(dataAidValue, pID) {
         }, [])
         .sort((a, b) => a.key - b.key)
         .map((obj) => obj.value);
-
+    // console.log(sortedTargetHPs.length);
     if (damage == "") {
         damage = "-";
     }
@@ -259,13 +260,14 @@ async function submitUpdateAction(dataAidValue, pID) {
     const anyDamageInputUsed = Array.from(damageAmountElements).find((ele) => {
         return ele.value
     })
+    console.log(sortedTargetHPs.length)
     // if they're all empty, delete the action a
-    if (!anyDamageInputUsed) {
+    if (!anyDamageInputUsed && sortedTargetHPs.length != 0) {
         deleteAction(dataAidValue);
         closeModal();
         return;
     }
-
+    
 
     for (target of damageAmountElements) {
         const newValue = target.value || "";
