@@ -139,7 +139,7 @@ async function submitUpdateAction(dataAidValue, pID) {
         }, [])
         .sort((a, b) => a.key - b.key)
         .map((obj) => obj.value);
-    // console.log(sortedTargetHPs.length);
+
     if (damage == "") {
         damage = "-";
     }
@@ -243,14 +243,11 @@ async function submitUpdateAction(dataAidValue, pID) {
         return weapon.checked == true;
     })
 
-    console.log(actionObj)
-
     if (actionObj.conditionID && conditionCurrent.getAttribute("data-condition-id") != actionObj.conditionID) {
         const data = {
             taid: actionObj.taID
         }
         await dbQueryPost("deleteCondition", data)
-        console.log("didn't get here")
     }
 
     // figure out any changes in damage
@@ -260,14 +257,13 @@ async function submitUpdateAction(dataAidValue, pID) {
     const anyDamageInputUsed = Array.from(damageAmountElements).find((ele) => {
         return ele.value
     })
-    console.log(sortedTargetHPs.length)
-    // if they're all empty, delete the action a
+
+    // if they're all empty, and didn't start empty, delete the action a
     if (!anyDamageInputUsed && sortedTargetHPs.length != 0) {
         deleteAction(dataAidValue);
         closeModal();
         return;
     }
-    
 
     for (target of damageAmountElements) {
         const newValue = target.value || "";
@@ -461,7 +457,6 @@ async function submitUpdateAction(dataAidValue, pID) {
                     await processDownstreamArray(bufferHP, downstreamArray);
                     updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
                 } else if (dataAttributes.originalvalue == "x") {
-                    console.log("BIG OL' PIG!")
                 }
             }
         }
@@ -641,12 +636,10 @@ async function submitUpdateAction(dataAidValue, pID) {
                 (max === null || damage.aID > max.aID ? damage : max), null);
 
             if (highestValidDamage) {
-                // console.log('Highest valid damage object:', highestValidDamage);
                 return highestValidDamage.newHP;
             } else {
                 // If no valid damage object is found, return the first object in the first sub-array of damageArray
                 const defaultDamageObject = ctTarget.damageArray[0][0];
-                // console.log('Default damage object:', defaultDamageObject);
                 return defaultDamageObject.newHP;
             }
         } else {
