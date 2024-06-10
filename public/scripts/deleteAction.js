@@ -37,11 +37,12 @@ async function deleteAction(dataAidValue) {
     };
     await dbQueryPost("deleteAction", deleteData)
         .then((data) => {
-    })
+        })
         .catch((error) => {
-    });
+        });
     let updateData = {};
     let uniqueObjectsSet = new Set();
+
     deleteEm.forEach((obj, index) => {
         const object = {
             tID: obj.tID,
@@ -72,14 +73,15 @@ async function deleteAction(dataAidValue) {
                 });
             }
         });
-        let dataArray = await getDamageArrayFromCtApp(Number(target.target_pID));
-        dataArray[0] = dataArray[0].filter(item => item.aID != target.aID);
+
         let bufferHP = 0;
-        // if (dataArray) {
-        // Assuming you want to check for the previous newHP of a specific action ID, say 186 as an example
-        bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
-        // }
-        // bufferHP -= target.damage
+        let dataArray = await getDamageArrayFromCtApp(Number(target.target_pID));
+
+        if (dataArray) {
+            dataArray[0].filter(item => item.aID != target.aID);
+            bufferHP = await getPreviousNewHP(dataArray, dataAidValue);
+        }
+      
         if (bufferHP < 0) {
             bufferHP = 0;
         }
@@ -116,10 +118,12 @@ async function deleteAction(dataAidValue) {
         });
         downstreamArray = uniqueArray;
     }
+
     await dbQueryPost("updateActionDB", update);
     let html = document.querySelector(".selected");
     let dataNav = html.getAttribute("data-nav");
     load_encounter(ctAppEnc, dataNav);
+
     async function getDamageArrayFromCtApp(targetPID) {
         for (const item of ctApp) {
             if (item.pID === targetPID) {
@@ -128,6 +132,7 @@ async function deleteAction(dataAidValue) {
         }
         return null; // This confirms that no item matched the targetPID
     }
+
     async function getPreviousNewHP(dataArray, targetAID) {
         let prevNewHP = null; // Default to null if no previous object or not found
         // Assuming dataArray is correctly formatted and it's a double array as observed
