@@ -44,6 +44,7 @@ app.get("/", function (req, res) {
 });
 
 app.get("/selected_encounter/:eID", (req, res) => {
+    
     const eID = req.params.eID;
     let sql = `SELECT *
                 FROM tbl_encounter

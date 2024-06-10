@@ -39,7 +39,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
 
 
 
-        const getEncounter = await dbQuery("GET", "getLatestEncounterID");
+        // const getEncounter = await dbQuery("GET", "getLatestEncounterID");
 
         if (encounterCode == 0) {
             ctAppEnc = savedEncounterPlaceholder || getEncounter.eID;
