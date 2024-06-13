@@ -1,4 +1,5 @@
 let cellCountVertical, participantsHpsByRound;
+const g = "got here"
 async function dbQuery(httpReqType, httpReqString) {
     // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
     let dbReturn = makePromise(httpReqType, httpReqString);
@@ -61,8 +62,8 @@ function buildASection(actionType, ctRound, numberActions, ctApp) {
         div5.classList.add("center");
         div5.textContent =
             actionType.charAt(0).toUpperCase() +
-                actionType.substring(1) +
-                (numberActions > 1 ? " #" + j : "");
+            actionType.substring(1) +
+            (numberActions > 1 ? " #" + j : "");
         let div6 = document.createElement("div");
         div6.classList.add("section");
         div6.classList.add("header");
@@ -386,13 +387,32 @@ async function deleteNote(dataAidValue) {
     const data = {
         aID: dataAidValue
     };
-    await dbQueryPost("deleteNote", data)
-        .then((data) => {
+    
+    const action = ctActions.find((obj) => {
+        return obj.aID = dataAidValue
     })
-        .catch((error) => {
-    });
+
+    console.log(action);
+
+    if (!action.targetID && action.action_type == "other") {
+        await dbQueryPost("deleteAction", data)
+    } else {
+        console.log(g)
+        console.log(g)
+        console.log(g)
+        await dbQueryPost("deleteNote", data)
+            .then((data) => {
+            })
+            .catch((error) => {
+            });
+    }
+    // console.log(action);
+    // if action type is Other and there are no targets, then delete the Action
+    // else delete the Note
+
     refresh_encounter();
 }
+
 async function deleteParticipant(pID) {
     const data = {
         pID: pID,
@@ -400,9 +420,9 @@ async function deleteParticipant(pID) {
     };
     await dbQueryPost("deleteParticipant", data)
         .then((data) => {
-    })
+        })
         .catch((error) => {
-    });
+        });
     refresh_encounter();
 }
 // async function deleteAction(dataAidValue) {
@@ -596,9 +616,9 @@ async function refresh_encounter() {
     };
     await dbQueryPost("removeDuplicateNumericValues", newObj)
         .then((data) => {
-    })
+        })
         .catch((error) => {
-    });
+        });
     let html = document?.querySelector(".selected");
     let dataNav = html?.getAttribute("data-nav") || 1;
     await load_encounter(ctAppEnc, dataNav);
@@ -800,8 +820,8 @@ async function processDownstreamArray(bufferHP, downstreamArray, startIndex = 0)
     }
 }
 
- function turnOffModal() {
-        let modal = document.querySelector(".modal");
-        modal.removeEventListener("click", modalClickListener);
-        modal.style.display = "none";
-    }
+function turnOffModal() {
+    let modal = document.querySelector(".modal");
+    modal.removeEventListener("click", modalClickListener);
+    modal.style.display = "none";
+}

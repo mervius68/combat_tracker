@@ -102,8 +102,7 @@ async function modalUpdateAction(dataAidValue) {
 
             let label = document.createElement("label");
             label.setAttribute("for", item.toolID);
-            label.classList.add("radio_buttons");
-            label.classList.add("pointer");
+            label.classList.add("radio_buttons", "pointer");
             label.innerHTML =
                 item.toolName +
                 (item.damage_dice ? " (" + item.damage_dice + ")" : "");

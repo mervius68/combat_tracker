@@ -203,8 +203,20 @@ async function submitUpdateAction(dataAidValue, pID) {
     toolNum = toolNum == "default" ? 0 : toolNum;
     toolNum = toolNum == "" ? 0 : toolNum;
 
+
+    // determine what the original condition was
+    let originalToolCheckHTML = document.querySelector('[data-originalcheck]')
+    let originalCheckID = originalToolCheckHTML.id;
+    
+    // const shouldDeleteCondition = false;
+    // compare new condition to original condition
+    
+
     let deleteCondition = false;
     let conditionElement = document?.querySelector('[data-condition-id]')
+    let newCheckID = conditionElement.id;
+
+    // let conditionCheck = conditionElement.
     deleteCondition = conditionElement?.getAttribute("data-condition-id");
     let actionObj = ctActions.find((action) => {
         return action.aID == dataAidValue
@@ -227,13 +239,13 @@ async function submitUpdateAction(dataAidValue, pID) {
         },
         ct_tbl_condition: {
             delete: {
-                aID: deleteCondition == true ? dataAidValue : null,
+                aID: newCheckID != originalCheckID ? dataAidValue : null,
                 // taID: actionObj.taID
             }
         },
         ct_tbl_condition_affectee: {
             delete: {
-                taID: deleteCondition == true ? actionObj.taID : null
+                taID: newCheckID != originalCheckID ? actionObj.taID : null
             }
         },
     }
@@ -244,6 +256,7 @@ async function submitUpdateAction(dataAidValue, pID) {
     })
 
     if (actionObj.conditionID && conditionCurrent.getAttribute("data-condition-id") != actionObj.conditionID) {
+        console.log(g)
         const data = {
             taid: actionObj.taID
         }
@@ -413,7 +426,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     update.ct_tbl_target.insert.push(record);
                 }
             } else if (newValue == "" && dataAttributes.originalvalue) {                    // new value is ""
-                if (parseInt(dataAttributes.originalvalue)) {         
+                if (parseInt(dataAttributes.originalvalue)) {
                     // Initialize newHP based on target and aid value
                     let newHP = getDamageNewHP(ctTarget, dataAidValue);
 
