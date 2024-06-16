@@ -338,17 +338,20 @@ const keydownEventListener = async function (event) {
         alert("HUZZAH!");
     }
 };
-function launchConditionsModal(affected, concentration, conditionName, holding, holdingOneRound, nextAID) {
+
+function launchConditionsModal(affected, concentration, conditionName, holding, holdingOneRound, nextAID, updateCondition, currentAID) {
     if (affected == "turn") {
         concentration = 0;
     }
-    modalConditions(affected, concentration, conditionName, holding, holdingOneRound, nextAID);
+    modalConditions(affected, concentration, conditionName, holding, holdingOneRound, nextAID, updateCondition, currentAID);
     pushModal();
 }
+
 function launchInitModal(selectedOptionText) {
     pushModal();
     modalIsOpen = true;
 }
+
 function pushModal() {
     let modal = document.querySelector(".modal");
     let closeModalButtons = document.querySelectorAll(".close-modal");
@@ -358,12 +361,14 @@ function pushModal() {
         closeModalBox(closeModal);
     });
 }
+
 function closeModal() {
     let modal = document.querySelector(".modal");
     let closeModalButtons = document.querySelectorAll(".close-modal");
     modal.style.display = "none";
     modalIsOpen = false;
 }
+
 const clickEventListener = async function (event) {
     if (event.target.getAttribute("data-nav")) {
         let myElement = document.querySelectorAll(".selected");
@@ -383,6 +388,7 @@ const clickEventListener = async function (event) {
         // }
     }
 };
+
 async function deleteNote(dataAidValue) {
     const data = {
         aID: dataAidValue

@@ -207,10 +207,10 @@ async function submitUpdateAction(dataAidValue, pID) {
     // determine what the original condition was
     let originalToolCheckHTML = document.querySelector('[data-originalcheck]')
     let originalCheckID = originalToolCheckHTML.id;
-    
+
     // const shouldDeleteCondition = false;
     // compare new condition to original condition
-    
+
 
     let deleteCondition = false;
     let conditionElement = document?.querySelector('[data-condition-id]')
@@ -401,6 +401,7 @@ async function submitUpdateAction(dataAidValue, pID) {
 
                 // Determine the record structure based on conditions
                 if (isOriginalValueValid) {  // When original value is a valid integer and not zero
+                    const newHP = parseInt(dataAttributes.hp) + parseInt(dataAttributes.originalvalue)
                     record = {
                         aID: dataAidValue,
                         damage: 0,  // Assuming damage is 0 as per your commented code
@@ -411,9 +412,21 @@ async function submitUpdateAction(dataAidValue, pID) {
                         target_pID: dataAttributes.pid,
                         originalDamage: dataAttributes.originalvalue,
                         maxHP: dataAttributes.maxhp,
-                        newHP: dataAttributes.hp
+                        newHP: newHP,
                     };
                     update.ct_tbl_target.update.push(record);
+
+                    console.log("A: ", record)
+                    downstreamArray = filterAndAppendDamageItems(ctApp, record, dataAidValue, downstreamArray);
+
+                    // Further damage array processing and buffer HP calculations
+                    let dataArray = await getDamageArrayFromCtApp(Number(record.target_pID));
+                    let bufferHP = dataArray ? await getPreviousNewHP(dataArray, dataAidValue) : 0; // Default to 0 if dataArray is null
+                    bufferHP = Math.max(bufferHP - record.damage, 0);
+
+                    // Async function calls
+                    await processDownstreamArray(bufferHP, downstreamArray);
+                    updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
                 } else if (dataAttributes.originalvalue == null) {  // When original value is null
                     record = {
                         targetID: dataAttributes.targetid,
@@ -474,7 +487,7 @@ async function submitUpdateAction(dataAidValue, pID) {
             }
         }
     }
-
+    
     await dbQueryPost("updateActionDB", update)
     let nextAvailableActionID = await dbQuery("GET", "getNewAID");
     nextAvailableActionID = nextAvailableActionID.length > 0 && nextAvailableActionID[0].aID != undefined ? nextAvailableActionID[0].aID : 1;
@@ -489,7 +502,9 @@ async function submitUpdateAction(dataAidValue, pID) {
             conditionName,
             holding,
             holdingOneRound,
-            nextAvailableActionID
+            nextAvailableActionID,
+            true, 
+            dataAidValue
         );
     }
 
