@@ -400,7 +400,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                 const newValue = parseInt(dataAttributes.newValue);
 
                 // Determine the record structure based on conditions
-                if (isOriginalValueValid) {  // When original value is a valid integer and not zero
+                if (isOriginalValueValid) {  // When original value is a valid integer and not zero     DONE
                     const newHP = parseInt(dataAttributes.hp) + parseInt(dataAttributes.originalvalue)
                     record = {
                         aID: dataAidValue,
@@ -496,6 +496,7 @@ async function submitUpdateAction(dataAidValue, pID) {
     closeModal();
 
     if ((concentrationNext == 1 || holding == 1) && !conditionCurrent?.getAttribute("data-condition-id")) {
+        
         launchConditionsModal(
             target_pID,
             concentrationNext,
@@ -504,7 +505,9 @@ async function submitUpdateAction(dataAidValue, pID) {
             holdingOneRound,
             nextAvailableActionID,
             true, 
-            dataAidValue
+            dataAidValue, 
+            pID,
+            currentRound
         );
     }
 

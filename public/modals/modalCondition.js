@@ -8,7 +8,9 @@ async function modalConditions(
     holdingOneRound,
     nextAID,
     updateCondition = false, 
-    currentAID
+    currentAID, 
+    pID,
+    round
 ) {
     if(updateCondition == true) {
         nextAID = currentAID
@@ -16,12 +18,14 @@ async function modalConditions(
 
     let html = document.querySelector(".selected");
     let modal = document.querySelector("#modal-body");
-    let participantID = await html.getAttribute("data-participant");
+    // let participantID = await html.getAttribute("data-participant");
+    let participantID = pID || html.getAttribute("data-participant");
+
     let characterID = ctApp.find((participant) => {
         return participant.pID == participantID;
     }).chID;
 
-    let currentRound = html.getAttribute("data-round");
+    let currentRound = round || html.getAttribute("data-round");
     let encounter = ctApp[0].eID;
 
     // get participant's info

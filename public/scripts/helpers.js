@@ -339,11 +339,11 @@ const keydownEventListener = async function (event) {
     }
 };
 
-function launchConditionsModal(affected, concentration, conditionName, holding, holdingOneRound, nextAID, updateCondition, currentAID) {
+function launchConditionsModal(affected, concentration, conditionName, holding, holdingOneRound, nextAID, updateCondition, currentAID, pID, round) {
     if (affected == "turn") {
         concentration = 0;
     }
-    modalConditions(affected, concentration, conditionName, holding, holdingOneRound, nextAID, updateCondition, currentAID);
+    modalConditions(affected, concentration, conditionName, holding, holdingOneRound, nextAID, updateCondition, currentAID, pID, round);
     pushModal();
 }
 

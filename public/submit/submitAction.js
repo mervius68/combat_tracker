@@ -376,6 +376,7 @@ async function submitAction(forceCondition = 0) {
         // Remove the event listener
         modal.removeEventListener("click", modalClickListener);
         modal.style.display = "none";
+        console.log("DOG: ", pID)
         if (concentrationNext == 1 || holding == 1 || forceCondition == 1) {
             launchConditionsModal(
                 target_pID,
@@ -383,7 +384,9 @@ async function submitAction(forceCondition = 0) {
                 conditionName,
                 holding,
                 holdingOneRound,
-                nextAID
+                nextAID, 
+                pID, 
+                currentRound
             );
         }
     }
