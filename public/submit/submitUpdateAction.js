@@ -586,27 +586,31 @@ async function submitUpdateAction(dataAidValue, pID) {
 
     }
     async function getPreviousNewHP(dataArray, targetAID) {
-        let prevNewHP = null;  // Default to null if no previous object or not found
-
-        // Assuming dataArray is correctly formatted and it's a double array as observed
-        if (dataArray && dataArray[0]) {
-            for (let i = 0; i < dataArray[0].length; i++) {
-                for (let i = 0; i < dataArray[0].length; i++) {
-                    if (dataArray[0][i].aID === targetAID) {
-                        // Check if there's a previous element
-                        if (i > 0) {
-                            // Return the newHP of the previous element
-                            return dataArray[0][i - 1].newHP;
-                        } else {
-                            // If there is no previous element, return null or a default value
-                            console.warn("No previous entry exists for the given aID.");
-                            return null; // No previous entry exists
-                        }
-                    }
-                }
-            }
+        if (!Array.isArray(dataArray)) {
+            return null;
         }
-        return prevNewHP;
+
+        // Flatten, keep valid damage entries, and sort by aID so we can find the prior entry.
+        const flat = dataArray
+            .flat()
+            .filter((item) => item && item.aID != null && !Number.isNaN(Number(item.aID)))
+            .sort((a, b) => Number(a.aID) - Number(b.aID));
+
+        if (flat.length === 0) {
+            return null;
+        }
+
+        const targetIndex = flat.findIndex((item) => Number(item.aID) === Number(targetAID));
+        if (targetIndex > 0) {
+            return flat[targetIndex - 1].newHP;
+        }
+
+        // If exact aID isn't found (or it's the first), return the last entry before targetAID.
+        const prior = flat
+            .filter((item) => Number(item.aID) < Number(targetAID))
+            .pop();
+
+        return prior ? prior.newHP : null;
     }
 
     async function getDamageArrayFromCtApp(targetPID) {
