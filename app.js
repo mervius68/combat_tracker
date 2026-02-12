@@ -765,6 +765,8 @@ app.post("/updateActionDB", async (req, res) => {
     console.log("and: ", requestData.ct_tbl_target.delete)
     try {
         await runDbQuery("BEGIN TRANSACTION;");
+        const affectedTargetPids = new Set();
+        const encounterEID = await resolveEncounterEID(requestData);
 
         // Update Action
         if (requestData.ct_tbl_action && requestData.ct_tbl_action.update) {
@@ -772,23 +774,37 @@ app.post("/updateActionDB", async (req, res) => {
         }
 
         // Update Targets
-        requestData.ct_tbl_target.update.forEach(async (obj) => {
+        for (const obj of requestData.ct_tbl_target.update) {
             let latestHP = await selectRecentHP(obj);
             obj.latestHP = latestHP || obj.maxHP;
             await updateTarget(obj);
             // await updateHPCascade(obj);
-        })
+            if (obj.target_pID != null) {
+                affectedTargetPids.add(Number(obj.target_pID));
+            }
+        }
 
         // Delete Targets
-        requestData.ct_tbl_target.delete.forEach(async (obj) => {
-            // delete targets
+        for (const obj of requestData.ct_tbl_target.delete) {
             await deleteTarget(obj);
-        })
+            if (obj.target_pID != null) {
+                affectedTargetPids.add(Number(obj.target_pID));
+            }
+        }
 
         // Insert Targets
-        requestData.ct_tbl_target.insert.forEach(async (obj) => {
+        for (const obj of requestData.ct_tbl_target.insert) {
             await insertTarget(obj);
-        })
+            if (obj.target_pID != null) {
+                affectedTargetPids.add(Number(obj.target_pID));
+            }
+        }
+
+        for (const targetPID of affectedTargetPids) {
+            if (encounterEID != null) {
+                await recalculateTargetHPTimeline(encounterEID, targetPID);
+            }
+        }
 
         // Delete from ct_tbl_condition
         if (requestData.ct_tbl_condition && requestData.ct_tbl_condition.delete && requestData.ct_tbl_condition.delete.aID) {
@@ -927,6 +943,89 @@ async function insertTarget(target) {
         target.newHP,
         0
     ])
+}
+
+async function recalculateTargetHPTimeline(eID, targetPID) {
+    const startingHP = await new Promise((resolve, reject) => {
+        const sql = `
+            SELECT starting_hp
+            FROM ct_tbl_participant
+            WHERE pID = ?
+            LIMIT 1
+        `;
+        db.get(sql, [targetPID], (err, row) => {
+            if (err) reject(err);
+            else resolve(row ? Number(row.starting_hp) : null);
+        });
+    });
+
+    if (startingHP == null || Number.isNaN(startingHP)) {
+        return;
+    }
+
+    const timeline = await new Promise((resolve, reject) => {
+        const sql = `
+            SELECT tID, damage
+            FROM ct_tbl_target
+            WHERE eID = ?
+              AND target_pID = ?
+            ORDER BY tID ASC
+        `;
+        db.all(sql, [eID, targetPID], (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows || []);
+        });
+    });
+
+    let hp = startingHP;
+    for (const row of timeline) {
+        const damage = Number(row.damage) || 0;
+        hp = Math.max(hp - damage, 0);
+        await runQuery(
+            `
+                UPDATE ct_tbl_target
+                SET new_hp = ?
+                WHERE tID = ?
+            `,
+            [hp, row.tID]
+        );
+    }
+}
+
+async function resolveEncounterEID(requestData) {
+    const updateRows = Array.isArray(requestData?.ct_tbl_target?.update)
+        ? requestData.ct_tbl_target.update
+        : [];
+    const insertRows = Array.isArray(requestData?.ct_tbl_target?.insert)
+        ? requestData.ct_tbl_target.insert
+        : [];
+    const deleteRows = Array.isArray(requestData?.ct_tbl_target?.delete)
+        ? requestData.ct_tbl_target.delete
+        : [];
+
+    const allRows = [...updateRows, ...insertRows, ...deleteRows];
+    const payloadEID = allRows.find((row) => row?.eID != null)?.eID;
+    if (payloadEID != null && !Number.isNaN(Number(payloadEID))) {
+        return Number(payloadEID);
+    }
+
+    const actionAID = requestData?.ct_tbl_action?.update?.aID;
+    if (actionAID == null || Number.isNaN(Number(actionAID))) {
+        return null;
+    }
+
+    return await new Promise((resolve, reject) => {
+        const sql = `
+            SELECT eID
+            FROM ct_tbl_action
+            WHERE aID = ?
+            LIMIT 1
+        `;
+        db.get(sql, [Number(actionAID)], (err, row) => {
+            if (err) reject(err);
+            else resolve(row ? Number(row.eID) : null);
+        });
+    });
 }
 
 async function deleteFromTable(table, conditionColumn, conditionValue) {

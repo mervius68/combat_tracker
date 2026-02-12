@@ -322,7 +322,7 @@ async function submitUpdateAction(dataAidValue, pID) {
 
                     // Async function calls
                     await processDownstreamArray(bufferHP, downstreamArray);
-                    updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
+                    updateUniqueDownstream(ctAppCopy, record.target_pID, currentRound, downstreamArray);
                 } else if (dataAttributes.originalvalue == null || dataAttributes.originalvalue == "") {                    // original value is "", and new value is number        DONE
                     const parsedNewValue = parseInt(newValue);
                     const defaultDamageObjectNewHP = getDamageNewHP(ctTarget, dataAidValue);
@@ -361,7 +361,7 @@ async function submitUpdateAction(dataAidValue, pID) {
 
                     // Call the async function with bufferHP as argument
                     await processDownstreamArray(bufferHP, downstreamArray);
-                    updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
+                    updateUniqueDownstream(ctAppCopy, record.target_pID, currentRound, downstreamArray);
                 } else if (dataAttributes.originalvalue == "x") {                                                           // original value is "x", and new value is number       DONE
                     const parsedNewValue = parseInt(newValue);
                     const parsedHP = parseInt(dataAttributes.hp);
@@ -392,7 +392,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                     bufferHP = Math.max(bufferHP - parsedNewValue, 0);  // Directly subtract parsedNewValue
 
                     await processDownstreamArray(bufferHP, downstreamArray);
-                    updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
+                    updateUniqueDownstream(ctAppCopy, record.target_pID, currentRound, downstreamArray);
                 }
             } else if (newValue == "x") {                   // if new value is "x"
                 const originalValue = parseInt(dataAttributes.originalvalue);
@@ -426,7 +426,7 @@ async function submitUpdateAction(dataAidValue, pID) {
 
                     // Async function calls
                     await processDownstreamArray(bufferHP, downstreamArray);
-                    updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
+                    updateUniqueDownstream(ctAppCopy, record.target_pID, currentRound, downstreamArray);
                 } else if (dataAttributes.originalvalue == null) {  // When original value is null
                     record = {
                         targetID: dataAttributes.targetid,
@@ -481,7 +481,7 @@ async function submitUpdateAction(dataAidValue, pID) {
 
                     // Process downstream array and update uniquely downstream
                     await processDownstreamArray(bufferHP, downstreamArray);
-                    updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray);
+                    updateUniqueDownstream(ctAppCopy, record.target_pID, currentRound, downstreamArray);
                 } else if (dataAttributes.originalvalue == "x") {
                 }
             }
@@ -627,7 +627,11 @@ async function submitUpdateAction(dataAidValue, pID) {
             if (character.pID == record.target_pID) {
                 character.damageArrayNotMapped.forEach(damageArray => {
                     const filteredDamageItems = damageArray.filter(damageItem =>
-                        damageItem.aID !== null && damageItem.aID > dataAidValue
+                        damageItem &&
+                        damageItem.aID !== null &&
+                        Number(damageItem.aID) > Number(dataAidValue) &&
+                        damageItem.tID != null &&
+                        Number.isFinite(Number(damageItem.damage))
                     );
                     downstreamArray = downstreamArray.concat(filteredDamageItems);
                 });
@@ -636,9 +640,9 @@ async function submitUpdateAction(dataAidValue, pID) {
         return downstreamArray;
     }
 
-    function updateUniqueDownstream(ctAppCopy, pID, currentRound, downstreamArray) {
+    function updateUniqueDownstream(ctAppCopy, targetPID, currentRound, downstreamArray) {
         for (const item of ctAppCopy) {
-            if (item.pID === pID) {
+            if (Number(item.pID) === Number(targetPID)) {
                 const notMapped = item.damageArrayNotMapped[currentRound - 1];
                 if (Array.isArray(notMapped)) {
                     const uniqueInDownstream = downstreamArray.filter(downstreamObj => {

@@ -292,33 +292,36 @@ async function modalUpdateAction(dataAidValue) {
     allParticipants.forEach((participant) => {
         let target = document.createElement("input");
         target.setAttribute("type", "text");
+        target.setAttribute("data-originalvalue", "");
+        target.setAttribute("data-stored-damage", "0");
+        target.setAttribute("data-tid", "");
+        target.setAttribute("data-hit", "0");
+        target.setAttribute("data-targetID", "0");
 
-        let currentAction = actionObj.ct_tbl_target[0].filter((obj) => {
-            return obj.pID == participant.pID
+        // Match modal rows by defender PID (target_pID), not attacker PID (pID).
+        let currentAction = actionObj.ct_tbl_target[0].find((obj) => {
+            return Number(obj.target_pID) === Number(participant.pID)
         })
 
         // populate 'x' or damage amount in input field as needed
-        currentAction.forEach((targetParticipant) => {
-            const isSameParticipant = targetParticipant.pID == participant.pID;
-            const noDamageAndHit = isSameParticipant && targetParticipant.damage == 0 && actionObj.ct_tbl_action.hit == 1;
+        if (currentAction) {
+            const noDamageAndHit = Number(currentAction.damage) === 0 && Number(actionObj.ct_tbl_action.hit) === 1;
             if (noDamageAndHit) {
                 target.defaultValue = "x";
-                target.setAttribute("data-originalvalue", "x")
-            } else if (isSameParticipant) {
-                target.defaultValue = targetParticipant.damage;
-                target.setAttribute("data-originalvalue", targetParticipant.damage)
+                target.setAttribute("data-originalvalue", "x");
             } else {
-                target.setAttribute("data-originalvalue", "")
+                target.defaultValue = currentAction.damage;
+                target.setAttribute("data-originalvalue", currentAction.damage);
             }
 
-            const damageValue = isSameParticipant && !noDamageAndHit ? targetParticipant.damage : 0;
+            const damageValue = noDamageAndHit ? 0 : currentAction.damage;
             target.setAttribute("data-stored-damage", damageValue);
-            target.setAttribute("data-tid", targetParticipant.tID)
-            target.setAttribute("data-hit", noDamageAndHit ? "1" : "0")
+            target.setAttribute("data-tid", currentAction.tID || "");
+            target.setAttribute("data-hit", noDamageAndHit ? "1" : "0");
             target.setAttribute("data-maxhp", participant.max_hp)
-            target.setAttribute("data-hp", targetParticipant.new_hp)
-            target.setAttribute("data-targetID", isSameParticipant && !noDamageAndHit ? targetParticipant.targetID : "0")
-        });
+            target.setAttribute("data-hp", currentAction.new_hp);
+            target.setAttribute("data-targetID", currentAction.targetID || "0");
+        }
         target.classList.add("text_field");
         target.classList.add("numeric");
         target.setAttribute("name", "participants");
