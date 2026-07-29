@@ -29,7 +29,9 @@ async function modalInit() {
 
             partyParticipants.forEach((participant, index) => {
                 const div2 = document.createElement("div");
-                div2.classList.add("line");
+                div2.classList.add("line", "initiative-row");
+                div2.setAttribute("draggable", "true");
+                div2.setAttribute("data-initiative-row", participant.pID);
                 const input = document.createElement("input");
                 input.classList.add("initValues")
                 input.setAttribute("type", "text");
@@ -78,6 +80,103 @@ async function modalInit() {
             container.appendChild(br2);
 
             modal.innerHTML = container.outerHTML;
+
+            const initiativeRows = () => Array.from(div4.querySelectorAll(".initiative-row"));
+
+            const renumberInitiativeRows = () => {
+                const rows = initiativeRows();
+                if (!rows.length) {
+                    return;
+                }
+
+                const firstInitInput = rows[0].querySelector(".initValues");
+                const firstSecondaryInput = rows[0].querySelector(".secondaryInitValues");
+                const firstInitValue = parseInt(firstInitInput.value || firstInitInput.defaultValue || "10", 10) || 10;
+                firstInitInput.value = firstInitValue;
+                firstSecondaryInput.value = firstSecondaryInput.value || firstSecondaryInput.defaultValue || "10";
+
+                rows.slice(1).forEach((row, index) => {
+                    const previousRow = rows[index];
+                    const previousInitInput = previousRow.querySelector(".initValues");
+                    const previousSecondaryInput = previousRow.querySelector(".secondaryInitValues");
+                    const previousInit = parseInt(previousInitInput.value || previousInitInput.defaultValue || "10", 10) || 10;
+                    const previousSecondary = parseInt(previousSecondaryInput.value || previousSecondaryInput.defaultValue || "10", 10) || 10;
+                    const proposedMain = Math.max(previousInit - 1, 1);
+                    const currentInitInput = row.querySelector(".initValues");
+                    const currentSecondaryInput = row.querySelector(".secondaryInitValues");
+
+                    if (proposedMain < previousInit) {
+                        currentInitInput.value = proposedMain;
+                        currentSecondaryInput.value = "10";
+                    } else {
+                        currentInitInput.value = previousInit;
+                        currentSecondaryInput.value = previousSecondary + 1;
+                    }
+                });
+            };
+
+            let draggedRow = null;
+
+            div4.addEventListener("dragstart", (event) => {
+                const row = event.target.closest(".initiative-row");
+                if (!row) {
+                    return;
+                }
+                draggedRow = row;
+                row.classList.add("dragging");
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", row.getAttribute("data-initiative-row"));
+            });
+
+            div4.addEventListener("dragover", (event) => {
+                const row = event.target.closest(".initiative-row");
+                if (!row || row === draggedRow) {
+                    return;
+                }
+                event.preventDefault();
+                row.classList.add("drop-target");
+            });
+
+            div4.addEventListener("dragleave", (event) => {
+                const row = event.target.closest(".initiative-row");
+                if (row) {
+                    row.classList.remove("drop-target");
+                }
+            });
+
+            div4.addEventListener("drop", (event) => {
+                event.preventDefault();
+                const row = event.target.closest(".initiative-row");
+                if (!row || !draggedRow || row === draggedRow) {
+                    return;
+                }
+
+                const rows = initiativeRows();
+                const fromIndex = rows.indexOf(draggedRow);
+                const toIndex = rows.indexOf(row);
+                if (fromIndex < 0 || toIndex < 0) {
+                    return;
+                }
+
+                const [movedRow] = rows.splice(fromIndex, 1);
+                rows.splice(toIndex, 0, movedRow);
+                const fragment = document.createDocumentFragment();
+                rows.forEach((item) => fragment.appendChild(item));
+                div4.innerHTML = "";
+                div4.appendChild(fragment);
+                renumberInitiativeRows();
+                draggedRow = null;
+            });
+
+            div4.addEventListener("dragend", () => {
+                document.querySelectorAll(".initiative-row").forEach((row) => {
+                    row.classList.remove("dragging", "drop-target");
+                });
+                draggedRow = null;
+            });
+
+            renumberInitiativeRows();
+
             setTimeout(() => {
                 let cursorField = document.querySelector('input[data-init-pid]')
                 cursorField.focus();

@@ -264,6 +264,44 @@ hr {
     color: black;
 }
 
+/* Drag-and-drop visuals for main tracker rows */
+/* two classes so this wins over .pointer's cursor further down the file */
+.section.drag-row {
+    cursor: grab;
+    /* otherwise a text selection can start a text drag instead of a row drag */
+    user-select: none;
+}
+
+.section.drag-row:active {
+    cursor: grabbing;
+}
+
+.drag-row-dragging {
+    opacity: 0.5;
+}
+
+/* inset shadows instead of borders so the grid does not shift while dragging */
+.drag-row-above {
+    box-shadow: inset 0 4px 0 0 #1a7f1a;
+}
+
+.drag-row-below {
+    box-shadow: inset 0 -4px 0 0 #1a7f1a;
+}
+
+/* initiative modal rows */
+.initiative-row {
+    cursor: grab;
+}
+
+.initiative-row.dragging {
+    opacity: 0.5;
+}
+
+.initiative-row.drop-target {
+    outline: 3px solid #1a7f1a;
+}
+
 .modal_text_inputs {
     font-size: 1em;
     margin-left: 5px;

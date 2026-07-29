@@ -1,3 +1,148 @@
+let draggedEncounterParticipant = null;
+
+function computeInitiativeValuesForOrder(participantOrder, participantLookup) {
+    const values = {};
+    const firstPid = participantOrder[0];
+    const firstParticipant = participantLookup.get(firstPid);
+    const firstInit = parseInt(firstParticipant?.init ?? firstParticipant?.secondary_init ?? 10, 10) || 10;
+    const firstSecondary = parseInt(firstParticipant?.secondary_init ?? 10, 10) || 10;
+
+    values[firstPid] = {
+        init: firstInit,
+        secondary_init: firstSecondary,
+    };
+
+    participantOrder.slice(1).forEach((pid, index) => {
+        const previousPid = participantOrder[index];
+        const previousValues = values[previousPid];
+        const previousInit = parseInt(previousValues?.init ?? 10, 10) || 10;
+        const previousSecondary = parseInt(previousValues?.secondary_init ?? 10, 10) || 10;
+        const proposedMain = Math.max(previousInit - 1, 1);
+
+        if (proposedMain < previousInit) {
+            values[pid] = {
+                init: proposedMain,
+                secondary_init: 10,
+            };
+        } else {
+            values[pid] = {
+                init: previousInit,
+                secondary_init: previousSecondary + 1,
+            };
+        }
+    });
+
+    return values;
+}
+
+async function persistInitiativeOrder(participantOrder) {
+    const participantLookup = new Map(ctApp.map((participant) => [participant.pID, participant]));
+    const values = computeInitiativeValuesForOrder(participantOrder, participantLookup);
+    const postData = participantOrder.map((pid) => {
+        const participant = participantLookup.get(pid);
+        const computedValues = values[pid] || { init: participant?.init ?? 10, secondary_init: participant?.secondary_init ?? 10 };
+        return {
+            pID: pid,
+            numeric_value: "",
+            init: computedValues.init,
+            secondary_init: computedValues.secondary_init,
+        };
+    });
+
+    await dbQueryPost("orderInitiative", postData);
+}
+
+function reorderRoundParticipants(roundElement, draggedPid, targetPid) {
+    const sectionContainers = Array.from(roundElement.querySelectorAll('[data-section]'));
+    const participantOrder = [];
+    const section1 = roundElement.querySelector('[data-section="1"]');
+    const section1Participants = Array.from(section1.querySelectorAll('[data-participant]'));
+    const currentOrder = section1Participants.map((cell) => cell.getAttribute("data-participant"));
+
+    const fromIndex = currentOrder.indexOf(draggedPid);
+    const toIndex = currentOrder.indexOf(targetPid);
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
+        return currentOrder;
+    }
+
+    const updatedOrder = [...currentOrder];
+    const [movedPid] = updatedOrder.splice(fromIndex, 1);
+    updatedOrder.splice(toIndex, 0, movedPid);
+
+    sectionContainers.forEach((container) => {
+        const headerCells = Array.from(container.children).filter((child) => !child.hasAttribute("data-participant"));
+        const participantCells = Array.from(container.children).filter((child) => child.hasAttribute("data-participant"));
+        const participantOrderMap = new Map(updatedOrder.map((pid, index) => [pid, index]));
+        participantCells.sort((a, b) => {
+            return participantOrderMap.get(a.getAttribute("data-participant")) - participantOrderMap.get(b.getAttribute("data-participant"));
+        });
+        container.innerHTML = "";
+        headerCells.forEach((child) => container.appendChild(child));
+        participantCells.forEach((child) => container.appendChild(child));
+    });
+
+    return updatedOrder;
+}
+
+function handleRoundRowDragStart(event) {
+    const rowCell = event.target.closest("[data-participant]");
+    if (!rowCell) {
+        return;
+    }
+    draggedEncounterParticipant = rowCell.getAttribute("data-participant");
+    console.debug("dragstart ->", draggedEncounterParticipant);
+    rowCell.classList.add("dragging");
+    try {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", draggedEncounterParticipant);
+    } catch (err) {
+        console.warn('dataTransfer not available on dragstart event', err);
+    }
+}
+
+function handleRoundRowDragOver(event) {
+    const rowCell = event.target.closest("[data-participant]");
+    if (!rowCell || rowCell.getAttribute("data-participant") === draggedEncounterParticipant) {
+        return;
+    }
+    event.preventDefault();
+    rowCell.classList.add("drop-target");
+    // console.debug('dragover ->', rowCell.getAttribute('data-participant'));
+}
+
+function handleRoundRowDrop(event) {
+    const targetCell = event.target.closest("[data-participant]");
+    if (!targetCell || !draggedEncounterParticipant || targetCell.getAttribute("data-participant") === draggedEncounterParticipant) {
+        return;
+    }
+    event.preventDefault();
+    console.debug('drop -> target:', targetCell.getAttribute('data-participant'), 'dragged:', draggedEncounterParticipant);
+    const roundElement = targetCell.closest(".ct_round");
+    if (!roundElement) {
+        return;
+    }
+    const newOrder = reorderRoundParticipants(roundElement, draggedEncounterParticipant, targetCell.getAttribute("data-participant"));
+    if (!newOrder?.length) {
+        return;
+    }
+    persistInitiativeOrder(newOrder).then(() => {
+        const selectedNav = document.querySelector(".selected")?.getAttribute("data-nav") || 1;
+        load_encounter(ctAppEnc, selectedNav);
+    });
+}
+
+function handleRoundRowDragEnd(event) {
+    const rowCell = event.target.closest("[data-participant]");
+    if (rowCell) {
+        rowCell.classList.remove("dragging", "drop-target");
+    }
+    document.querySelectorAll("[data-participant].dragging, [data-participant].drop-target").forEach((cell) => {
+        cell.classList.remove("dragging", "drop-target");
+    });
+    console.debug('dragend ->', draggedEncounterParticipant);
+    draggedEncounterParticipant = null;
+}
+
 // this function loads the encounter when the page loads/refreshes
 async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
     const selectedRound = document.querySelector(".selected_button");
@@ -223,11 +368,16 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
             div5.classList.add("ct_turn_bookends");
             div5.classList.add("center");
             div5.classList.add("pointer");
+            // add an explicit drag handle so users can discover draggable rows
+            const dragHandle = document.createElement("span");
+            dragHandle.classList.add("drag-handle");
+            dragHandle.innerText = "\u2261"; // triple bar (≡)
             div5.setAttribute("data-participant", ctApp[j].pID);
             div5.setAttribute("data-nav", cellCountVertical);
             div5.setAttribute("tabindex", cellCountVertical);
             div5.setAttribute("data-round", i);
             div5.classList.add("delete_character");
+            div5.appendChild(dragHandle);
             cellCountVertical += 1;
             let div6 = document.createElement("div");
             div6.classList.add("section");
@@ -675,6 +825,13 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
     // size the sections
     document.querySelector(".ct_round_container").innerHTML =
         mainContainer.innerHTML;
+    document.querySelectorAll(".ct_round [data-participant]").forEach((cell) => {
+        cell.setAttribute("draggable", "true");
+        cell.addEventListener("dragstart", handleRoundRowDragStart);
+        cell.addEventListener("dragover", handleRoundRowDragOver);
+        cell.addEventListener("drop", handleRoundRowDrop);
+        cell.addEventListener("dragend", handleRoundRowDragEnd);
+    });
     resizeSections();
     // assign background colors to show selected line
     let startNav = document.querySelector(`[data-nav="${dataNav}"]`);

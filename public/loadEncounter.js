@@ -872,6 +872,8 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         // size the sections
         document.querySelector(".ct_round_container").innerHTML =
             mainContainer.innerHTML;
+        // let the user drag participant rows to reorder initiative
+        enableInitiativeRowDragging();
         resizeSections();
 
         // assign background colors to show selected line
