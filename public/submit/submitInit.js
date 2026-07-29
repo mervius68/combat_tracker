@@ -1,5 +1,14 @@
 // submitInitModal takes info from initiative modal and updates database
 
+// /orderInitiative writes numeric_value alongside init, so hand back the value the
+// participant already has. Nothing renumbers on load any more, so blanking it here
+// would permanently lose the numbers of participants added before the number moved
+// into the character name.
+function existingNumericValue(pID) {
+    const participant = ctApp.find((item) => String(item.pID) === String(pID));
+    return participant?.numeric_value ?? "";
+}
+
 async function submitInitModal(PC) {
 
         if (PC == 0) {
@@ -30,7 +39,7 @@ async function submitInitModal(PC) {
 
             let postData = initialOrderPids.map((creature, index) => ({
                 pID: newOrderPids[index],
-                numeric_value: "", // Set this to the appropriate value or an empty string
+                numeric_value: existingNumericValue(newOrderPids[index]),
                 init: sortedValues[index],
             }));
 
@@ -76,7 +85,7 @@ async function submitInitModal(PC) {
 
                 return {
                     pID: newOrderPids[index],
-                    numeric_value: "", // Set this to the appropriate value or an empty string
+                    numeric_value: existingNumericValue(newOrderPids[index]),
                     init: sortedValues[index],
                     secondary_init: secondaryInitValue, // Add secondary_init to the postData object
                 };

@@ -133,10 +133,11 @@ async function fillEncounterDropdown() {
 }
 async function fillInitDropdown() {
     // get an array of unique participant names where pc = 0
+    // grouped on the base name, so "Goblin #1".."#5" are one "Goblin" entry
     let names = [];
     ctApp.forEach((participant) => {
         if (participant.pc === 0) {
-            names.push(participant.character_name);
+            names.push(participant.base_character_name || baseCharacterName(participant.character_name));
         }
     });
     let uniqueCombatantNames = [...new Set(names)];
@@ -605,26 +606,9 @@ async function change_encounter() {
     refresh_encounter();
 }
 async function refresh_encounter() {
-    const encounteredNames = {};
-    const resultArray = [];
-    // Filter the array based on conditions
-    ctApp.forEach((character) => {
-        // Check if character_name has a number in numeric_value
-        const hasNumber = /\d/.test(character.numeric_value);
-        // Check if character_name is not a duplicate and has a number in numeric_value
-        if (!encounteredNames[character.character_name] && hasNumber) {
-            resultArray.push(character);
-            encounteredNames[character.character_name] = true;
-        }
-    });
-    const newObj = {
-        pID: resultArray[0]?.pID,
-    };
-    await dbQueryPost("removeDuplicateNumericValues", newObj)
-        .then((data) => {
-        })
-        .catch((error) => {
-        });
+    // Numbers are no longer reassigned on refresh. This used to blank one
+    // participant's numeric_value each time, which paired with the renumbering in
+    // load_encounter; without that renumbering it would just lose the number.
     let html = document?.querySelector(".selected");
     let dataNav = html?.getAttribute("data-nav") || 1;
     await load_encounter(ctAppEnc, dataNav);
@@ -681,37 +665,11 @@ async function editCondition() {
     // await dbQueryPost("deleteCondition", data)
     refresh_encounter();
 }
-// determine if participants are duplicated - e.g. goblin #1 and goblin #2
-// and apply #x to their names in the combat tracker
-async function handleNumericValues() {
-    // look for participants with duplicate names, e.g. goblin and goblin
-    const characterNameCounts = ctApp.reduce((acc, obj) => {
-        if (!acc[obj.character_name]) {
-            acc[obj.character_name] = [obj];
-        }
-        else {
-            acc[obj.character_name].push(obj);
-        }
-        return acc;
-    }, {});
-    const duplicatedCharacterNames = Object.keys(characterNameCounts).filter((characterName) => characterNameCounts[characterName].length > 1);
-    const orderedCharacterObjects = duplicatedCharacterNames.map(characterName => {
-        const characterObjects = ctApp.filter(obj => obj.character_name === characterName);
-        characterObjects.sort((a, b) => b.init - a.init); // Sort in descending order by "init"
-        return characterObjects;
-    });
-    orderedCharacterObjects.forEach((collection) => {
-        collection.sort((a, b) => b.init - a.init);
-    });
-    // change participants numeric values in db, by initiative positions;
-    // goblin with init 20 would get a 1, while goblin with init 19
-    // would get a 2, and so on.
-    await orderedCharacterObjects.forEach(async (objects) => {
-        await objects.forEach(async (obj, index) => {
-            await dbQuery("GET", "arrangeParticipantsByInit/" + obj.pID + "/" + (index + 1));
-        });
-    });
-}
+// handleNumericValues used to run on every load and rewrite each duplicate-named
+// participant's numeric_value by initiative position, so "Goblin #1" was whichever
+// goblin currently rolled highest. A creature's number is now a fixed identity
+// assigned when it joins the encounter, so nothing renumbers by initiative.
+// See participantNames.js.
 function displayRound(roundValue) {
     // collect the data-round values
     // Select all divs with the data-round attribute that are direct children of .ct_round_container elements

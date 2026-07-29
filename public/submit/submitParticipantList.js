@@ -34,14 +34,24 @@ async function updateParticipantList() {
 
             // let highestNumericKey = Math.max(...Object.keys(group).map(Number), 0) + 1;
 
+            // number these creatures in their name, continuing past any creature
+            // of the same name already in the encounter
+            const baseName = baseCharacterName(participantName);
+            const firstNumber = nextParticipantNumber(baseName, ctApp);
+            // a lone newcomer with nothing else of its name needs no number
+            const needsNumbers = number > 1 || firstNumber > 1;
+
             for (let i = 0; i <= number - 1; i++) {
                 const currentItem = {
                     chID: chID,
-                    character_name: participantName,
+                    character_name: needsNumbers
+                        ? numberedCharacterName(baseName, firstNumber + i)
+                        : baseName,
                     eID: ctAppEnc,
                     ac: ac,
                     max_hp: hp,
-                    numeric_value: number > 1 ? i + 1 : ""
+                    // the number lives in the name now, so leave the old column empty
+                    numeric_value: ""
                 }
                 bbb = currentItem
                 group.push(currentItem);

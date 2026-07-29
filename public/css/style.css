@@ -264,30 +264,6 @@ hr {
     color: black;
 }
 
-/* A damage value and the HP value it produced, highlighted together on hover. */
-
-/* Same cursor on both ends of the pair. The HP value sits in a draggable row, so
-   without this it inherits `grab` while the damage value shows a text I-beam. */
-.hp-link {
-    cursor: help;
-}
-
-/* Nothing here may change the text's width: .ct_grid4columns is min-width:
-   max-content, so a wider glyph run grows the grid past the width resizeSections
-   sets and shoves the whole round sideways. That rules out font-weight, padding,
-   border and letter-spacing. Background, color and outline are layout-neutral.
-   Dark enough to read on the white, yellow, gray, cyan, pink, green and orange
-   backgrounds these cells can have. */
-.hp-linked {
-    background-color: #3b1e8f;
-    color: white;
-    /* same colour as the background and flush against it, so the ring merges into
-       one solid chip - 2px of padding without any reflow */
-    outline: 2px solid #3b1e8f;
-    border-radius: 2px;
-    transition: background-color 0.15s ease-in-out;
-}
-
 /* Drag-and-drop visuals for main tracker rows */
 /* two classes so this wins over .pointer's cursor further down the file */
 .section.drag-row {
@@ -311,6 +287,11 @@ hr {
 
 .drag-row-below {
     box-shadow: inset 0 -4px 0 0 #1a7f1a;
+}
+
+/* says which creature a row in the group initiative modal belongs to */
+.initiative-row-name {
+    margin-left: 10px;
 }
 
 /* initiative modal rows */
@@ -758,6 +739,37 @@ strong {
 
 .mouse-able:hover {
     background-color: green;
-    outline: 5px solid green; 
+    outline: 5px solid green;
     color: white;
+}
+
+/* Paired values that highlight together on hover - see linkedHighlights.js.
+   A damage number with the HP value it produced, and an action with the comments
+   it wrote. */
+
+/* Same cursor on every end so the two halves of a pair feel alike. The HP value
+   sits in a draggable row, so without this it would inherit `grab`, while the
+   damage number would show a text I-beam. */
+[data-hp-tid],
+[data-aid] {
+    cursor: help;
+}
+
+/* Must stay after .mouse-able:hover - equal specificity, so source order is what
+   makes a hovered action name match its note instead of keeping its own green.
+   Nothing here may change the text's width: .ct_grid4columns is min-width:
+   max-content, so a wider glyph run grows the grid past the width resizeSections
+   sets and shoves the whole round sideways. That rules out font-weight, padding,
+   border and letter-spacing; background, color and outline are layout-neutral.
+   Dark enough to read on the white, yellow, gray, cyan, pink, green and orange
+   backgrounds these cells can have. */
+[data-hp-tid].linked-hover,
+[data-aid].linked-hover {
+    background-color: #3b1e8f;
+    color: white;
+    /* same colour as the background and flush against it, so the ring merges into
+       one solid chip - 2px of padding without any reflow */
+    outline: 2px solid #3b1e8f;
+    border-radius: 2px;
+    transition: background-color 0.15s ease-in-out;
 }

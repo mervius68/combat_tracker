@@ -250,9 +250,9 @@ async function modalInit() {
             });
 
         } else {
-            // determine which participants in ctApp have character_name that matches selectedOptionValue
+            // the dropdown holds base names, so "Goblin" selects every "Goblin #n"
             const creatureParticipants = ctApp.filter((participant) => {
-                return participant.character_name == selectedOptionValue
+                return baseCharacterName(participant.character_name) == selectedOptionValue
             })
             // get their init_modifiers
             const initModifier = creatureParticipants[0].init_modifier
@@ -266,7 +266,7 @@ async function modalInit() {
                     : ""
             )
                 + " "
-                + creatureParticipants[0].character_name + "(s)"
+                + selectedOptionValue + "(s)"
             div.appendChild(h2);
 
             const divOpponents = document.createElement("div");
@@ -285,10 +285,18 @@ async function modalInit() {
                 let strong = document.createElement("strong");
                 strong.setAttribute("data-init-pid", creature.pID);
                 strong.innerText = "0";
+                // each row's roll goes to that row's creature, and the number is a
+                // fixed identity rather than a rank, so say which creature it is.
+                // Appended after the strong so submitInitModal's
+                // 'input + span + strong' selector still matches.
+                let nameSpan = document.createElement("span");
+                nameSpan.classList.add("initiative-row-name");
+                nameSpan.innerText = creature.character_name;
 
                 div2.appendChild(input);
                 div2.appendChild(span);
                 div2.appendChild(strong);
+                div2.appendChild(nameSpan);
                 divOpponents.appendChild(div2);
             })
             div.appendChild(divOpponents);

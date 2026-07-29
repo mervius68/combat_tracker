@@ -33,6 +33,9 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         for (participant of originalParticipants) {
             const newNames = await dbQuery("GET", "updatedNames/" + participant.pID)
             participant.character_name = newNames[0].character_name
+            // "Goblin #2" -> "Goblin", so same-named creatures can still be grouped
+            // as one entry in the initiative dropdown and its modal
+            participant.base_character_name = baseCharacterName(participant.character_name)
         }
 
         // set ctApp to originalParticipants before using reduce method on originalParticipants
@@ -44,30 +47,9 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         if (encounterCode == 0) {
             ctAppEnc = savedEncounterPlaceholder || getEncounter.eID;
         }
-        const encounteredNames = new Set();
-        const duplicateNames = new Set();
-        const resultArray = [];
-
-        // Filter the array to identify duplicates
-        ctApp.forEach((character) => {
-            if (encounteredNames.has(character.character_name)) {
-                duplicateNames.add(character.character_name);
-            } else {
-                encounteredNames.add(character.character_name);
-            }
-        });
-
-        ctApp.forEach((character) => {
-            // Check if character_name has a number in numeric_value
-            const hasNumber = /\d/.test(character.numeric_value);
-
-            // Check if character_name is not a duplicate and has a number in numeric_value
-            if (!duplicateNames.has(character.character_name) && hasNumber) {
-                resultArray.push(character);
-            }
-        });
-
-        await handleNumericValues()
+        // A creature's number is assigned when it joins the encounter and is never
+        // reassigned, so nothing is renumbered here. Participants added before the
+        // number moved into the name keep theirs in the numeric_value column.
 
         // get all the actions of this encounter as ctActions and ctActionsConditions
         // global variables
@@ -508,7 +490,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                         let span6 = document.createElement("span");
                         span6.classList.add("participantGray");
                         span6.innerHTML = participant.character_name +
-                            (participant.numeric_value == null
+                            (hasNoNumericValue(participant.numeric_value)
                                 ? ""
                                 : " #" + participant.numeric_value);
                         characterDisplay = span6.outerHTML;
@@ -875,8 +857,8 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
             mainContainer.innerHTML;
         // let the user drag participant rows to reorder initiative
         enableInitiativeRowDragging();
-        // pair each damage with the HP value it produced, on hover
-        enableHpLinkHighlighting();
+        // pair each damage with its HP result, and each action with its comments
+        enableLinkedHighlighting();
         resizeSections();
 
         // assign background colors to show selected line
@@ -918,12 +900,13 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                         " ";
                 }
 
+                // tagged so each comment pairs with the action that wrote it
                 if (actionObject.start && actionObject.start != "-") {
-                    y_start.innerHTML = actionObject.start;
+                    y_start.innerHTML = actionNoteMarkup(actionObject.start, actionObject.aID);
                 }
 
                 if (actionObject.end && actionObject.end != "-") {
-                    y_end.innerHTML = actionObject.end;
+                    y_end.innerHTML = actionNoteMarkup(actionObject.end, actionObject.aID);
                 }
 
                 if (actionObject.drop && actionObject.drop != "-") {
