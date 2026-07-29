@@ -32,36 +32,21 @@ async function submitAction(forceCondition = 0) {
             toolNum = [],
             actionString = "",
             nextToolID = "";
-        if (weaponTextInput[0].value == "") {
+        const selectedWeapon = Array.from(document.getElementsByName("weapons")).find((weapon) => {
+            return weapon.checked == true;
+        });
+
+        if (selectedWeapon) {
             weapons = document.getElementsByName("weapons");
-            tool = Array.from(weapons).find((weapon) => {
-                return weapon.checked == true;
-            }).value // was .id, but that seemed wrong
+            tool = selectedWeapon.value;
             try {
-                toolNum = Array.from(weapons).find((weapon) => {
-                    return weapon.checked == true;
-                }).id
+                toolNum = selectedWeapon.id;
             }
             catch (err) { }
 
-            concentrationNext =
-                Array.from(weapons)
-                    .find((weapon) => {
-                        return weapon.checked == true;
-                    })
-                    .getAttribute("data-concentration") || 0;
-            holding =
-                Array.from(weapons)
-                    .find((weapon) => {
-                        return weapon.checked == true;
-                    })
-                    .getAttribute("data-holding") || 0;
-            holdingOneRound =
-                Array.from(weapons)
-                    .find((weapon) => {
-                        return weapon.checked == true;
-                    })
-                    .getAttribute("data-holding-one-round") || 0;
+            concentrationNext = selectedWeapon.getAttribute("data-concentration") || 0;
+            holding = selectedWeapon.getAttribute("data-holding") || 0;
+            holdingOneRound = selectedWeapon.getAttribute("data-holding-one-round") || 0;
             if (isNaN(parseInt(tool))) {
                 actionString = tool;
                 nextToolID = "0";
@@ -73,9 +58,13 @@ async function submitAction(forceCondition = 0) {
                 actionString = "-";
                 nextToolID = "0";
             }
-        } else {
+        } else if (weaponTextInput[0]?.value) {
             tool = weaponTextInput[0].value;
             actionString = weaponTextInput[0].value;
+            nextToolID = "0";
+        } else {
+            tool = "none";
+            actionString = "none";
             nextToolID = "0";
         }
         actionString = actionString.replaceAll("'", "&apos;")

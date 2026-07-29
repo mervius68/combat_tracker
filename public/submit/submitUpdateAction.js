@@ -18,36 +18,21 @@ async function submitUpdateAction(dataAidValue, pID) {
         toolNum = [],
         actionString = "",
         nextToolID = "";
-    if (weaponTextInput[0].value == "") {
+    const selectedWeapon = Array.from(document.getElementsByName("weapons")).find((weapon) => {
+        return weapon.checked == true;
+    });
+
+    if (selectedWeapon) {
         weapons = document.getElementsByName("weapons");
-        tool = Array.from(weapons).find((weapon) => {
-            return weapon.checked == true;
-        }).value // was .id, but that seemed wrong
+        tool = selectedWeapon.value;
         try {
-            toolNum = Array.from(weapons).find((weapon) => {
-                return weapon.checked == true;
-            }).id
+            toolNum = selectedWeapon.id;
         }
         catch (err) { }
 
-        concentrationNext =
-            Array.from(weapons)
-                .find((weapon) => {
-                    return weapon.checked == true;
-                })
-                .getAttribute("data-concentration") || 0;
-        holding =
-            Array.from(weapons)
-                .find((weapon) => {
-                    return weapon.checked == true;
-                })
-                .getAttribute("data-holding") || 0;
-        holdingOneRound =
-            Array.from(weapons)
-                .find((weapon) => {
-                    return weapon.checked == true;
-                })
-                .getAttribute("data-holding-one-round") || 0;
+        concentrationNext = selectedWeapon.getAttribute("data-concentration") || 0;
+        holding = selectedWeapon.getAttribute("data-holding") || 0;
+        holdingOneRound = selectedWeapon.getAttribute("data-holding-one-round") || 0;
         if (isNaN(parseInt(tool))) {
             actionString = tool;
             nextToolID = "0";
@@ -59,9 +44,13 @@ async function submitUpdateAction(dataAidValue, pID) {
             actionString = "-";
             nextToolID = "0";
         }
-    } else {
+    } else if (weaponTextInput[0]?.value) {
         tool = weaponTextInput[0].value;
         actionString = weaponTextInput[0].value;
+        nextToolID = "0";
+    } else {
+        tool = "none";
+        actionString = "none";
         nextToolID = "0";
     }
 
@@ -206,7 +195,7 @@ async function submitUpdateAction(dataAidValue, pID) {
 
     // determine what the original condition was
     let originalToolCheckHTML = document.querySelector('[data-originalcheck]')
-    let originalCheckID = originalToolCheckHTML.id;
+    let originalCheckID = originalToolCheckHTML?.id;
 
     // const shouldDeleteCondition = false;
     // compare new condition to original condition
@@ -214,7 +203,7 @@ async function submitUpdateAction(dataAidValue, pID) {
 
     let deleteCondition = false;
     let conditionElement = document?.querySelector('[data-condition-id]')
-    let newCheckID = conditionElement.id;
+    let newCheckID = conditionElement?.id;
 
     // let conditionCheck = conditionElement.
     deleteCondition = conditionElement?.getAttribute("data-condition-id");
@@ -251,11 +240,9 @@ async function submitUpdateAction(dataAidValue, pID) {
     }
 
     // determine change in condition
-    const conditionCurrent = Array.from(weapons).find((weapon) => {
-        return weapon.checked == true;
-    })
+    const conditionCurrent = selectedWeapon;
 
-    if (actionObj.conditionID && conditionCurrent.getAttribute("data-condition-id") != actionObj.conditionID) {
+    if (actionObj.conditionID && conditionCurrent?.getAttribute("data-condition-id") != actionObj.conditionID) {
         console.log(g)
         const data = {
             taid: actionObj.taID

@@ -545,7 +545,7 @@ app.post('/orderInitiative', (req, res) => {
         const { pID, numeric_value, init, secondary_init } = row;
 
         // Check if secondary_init is undefined or empty, and set a default value if needed
-        const finalSecondaryInit = secondary_init === undefined || secondary_init.trim() === '' ? '1' : secondary_init;
+        const finalSecondaryInit = secondary_init === undefined || String(secondary_init).trim() === '' ? '10' : secondary_init;
 
         numericValueUpdates.push(`WHEN pID = ${pID} THEN '${numeric_value == 0 ? '' : numeric_value}'`);
         initUpdates.push(`WHEN pID = ${pID} THEN '${init}'`);
@@ -1426,4 +1426,7 @@ app.get("/targets/:targetID/", (req, res) => {
     }
 });
 
-app.listen(3000, console.log("App Listening to port 3000"));
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`App Listening to port ${port}`);
+});

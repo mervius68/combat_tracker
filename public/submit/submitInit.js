@@ -63,8 +63,8 @@ async function submitInitModal(PC) {
 
             // Create a mapping of data-init-pid to secondary_init values
             const secondaryInitValuesMap = {};
-            secondaryNodeList.forEach(element => {
-                const secondaryInitValue = element.value;
+            document.querySelectorAll('.secondaryInitValues').forEach(element => {
+                const secondaryInitValue = element.value || element.defaultValue || '10';
                 const secondaryInitPid = element.getAttribute('data-init-pid-secondary');
                 secondaryInitValuesMap[secondaryInitPid] = secondaryInitValue;
             });

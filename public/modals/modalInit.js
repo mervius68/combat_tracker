@@ -42,6 +42,7 @@ async function modalInit() {
                 input2.setAttribute("type", "text");
                 input2.setAttribute("maxLength", "2");
                 input2.setAttribute("data-init-pid-secondary", participant.pID);
+                input2.defaultValue = "10";
 
                 const span = document.createElement("span");
                 span.innerText = participant.character_name;
