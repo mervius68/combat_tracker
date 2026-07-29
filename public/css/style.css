@@ -264,6 +264,30 @@ hr {
     color: black;
 }
 
+/* A damage value and the HP value it produced, highlighted together on hover. */
+
+/* Same cursor on both ends of the pair. The HP value sits in a draggable row, so
+   without this it inherits `grab` while the damage value shows a text I-beam. */
+.hp-link {
+    cursor: help;
+}
+
+/* Nothing here may change the text's width: .ct_grid4columns is min-width:
+   max-content, so a wider glyph run grows the grid past the width resizeSections
+   sets and shoves the whole round sideways. That rules out font-weight, padding,
+   border and letter-spacing. Background, color and outline are layout-neutral.
+   Dark enough to read on the white, yellow, gray, cyan, pink, green and orange
+   backgrounds these cells can have. */
+.hp-linked {
+    background-color: #3b1e8f;
+    color: white;
+    /* same colour as the background and flush against it, so the ring merges into
+       one solid chip - 2px of padding without any reflow */
+    outline: 2px solid #3b1e8f;
+    border-radius: 2px;
+    transition: background-color 0.15s ease-in-out;
+}
+
 /* Drag-and-drop visuals for main tracker rows */
 /* two classes so this wins over .pointer's cursor further down the file */
 .section.drag-row {

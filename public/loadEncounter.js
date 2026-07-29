@@ -473,10 +473,9 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                     let hps = "";
                     if (participant.damageArray[i - 1]) {
                         participant.damageArray[i - 1].forEach((hp, index) => {
+                            // tagged so it can be paired with the damage that caused it
                             hps +=
-                                (hp.newHP == participant.starting_hp
-                                    ? "<b>" + hp.newHP + "</b>"
-                                    : hp.newHP) +
+                                hpValueMarkup(hp, index, participant.starting_hp) +
                                 (index <
                                     participant.damageArray[i - 1].length - 1
                                     ? ", "
@@ -844,7 +843,9 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                             (item.numeric_value
                                 ? " #" + item.numeric_value
                                 : "");
-                        damageString += (index > 0 ? " / " : "") + item.damage;
+                        // tagged so it can be paired with the HP value it produced
+                        damageString +=
+                            (index > 0 ? " / " : "") + hpDamageMarkup(item);
                     });
                 } catch (err) { }
 
@@ -874,6 +875,8 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
             mainContainer.innerHTML;
         // let the user drag participant rows to reorder initiative
         enableInitiativeRowDragging();
+        // pair each damage with the HP value it produced, on hover
+        enableHpLinkHighlighting();
         resizeSections();
 
         // assign background colors to show selected line
