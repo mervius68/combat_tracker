@@ -860,6 +860,8 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         // pair each damage with its HP result, and each action with its comments
         enableLinkedHighlighting();
         resizeSections();
+        // score the battle beneath the rounds: killing blows and spent ammunition
+        renderBattleTally(ctApp, ctActions, ct_damages);
 
         // assign background colors to show selected line
         let startNav = document.querySelector(`[data-nav="${dataNav}"]`);

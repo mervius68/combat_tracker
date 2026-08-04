@@ -33,6 +33,7 @@
     <script src="/scripts/helpers.js"></script>
     <script src="/scripts/dragInitiative.js"></script>
     <script src="/scripts/linkedHighlights.js"></script>
+    <script src="/scripts/battleTally.js"></script>
 
     <!-- <%- include ('../scripts/helpers'); %> -->
 </head>
@@ -155,6 +156,10 @@
                 </div>
             </div>
         </div>
+
+        <!-- filled in by renderBattleTally; outside .ct_round_container so the
+             round filter leaves this whole-battle summary alone -->
+        <div class="ct_tally_container"></div>
 </body>
 
 </html>

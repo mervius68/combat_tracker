@@ -743,6 +743,73 @@ strong {
     color: white;
 }
 
+/* The tally beneath the rounds - see battleTally.js. Same black-gap grid as the
+   tracker, but deliberately not built from .section: a kill note is a sentence
+   rather than a number, so these cells wrap instead of running off the end. This
+   section is also not one of the widths resizeSections lines up. */
+
+.ct_tally_heading {
+    margin-bottom: 0.3em;
+}
+
+.ct_tally {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    align-items: flex-start;
+    margin-bottom: 40px;
+}
+
+.ct_tally_panel {
+    max-width: 700px;
+}
+
+.ct_tally_panel h3 {
+    font-size: 1.2em;
+    margin-bottom: 0.4em;
+    text-transform: uppercase;
+}
+
+.ct_tally_grid {
+    display: grid;
+    grid-gap: 2px;
+    background-color: black;
+    border: solid black 2px;
+    align-items: stretch;
+    width: max-content;
+    max-width: 100%;
+}
+
+.ct_tally_kills {
+    grid-template-columns: auto auto minmax(0, 1fr);
+}
+
+.ct_tally_ammunition {
+    grid-template-columns: repeat(4, auto);
+}
+
+.ct_tally_cell {
+    background-color: white;
+    padding: 0.5em;
+}
+
+/* the parenthetical parts: method and round, weapon names */
+.ct_tally_aside {
+    color: #555;
+}
+
+.ct_tally_note {
+    margin-top: 0.5em;
+    color: #555;
+}
+
+.ct_tally_empty {
+    background-color: white;
+    border: solid black 2px;
+    padding: 0.5em;
+    width: max-content;
+}
+
 /* Paired values that highlight together on hover - see linkedHighlights.js.
    A damage number with the HP value it produced, and an action with the comments
    it wrote. */
