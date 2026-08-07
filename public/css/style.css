@@ -754,6 +754,20 @@ strong {
     margin-right: 20px;
 }
 
+/* The one roll for a whole group, ruled off from the rows it fills - see
+   modalInit.js. */
+.group-roll-line {
+    border-bottom: solid black 2px;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+}
+
+/* A name needs more room than the numbers the other modals ask for, which is what
+   .line input is sized for. Qualified by .line so it outweighs that rule. */
+.line .characterNameInput {
+    width: 320px;
+}
+
 .dont_show {
     display: none
 }

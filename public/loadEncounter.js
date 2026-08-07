@@ -2,7 +2,12 @@
 
 async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         const selectedRound = document.querySelector(".selected_button")
-        modalIsOpen = false // global variable is created
+        // A reload does not close the modal, and the initiative and HP modals are
+        // reloaded from behind while they stay up so another change can be made
+        // without reopening them. Flatly clearing this said "closed" while the
+        // modal was still on screen, which left its fields able to be clicked into
+        // but not typed in - see modalIsDisplayed.
+        modalIsOpen = modalIsDisplayed() // global variable is created
 
         const encounterData = await dbQuery("GET", "getEncounterID")
         const savedEncounterPlaceholder = encounterData.data.info
@@ -1124,6 +1129,12 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 divAdjustHP.textContent = "Adjust Starting HP";
                 divAdjustHP.addEventListener("click", (e) => adjustHPModal(e, characterToAdjustHP));
 
+                const characterToRename = element.getAttribute("data-participant")
+                const divRename = document.createElement("div");
+                divRename.classList.add("context_div");
+                divRename.textContent = "Rename Character";
+                divRename.addEventListener("click", () => renameCharacterModal(characterToRename));
+
                 const characterToDelete = element.getAttribute("data-participant")
                 const deleteCharacter = document.createElement("div");
                 deleteCharacter.classList.add("context_div");
@@ -1136,6 +1147,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 // contextMenu.appendChild(br);
                 contextMenu.appendChild(divAdjustHP);
                 // contextMenu.appendChild(br2);
+                contextMenu.appendChild(divRename);
                 contextMenu.appendChild(deleteCharacter);
                 showContextMenu();
             }
@@ -1166,13 +1178,18 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                     e.altKey ? launchConditionsModal("turn") : launchActionModal("turn");
                 } else {
                     const modalType = modal.querySelector(".modal-body").getAttribute("data-modal-type");
+                    // Only these two submit on Enter and close as they go. The
+                    // rest stay up, so marking them closed here was the same lie
+                    // load_encounter used to tell, and cost them their typing.
                     if (modalType === "action") {
                         submitAction();
+                        modalIsOpen = false;
+                        document.removeEventListener("keyup", keyupEventListener);
                     } else if (modalType === "condition") {
                         submitCondition();
+                        modalIsOpen = false;
+                        document.removeEventListener("keyup", keyupEventListener);
                     }
-                    modalIsOpen = false;
-                    document.removeEventListener("keyup", keyupEventListener);
                 }
             }
 

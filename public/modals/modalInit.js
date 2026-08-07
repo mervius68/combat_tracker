@@ -269,6 +269,32 @@ async function modalInit() {
                 + selectedOptionValue + "(s)"
             div.appendChild(h2);
 
+            // One roll for the whole group, which is how a pack of identical
+            // creatures is usually rolled for. It fills each row below rather than
+            // standing in for them, so a creature can still be given its own roll
+            // afterwards, and each row keeps adding its own modifier - the group is
+            // only identical until one of them is renamed into something else.
+            // Left empty, everything behaves as it did before.
+            const groupRollDiv = document.createElement("div");
+            if (creatureParticipants.length > 1) {
+                groupRollDiv.classList.add("center-div-align-left");
+                const groupRollLine = document.createElement("div");
+                groupRollLine.classList.add("line", "group-roll-line");
+                const groupRollInput = document.createElement("input");
+                groupRollInput.setAttribute("type", "text");
+                groupRollInput.setAttribute("id", "groupRoll");
+                groupRollInput.classList.add("groupRoll");
+                groupRollInput.setAttribute("maxLength", "2");
+                const groupRollLabel = document.createElement("label");
+                groupRollLabel.setAttribute("for", "groupRoll");
+                groupRollLabel.innerHTML = "&nbsp;&nbsp;&nbsp;One roll for all "
+                    + creatureParticipants.length + " " + selectedOptionValue + "(s)";
+                groupRollLine.appendChild(groupRollInput);
+                groupRollLine.appendChild(groupRollLabel);
+                groupRollDiv.appendChild(groupRollLine);
+                div.appendChild(groupRollDiv);
+            }
+
             const divOpponents = document.createElement("div");
             divOpponents.classList.add("center-div-align-left");
 
@@ -329,25 +355,44 @@ async function modalInit() {
 
             modal.innerHTML = container.outerHTML;
             setTimeout(() => {
-                let cursorField = document.querySelector('input[data-init-modifier]')
+                // the one roll where there is one, since that is what most groups
+                // are rolled for; the rows below are a click away either way
+                let cursorField = document.querySelector('.groupRoll')
+                    || document.querySelector('input[data-init-modifier]')
                 cursorField.focus();
             }, 90)
 
-            modal.addEventListener("input", function (e) {
-
-                const inputElement = e.target;
-                const parentDiv = inputElement.parentElement;
-                let strongElement = parentDiv.querySelector('strong');
-                const inputValue = inputElement.value.trim(); // Trim leading/trailing white spaces
+            // A row's total, as roll plus that creature's own modifier. The rows
+            // are rebuilt from container.outerHTML, so this works off the live
+            // input it is handed rather than the one that was built above.
+            function showRowTotal(rowInput) {
+                const strongElement = rowInput.parentElement.querySelector('strong');
+                if (!strongElement) {
+                    return;
+                }
+                const inputValue = rowInput.value.trim(); // Trim leading/trailing white spaces
                 if (inputValue === "") {
                     strongElement.innerText = "0";
-                } else {
-                    let parsedValue = parseInt(inputValue, 10);
-                    let initModifier = parseInt(inputElement.getAttribute('data-init-modifier'), 10);
-                    let newValue = parsedValue + initModifier;
-                    strongElement.innerText = newValue;
+                    return;
                 }
-                const allInputs = e.target.parentElement;
+                let parsedValue = parseInt(inputValue, 10);
+                let initModifier = parseInt(rowInput.getAttribute('data-init-modifier'), 10);
+                strongElement.innerText = parsedValue + initModifier;
+            }
+
+            modal.addEventListener("input", function (e) {
+                // the one roll is not a row of its own: it writes into every row,
+                // which then totals itself as though the roll had been typed there
+                if (e.target.classList.contains("groupRoll")) {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    modal.querySelectorAll('input[data-init-modifier]').forEach((rowInput) => {
+                        rowInput.value = e.target.value;
+                        showRowTotal(rowInput);
+                    });
+                    return;
+                }
+
+                showRowTotal(e.target);
             });
         }
         const cm = document.querySelector(".modal-content");

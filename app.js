@@ -773,6 +773,37 @@ app.post('/adjustInit', (req, res) => {
     });
 });
 
+// Renames one participant in one encounter. tbl_character, the pool the
+// participant was drawn from, is left alone: the same goblin can be a different
+// creature in the next fight.
+app.post('/renameParticipant', (req, res) => {
+    const requestData = req.body; // Parsed JSON data from the request body
+    const characterName = String(requestData.character_name ?? "").trim();
+    if (!characterName) {
+        return res.status(400).json({ error: 'A character needs a name' });
+    }
+
+    // The name that comes back is whatever the tracker was showing, number and
+    // all, so the number now lives in the name. Clearing numeric_value stops the
+    // older scheme adding a second one - see participantNames.js.
+    const sql = `
+      UPDATE ct_tbl_participant
+      SET character_name = ?,
+          numeric_value = ''
+      WHERE pID = ?
+    `;
+
+    // Bound rather than interpolated: a name is free text, and plenty of them
+    // have an apostrophe in.
+    db.run(sql, [characterName, requestData.pID], (err) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.json({ message: 'Character renamed successfully' });
+    });
+});
+
 app.post('/submitStartingHP', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
     // Generate the SQL query with parameters

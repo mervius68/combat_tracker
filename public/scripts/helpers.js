@@ -239,6 +239,9 @@ function launchActionModal(event) {
 function closeModalBox(closeModal) {
     closeModal.addEventListener("click", function (e) {
         modal.style.display = "none";
+        // the same lie the other way round: left set, the flag says a modal is up
+        // after the X has put it away, and Enter goes on submitting to it
+        modalIsOpen = false;
     });
     window.addEventListener("click", function (e) {
         if (e.target == modal) {
@@ -368,6 +371,17 @@ function closeModal() {
     let closeModalButtons = document.querySelectorAll(".close-modal");
     modal.style.display = "none";
     modalIsOpen = false;
+}
+
+// Whether the modal is actually on screen. modalIsOpen is only a flag, and it has
+// to be told; when it says "closed" while the modal is still up,
+// keydownEventListener blurs whatever is focused on every keystroke, so the fields
+// can be clicked into but not typed in. The same "none or unset means closed" test
+// that keydownEventListener uses.
+function modalIsDisplayed() {
+    const modal = document.querySelector(".modal");
+    const display = modal?.style?.display;
+    return !!modal && display !== "none" && display !== "";
 }
 
 const clickEventListener = async function (event) {
