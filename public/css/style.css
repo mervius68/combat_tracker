@@ -17,6 +17,27 @@ input {
     background-color: pink;
 }
 
+/* The line beneath the encounter's title - see encounterTiming.js. Reads as a
+   subtitle rather than as a row of the tracker, so it is deliberately quieter
+   than everything below it. */
+
+.encounter_timing {
+    margin: -0.4em 0 0.8em;
+    color: #555;
+    font-size: 0.85em;
+}
+
+/* the middot separates the two entries without needing an element of its own */
+.encounter_timing_entry + .encounter_timing_entry::before {
+    content: "\00b7";
+    margin: 0 0.6em;
+}
+
+.encounter_timing_aside,
+.encounter_timing_unknown {
+    font-style: italic;
+}
+
 .ct_grid4columns {
     display: grid;
     grid-template-columns: repeat(4, auto);

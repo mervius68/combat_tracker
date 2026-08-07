@@ -25,6 +25,10 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
             } - ${encounter[0]?.location || ""} (${encounter[0]?.description || ""
             })`;
 
+        // the line beneath the title: when this combat kicked off, and when it was
+        // last worked on
+        await renderEncounterTiming(encounterID);
+
 
 
         const originalParticipants = getCtApp == true ? await dbQuery("GET", "participants/" + encounterID) : ctApp

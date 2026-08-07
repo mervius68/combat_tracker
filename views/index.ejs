@@ -34,6 +34,7 @@
     <script src="/scripts/dragInitiative.js"></script>
     <script src="/scripts/linkedHighlights.js"></script>
     <script src="/scripts/battleTally.js"></script>
+    <script src="/scripts/encounterTiming.js"></script>
 
     <!-- <%- include ('../scripts/helpers'); %> -->
 </head>
@@ -41,6 +42,9 @@
 <body onload="load_encounter()">
     <%- include ('modal.ejs'); %>
         <h1 class="main_header"></h1>
+        <!-- filled in by renderEncounterTiming: when this combat kicked off and
+             when it was last worked on -->
+        <div class="encounter_timing"></div>
         <button class="button newBtn" onclick="identify_latest()">New</button>
         <select class="dropdown initDropdown">
         </select>

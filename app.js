@@ -26,6 +26,128 @@ const db = new sqlite3.Database(
 // Now, the code reads the database name from the database.txt file
 // located in the combat_databases folder.
 
+// ------------------------------------------------------------- session timing
+// When a combat kicked off, and when it was last worked on.
+//
+// The start is not stored as a value of its own: it is the earliest timestamp
+// among the encounter's actions. Delete every action and open the fight again on
+// another day and the start moves with the new first action, because nothing of
+// the old one is left to read. Nothing has to notice the reset and clear it.
+//
+// "Last updated" cannot be derived that way - deleting the newest action would
+// send it backwards - so it is recorded per encounter in ct_tbl_encounter_time.
+//
+// Both are kept up to date by triggers rather than by the routes below, so an
+// encounter is stamped whichever route changed it, including the ones that write
+// to a table without knowing which encounter it belongs to.
+//
+// This runs against databases that already have encounters in them: the column
+// and the table are added only if they are missing, and actions recorded before
+// any of this existed keep a NULL timestamp, which the page reports as unknown
+// rather than guessing a date for.
+
+// UTC, so the stored value means the same thing wherever it is read. The page
+// renders it in the reader's local time.
+const NOW_UTC = `strftime('%Y-%m-%dT%H:%M:%SZ', 'now')`;
+
+// The tables a combat record is made of. A write to any of them is a change to
+// the encounter it belongs to. Each entry says how to get from the row being
+// written (NEW or OLD) to its eID.
+const COMBAT_TABLES = [
+    { table: "ct_tbl_action", encounterOf: (row) => `${row}.eID` },
+    { table: "ct_tbl_target", encounterOf: (row) => `${row}.eID` },
+    { table: "ct_tbl_condition", encounterOf: (row) => `${row}.eID` },
+    { table: "ct_tbl_participant", encounterOf: (row) => `${row}.eID` },
+    // an affectee carries no eID of its own; it hangs off the condition it belongs to
+    {
+        table: "ct_tbl_condition_affectee",
+        encounterOf: (row) => `(SELECT eID FROM ct_tbl_condition WHERE taID = ${row}.taID LIMIT 1)`,
+    },
+];
+
+// The triggers name the column and the table they write to, so both have to be
+// in place before any of them is created - hence the steps run one after the
+// other rather than all at once.
+function prepareSessionTiming() {
+    db.all(`PRAGMA table_info(ct_tbl_action)`, [], (err, columns) => {
+        if (err) return console.error(err.message);
+
+        const alreadyStamped = columns.some((column) => column.name === "created");
+        addTimingTable(alreadyStamped ? null : `ALTER TABLE ct_tbl_action ADD COLUMN created TEXT`);
+    });
+}
+
+function addTimingTable(alterSql) {
+    const next = () => {
+        db.run(
+            `CREATE TABLE IF NOT EXISTS ct_tbl_encounter_time (
+                "eID"       INTEGER,
+                "updated"   TEXT,
+                PRIMARY KEY("eID")
+            )`,
+            (err) => {
+                if (err) return console.error(err.message);
+                createTimingTriggers();
+            }
+        );
+    };
+
+    if (!alterSql) return next();
+    db.run(alterSql, (err) => {
+        if (err) return console.error(err.message);
+        next();
+    });
+}
+
+function createTimingTriggers() {
+    // The action's own timestamp, written once when it is first recorded. Doing
+    // it here rather than in the INSERT means an action is dated no matter how it
+    // was added, and an action that already carries a date - one copied in from
+    // elsewhere - keeps it.
+    const statements = [
+        `CREATE TRIGGER IF NOT EXISTS ct_stamp_action_created
+         AFTER INSERT ON ct_tbl_action
+         WHEN NEW.created IS NULL
+         BEGIN
+             UPDATE ct_tbl_action SET created = ${NOW_UTC} WHERE aID = NEW.aID;
+         END;`,
+    ];
+
+    // One touch trigger per table per kind of write. A delete reads the eID off
+    // the row that is going away; everything else off the row being written. The
+    // guard skips affectees whose condition has already gone, which have no
+    // encounter left to stamp.
+    COMBAT_TABLES.forEach(({ table, encounterOf }) => {
+        [
+            { event: "INSERT", row: "NEW" },
+            { event: "UPDATE", row: "NEW" },
+            { event: "DELETE", row: "OLD" },
+        ].forEach(({ event, row }) => {
+            const eID = encounterOf(row);
+            statements.push(
+                `CREATE TRIGGER IF NOT EXISTS ct_touch_${table}_${event.toLowerCase()}
+                 AFTER ${event} ON ${table}
+                 WHEN ${eID} IS NOT NULL
+                 BEGIN
+                     INSERT INTO ct_tbl_encounter_time (eID, updated)
+                     VALUES (${eID}, ${NOW_UTC})
+                     ON CONFLICT(eID) DO UPDATE SET updated = ${NOW_UTC};
+                 END;`
+            );
+        });
+    });
+
+    db.serialize(() => {
+        statements.forEach((sql) => {
+            db.run(sql, (err) => {
+                if (err) console.error(err.message);
+            });
+        });
+    });
+}
+
+prepareSessionTiming();
+
 // app.use("/submitUpdateAction.js", function(req, res, next) {
 //   res.type("application/javascript");
 //   next();
@@ -55,6 +177,37 @@ app.get("/selected_encounter/:eID", (req, res) => {
             throw err;
         }
         res.send(results);
+    });
+});
+
+// When this combat kicked off and when it was last worked on - see the session
+// timing block above. Both come back as UTC timestamps, or null where there is
+// nothing to report: an encounter nobody has acted in yet has no start, and one
+// last touched before any of this was recorded has no last update.
+app.get("/encounterTiming/:encounter", (req, res) => {
+    const encounter = req.params.encounter;
+    let sql = `SELECT
+                (SELECT MIN(created) FROM ct_tbl_action WHERE eID = ?) AS started,
+                (SELECT MAX(created) FROM ct_tbl_action WHERE eID = ?) AS lastAction,
+                (SELECT updated FROM ct_tbl_encounter_time WHERE eID = ?) AS touched,
+                (SELECT COUNT(*) FROM ct_tbl_action WHERE eID = ?) AS actions
+    `;
+    let query = db.get(sql, [encounter, encounter, encounter, encounter], (err, row) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        // The later of the two: a deletion is only recorded against the encounter,
+        // and an action added straight into the database only against the action.
+        // Both are the same sortable UTC format.
+        const updated = [row?.lastAction, row?.touched].filter(Boolean).sort().pop() || null;
+        res.send({
+            started: row?.started || null,
+            updated,
+            // told apart from "started before this was recorded", which has
+            // actions but no date to show for them
+            actions: row?.actions || 0,
+        });
     });
 });
 
