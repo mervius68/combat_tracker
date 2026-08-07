@@ -346,9 +346,16 @@ async function modalUpdateAction(dataAidValue) {
                 ? " #" + participant.numeric_value
                 : "");
 
+        // the AC the attack had to beat - see the same lines in modalAction.js for
+        // why this sits beside the label rather than inside it
+        let acLabel = targetAcMarkup(participant);
+
         let br3 = document.createElement("br");
         div16.appendChild(target);
         div16.appendChild(targetLabel);
+        if (acLabel) {
+            div16.appendChild(acLabel);
+        }
         div16.appendChild(br3);
     });
 

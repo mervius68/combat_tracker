@@ -286,9 +286,18 @@ async function modalActions() {
                 ? " #" + participant.numeric_value
                 : "");
 
+        // The AC the attack has to beat, to the right of the target it belongs to.
+        // A sibling of the label rather than part of it: the concentration "C" and
+        // the CON save prompt are both written into the label, and the input the
+        // save prompt reads is found as the label's previous sibling.
+        let acLabel = targetAcMarkup(participant);
+
         let br3 = document.createElement("br");
         div16.appendChild(target);
         div16.appendChild(targetLabel);
+        if (acLabel) {
+            div16.appendChild(acLabel);
+        }
 
         div16.appendChild(br3);
     });

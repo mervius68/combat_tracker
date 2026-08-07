@@ -373,6 +373,36 @@ function closeModal() {
     modalIsOpen = false;
 }
 
+// A participant's armour class the way the tracker's AC column says it: the
+// second value, where there is one, is the AC that applies in some circumstance
+// the DM recorded against it. Empty for a participant with no AC at all rather
+// than the word "null".
+function armourClass(participant) {
+    const primary = participant?.ac;
+    if (primary == null || primary === "") {
+        return "";
+    }
+    const secondary = participant.ac_secondary;
+    return primary + (secondary == null || secondary === "" ? "" : " / " + secondary);
+}
+
+// That AC as the element the action modals put beside a target, or null for a
+// participant with no AC recorded. The second value's circumstance is only kept
+// in ac_secondary_descrip, so it is offered on hover.
+function targetAcMarkup(participant) {
+    const ac = armourClass(participant);
+    if (!ac) {
+        return null;
+    }
+    const acLabel = document.createElement("span");
+    acLabel.classList.add("target-ac");
+    acLabel.textContent = "AC " + ac;
+    if (participant.ac_secondary_descrip) {
+        acLabel.setAttribute("title", participant.ac_secondary_descrip);
+    }
+    return acLabel;
+}
+
 // Whether the modal is actually on screen. modalIsOpen is only a flag, and it has
 // to be told; when it says "closed" while the modal is still up,
 // keydownEventListener blurs whatever is focused on every keystroke, so the fields

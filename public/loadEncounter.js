@@ -451,11 +451,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 // populate row in section 1 (ac, init, character name, and hp)
                 participantHTML.forEach((turn, index) => {
                     // show AC on the combat tracker for this participant
-                    turn.innerText =
-                        participant.ac +
-                        (participant.ac_secondary == null || participant.ac_secondary == ""
-                            ? ""
-                            : " / " + participant.ac_secondary);
+                    turn.innerText = armourClass(participant);
 
                     // show hit points record for each character
                     let damageObjects = roundDamages.filter((item) => {

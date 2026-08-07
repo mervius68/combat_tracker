@@ -328,9 +328,21 @@ hr {
     outline: 3px solid #1a7f1a;
 }
 
+/* Given a width so the ACs beside them line up into a column that can be read
+   down. A longer name just pushes its own AC over. In px rather than em because
+   .bold-target sets a larger font size on some of these labels, and an em width
+   would put those rows' ACs somewhere else. */
 .modal_text_inputs {
     font-size: 1em;
     margin-left: 5px;
+    display: inline-block;
+    min-width: 190px;
+}
+
+/* the target's AC in the action modals' target list - beside the name, but not
+   competing with it */
+.target-ac {
+    color: #555;
 }
 
 textarea {
