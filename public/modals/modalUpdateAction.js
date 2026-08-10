@@ -536,6 +536,8 @@ async function modalUpdateAction(dataAidValue) {
 
     modal.innerHTML = container.outerHTML;
 
+    wireActionTextInput(modal);
+
     await document.removeEventListener("click", clickEventListener);
     document.addEventListener("click", clickEventListener);
 

@@ -339,27 +339,9 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
 
             // build the final section, empty
             const section2 = document.createElement("div");
-            section2.classList.add("ct_grid4columns");
+            section2.classList.add("ct_grid1column");
             section2.setAttribute("data-section", 2);
 
-            const div5 = document.createElement("div");
-            div5.classList.add("section");
-            div5.classList.add("header");
-            div5.classList.add("ct_turn_bookends");
-            div5.classList.add("center");
-            div5.textContent = "Drop";
-            const div6 = document.createElement("div");
-            div6.classList.add("section");
-            div6.classList.add("header");
-            div6.classList.add("ct_turn_bookends");
-            div6.classList.add("align_left");
-            div6.textContent = "Start";
-            const div7 = document.createElement("div");
-            div7.classList.add("section");
-            div7.classList.add("header");
-            div7.classList.add("ct_turn_bookends");
-            div7.classList.add("align_right");
-            div7.textContent = "End";
             const div8 = document.createElement("div");
             div8.classList.add("section");
             div8.classList.add("header");
@@ -367,33 +349,16 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
             div8.classList.add("center");
             div8.textContent = "Notes";
 
-            section2.appendChild(div5);
-            section2.appendChild(div6);
-            section2.appendChild(div7);
             section2.appendChild(div8);
 
             ctApp.forEach((participant) => {
-                const div9 = document.createElement("div");
-                div9.classList.add("section");
-                div9.classList.add("ct_turn_bookends");
-                div9.classList.add("center");
-                div9.setAttribute("div-participant", participant.pID);
-                const div10 = document.createElement("div");
-                div10.classList.add("section");
-                div10.classList.add("ct_turn_bookends");
-                div10.classList.add("align_left");
-                const div11 = document.createElement("div");
-                div11.classList.add("section");
-                div11.classList.add("ct_turn_bookends");
-                div11.classList.add("align_right");
                 const div12 = document.createElement("div");
                 div12.classList.add("section");
                 div12.classList.add("ct_turn_bookends");
                 div12.classList.add("center");
+                // sendToCoordinate finds this row's cell by this attribute
+                div12.setAttribute("div-participant", participant.pID);
 
-                section2.appendChild(div9);
-                section2.appendChild(div10);
-                section2.appendChild(div11);
                 section2.appendChild(div12);
             });
             ctRound.appendChild(section2);
@@ -843,8 +808,6 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 actionObject.targetName = targetString || "";
                 actionObject.damage = damageString || "";
                 actionObject.notes = action.notes || "";
-                actionObject.end = action.end_note || "";
-                actionObject.start = action.start_note || "";
                 actionObject.aID = action.result_aID || "";
 
                 await sendToCoordinate(
@@ -887,37 +850,21 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         // function to populate the individual actions
         function sendToCoordinate(round, participant, actionType, actionObject, taID) {
             try {
-                let y = mainContainer.querySelector(
+                // the row's Notes cell, which is all section 2 holds
+                let y_notes = mainContainer.querySelector(
                     `[data-round="${round}"] [data-section="2"] [div-participant="${participant}"]`
                 );
-                let y_drop = y;
-                let y_start = y.nextSibling;
-                let y_notes = y.nextSibling.nextSibling.nextSibling
-                let y_end = y.nextSibling.nextSibling;
 
                 if (
                     (actionObject.notes && actionObject.notes != "-")
                 ) {
                     y_notes.innerHTML =
-                        y.nextSibling.nextSibling.nextSibling.innerHTML +
-                        (y.nextSibling.nextSibling.nextSibling.innerHTML == ""
+                        y_notes.innerHTML +
+                        (y_notes.innerHTML == ""
                             ? ""
                             : " | ") +
                         `<span class="notes" data-aid=${actionObject.aID}>${actionObject.notes}</span>` +
                         " ";
-                }
-
-                // tagged so each comment pairs with the action that wrote it
-                if (actionObject.start && actionObject.start != "-") {
-                    y_start.innerHTML = actionNoteMarkup(actionObject.start, actionObject.aID);
-                }
-
-                if (actionObject.end && actionObject.end != "-") {
-                    y_end.innerHTML = actionNoteMarkup(actionObject.end, actionObject.aID);
-                }
-
-                if (actionObject.drop && actionObject.drop != "-") {
-                    y_drop.innerHTML = actionObject.drop;
                 }
             } catch (err) { }
 

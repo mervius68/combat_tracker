@@ -39,18 +39,6 @@ function hpDamageMarkup(target) {
     return `<span class="hp-link" data-hp-tid="${target.tID}">${target.damage}</span>`;
 }
 
-// A start or end note, tagged with the action that wrote it.
-//
-// Deliberately without the `notes` class the Notes column uses: the context menu
-// keys "Edit Action" / "Delete Note" off that class, and those columns have never
-// offered it.
-function actionNoteMarkup(text, aID) {
-    if (!aID) {
-        return text;
-    }
-    return `<span data-aid="${aID}">${text}</span>`;
-}
-
 // ------------------------------------------------------------ hover behaviour
 
 // the nearest element at or above the cursor that takes part in a pair

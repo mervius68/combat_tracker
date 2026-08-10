@@ -18,9 +18,18 @@ async function submitUpdateAction(dataAidValue, pID) {
         toolNum = [],
         actionString = "",
         nextToolID = "";
-    const selectedWeapon = Array.from(document.getElementsByName("weapons")).find((weapon) => {
+    const checkedWeapon = Array.from(document.getElementsByName("weapons")).find((weapon) => {
         return weapon.checked == true;
     });
+
+    // The NONE radio is checked whenever no tool or named action matches the action
+    // being edited, so a checked radio on its own doesn't mean the user picked one.
+    // Text typed in the free-text field beats NONE; a radio the user actually chose
+    // beats the text (choosing one clears the field - see wireActionTextInput).
+    const typedAction = weaponTextInput[0]?.value.trim();
+    const selectedWeapon = typedAction && (!checkedWeapon || checkedWeapon.id == "default")
+        ? undefined
+        : checkedWeapon;
 
     if (selectedWeapon) {
         weapons = document.getElementsByName("weapons");
@@ -44,9 +53,9 @@ async function submitUpdateAction(dataAidValue, pID) {
             actionString = "-";
             nextToolID = "0";
         }
-    } else if (weaponTextInput[0]?.value) {
-        tool = weaponTextInput[0].value;
-        actionString = weaponTextInput[0].value;
+    } else if (typedAction) {
+        tool = typedAction;
+        actionString = typedAction;
         nextToolID = "0";
     } else {
         tool = "none";

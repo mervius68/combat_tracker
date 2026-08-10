@@ -351,11 +351,6 @@ function launchConditionsModal(affected, concentration, conditionName, holding, 
     pushModal();
 }
 
-function launchInitModal(selectedOptionText) {
-    pushModal();
-    modalIsOpen = true;
-}
-
 function pushModal() {
     let modal = document.querySelector(".modal");
     let closeModalButtons = document.querySelectorAll(".close-modal");
@@ -373,22 +368,15 @@ function closeModal() {
     modalIsOpen = false;
 }
 
-// A participant's armour class the way the tracker's AC column says it: the
-// second value, where there is one, is the AC that applies in some circumstance
-// the DM recorded against it. Empty for a participant with no AC at all rather
+// A participant's armour class. Empty for a participant with no AC at all rather
 // than the word "null".
 function armourClass(participant) {
-    const primary = participant?.ac;
-    if (primary == null || primary === "") {
-        return "";
-    }
-    const secondary = participant.ac_secondary;
-    return primary + (secondary == null || secondary === "" ? "" : " / " + secondary);
+    const ac = participant?.ac;
+    return ac == null || ac === "" ? "" : String(ac);
 }
 
 // That AC as the element the action modals put beside a target, or null for a
-// participant with no AC recorded. The second value's circumstance is only kept
-// in ac_secondary_descrip, so it is offered on hover.
+// participant with no AC recorded.
 function targetAcMarkup(participant) {
     const ac = armourClass(participant);
     if (!ac) {
@@ -397,9 +385,6 @@ function targetAcMarkup(participant) {
     const acLabel = document.createElement("span");
     acLabel.classList.add("target-ac");
     acLabel.textContent = "AC " + ac;
-    if (participant.ac_secondary_descrip) {
-        acLabel.setAttribute("title", participant.ac_secondary_descrip);
-    }
     return acLabel;
 }
 
@@ -677,6 +662,35 @@ const modalClickListener = function (event) {
         }
     }
 };
+// The free-text weapon/action field and the weapon radios are two ways of saying
+// the same thing, and one radio is always checked, so without this the typed text
+// could never win. Typing clears the radios; picking a radio clears the text.
+// Whichever the user touched last is the one submitAction/submitUpdateAction sees.
+function wireActionTextInput(modal) {
+    const textInput = modal.querySelector('input[name="weaponTextInput"]');
+    if (!textInput) {
+        return;
+    }
+    const radios = modal.querySelectorAll('input[name="weapons"]');
+    textInput.addEventListener("input", function () {
+        if (textInput.value === "") {
+            return;
+        }
+        radios.forEach((radio) => {
+            radio.checked = false;
+        });
+    });
+    radios.forEach((radio) => {
+        // "click" as well as "change", so that clicking NONE clears text carried
+        // over from the action being edited even though NONE was already checked.
+        ["click", "change"].forEach((eventName) => {
+            radio.addEventListener(eventName, function () {
+                textInput.value = "";
+            });
+        });
+    });
+}
+
 async function endCondition() {
     const htmlSelected = document.querySelector(".selected");
     const selectedID = htmlSelected.getAttribute("data-participant");
@@ -740,19 +754,6 @@ function displayRound(roundValue) {
             button.classList.remove("selected_button");
         }
     });
-}
-function getRoundValue(navValue) {
-    // Use the attribute selector to find the element with the specific data-nav value
-    const element = document.querySelector(`[data-nav="${navValue}"]`);
-    // Check if the element exists to avoid null reference errors
-    if (element) {
-        // Return the value of the data-round attribute
-        return element.getAttribute('data-round');
-    }
-    else {
-        // Return a default value or null if the element was not found
-        return null;
-    }
 }
 function scrollUp() {
     const scrollableDiv = document.querySelector(".modal");
@@ -826,10 +827,4 @@ async function processDownstreamArray(bufferHP, downstreamArray, startIndex = 0)
     if (indexToRemove >= 0) {
         downstreamArray.splice(indexToRemove);
     }
-}
-
-function turnOffModal() {
-    let modal = document.querySelector(".modal");
-    modal.removeEventListener("click", modalClickListener);
-    modal.style.display = "none";
 }

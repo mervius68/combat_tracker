@@ -250,24 +250,6 @@ app.get('/getEncounterID', (req, res) => {
     }
 });
 
-app.post('/your-server-endpoint', (req, res) => {
-    // Get the data sent from the client
-    const data = req.body.option; // Assuming you expect JSON with a property 'option'
-
-    // Define the file path where you want to write the data
-    const filePath = 'databases/database.txt';
-
-    // Write the data to the file (overwrite existing content)
-    fs.writeFileSync(filePath, data, 'utf-8');
-
-    // Send a JSON response to the client
-    res.status(200).json({ message: 'Data written to the file.' });
-
-});
-
-
-
-
 app.get('/availableEncounters', (req, res) => {
     let sql = `SELECT *
                 FROM tbl_encounter
@@ -305,20 +287,6 @@ app.get("/latest_eID/", (req, res) => {
             throw err;
         }
         res.send(...results);
-    });
-});
-
-app.get("/getLatestActionRow", (req, res) => {
-    let sql = `SELECT row
-                FROM ct_tbl_action
-                ORDER BY row DESC limit 1;
-                `;
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        res.send(results);
     });
 });
 
@@ -452,8 +420,8 @@ app.get(
         let target_pID = req.params.target_pID;
 
         let sql = `INSERT into ct_tbl_target
-        (targetID, eID, round, pID, target_pID, damage, new_hp, temp_hp)
-        values ('${nextTargetID}', '${encounter}', '${round}', '${pID}', '${target_pID}', '${damage}', '${newHP}', 0);
+        (targetID, eID, round, pID, target_pID, damage, new_hp)
+        values ('${nextTargetID}', '${encounter}', '${round}', '${pID}', '${target_pID}', '${damage}', '${newHP}');
     `;
         let query = db.all(sql, (err, results) => {
             if (err) {
@@ -629,21 +597,6 @@ app.get("/terminate/:targeted_pID/:round", (req, res) => {
     });
 });
 
-app.get("/arrangeParticipantsByInit/:pID/:numeric_value", (req, res) => {
-    let pID = req.params.pID;
-    let numeric_value = req.params.numeric_value;
-    let sql = `UPDATE ct_tbl_participant SET numeric_value = '${numeric_value}'
-        where pID = '${pID}'
-            `;
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        res.send(results);
-    });
-});
-
 app.get("/getCharacters", (req, res) => {
     const isPC = req.query.isPC; // Assuming the client sends a query parameter 'isPC' with values 1 or 0
 
@@ -731,25 +684,6 @@ app.post('/orderInitiative', (req, res) => {
             throw err;
         }
         res.json({ message: 'Data updated successfully' });
-    });
-});
-
-app.post('/removeDuplicateNumericValues', (req, res) => {
-    const requestData = req.body; // Parsed JSON data from the request body
-    // Generate the SQL query with parameters
-    const sql = `
-      UPDATE ct_tbl_participant
-      SET numeric_value = ''
-      WHERE pID = '${requestData.pID}'
-    `;
-
-    // Execute the SQL query with parameters and handle the response
-    db.run(sql, [], (err) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-        res.json({ message: 'Numeric value deleted successfully' });
     });
 });
 
@@ -1114,7 +1048,7 @@ async function deleteTarget(target) {
 async function insertTarget(target) {
     const sql = `
         INSERT into ct_tbl_target
-        (tID, targetID, eID, round, pID, target_pID, damage, new_hp, temp_hp) VALUES (?,?,?,?,?,?,?,?,?);
+        (tID, targetID, eID, round, pID, target_pID, damage, new_hp) VALUES (?,?,?,?,?,?,?,?);
     `
     await runQuery(sql, [
         target.tID,
@@ -1124,8 +1058,7 @@ async function insertTarget(target) {
         target.pID,
         target.target_pID,
         target.damage,
-        target.newHP,
-        0
+        target.newHP
     ])
 }
 
@@ -1286,49 +1219,6 @@ app.post('/deleteAction', (req, res) => {
 });
 
 
-
-app.post('/deleteActionUpdateTargetHPs', (req, res) => {
-    const requestData = req.body; // Parsed JSON data from the request body
-
-    // Check if requestData is an object
-    if (typeof requestData === 'object' && requestData !== null) {
-        const keys = Object.keys(requestData);
-
-        // Generate and execute the SQL queries dynamically
-        keys.forEach((key) => {
-            const nestedObject = requestData[key].object; // Access the nested object
-            if (nestedObject.hasOwnProperty('damage') && nestedObject.hasOwnProperty('target_pID') && nestedObject.hasOwnProperty('tID')) {
-                const sql = `
-                    UPDATE ct_tbl_target
-                    SET new_hp = new_hp + ?
-                    WHERE target_pID = ? AND tID > ?
-`;
-                // Assuming nestedObject.damage, nestedObject.target_pID, and nestedObject.tID are the correct properties in your objects
-                db.all(sql, [nestedObject.damage, nestedObject.target_pID, nestedObject.tID], (err, results) => {
-                    // Rest of the code
-                });
-
-            }
-        });
-        res.json({ message: 'Targets updated successfully' });
-    } else {
-        res.status(400).json({ message: 'Invalid request data' });
-    }
-});
-
-app.get("/chidCheck/:chID/", (req, res) => {
-    let chID = req.params.chID;
-    let sql = `SELECT * FROM ct_tbl_participant
-        where chID = '${chID}' ORDER BY pID DESC limit 1;
-            `;
-    let query = db.all(sql, [], (err, results) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-        res.send(results);
-    });
-});
 
 app.get("/getLatestParticipant/", (req, res) => {
     let sql = `SELECT pID FROM ct_tbl_participant

@@ -32,9 +32,19 @@ async function submitAction(forceCondition = 0) {
             toolNum = [],
             actionString = "",
             nextToolID = "";
-        const selectedWeapon = Array.from(document.getElementsByName("weapons")).find((weapon) => {
+        const checkedWeapon = Array.from(document.getElementsByName("weapons")).find((weapon) => {
             return weapon.checked == true;
         });
+
+        // NONE (or the participant's last-used tool) is checked before the user
+        // touches anything, so a checked radio on its own doesn't mean they picked
+        // it. Text typed in the free-text field beats NONE; a radio the user
+        // actually chose beats the text (choosing one clears the field - see
+        // wireActionTextInput).
+        const typedAction = weaponTextInput[0]?.value.trim();
+        const selectedWeapon = typedAction && (!checkedWeapon || checkedWeapon.id == "default")
+            ? undefined
+            : checkedWeapon;
 
         if (selectedWeapon) {
             weapons = document.getElementsByName("weapons");
@@ -58,9 +68,9 @@ async function submitAction(forceCondition = 0) {
                 actionString = "-";
                 nextToolID = "0";
             }
-        } else if (weaponTextInput[0]?.value) {
-            tool = weaponTextInput[0].value;
-            actionString = weaponTextInput[0].value;
+        } else if (typedAction) {
+            tool = typedAction;
+            actionString = typedAction;
             nextToolID = "0";
         } else {
             tool = "none";

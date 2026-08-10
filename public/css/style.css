@@ -53,6 +53,22 @@ input {
     min-width: max-content;
 }
 
+/* The notes beneath each round. This section used to be four columns - Drop,
+   Start and End sat beside Notes - but nothing ever wrote to those three, so it
+   is now the one column that was actually filled in. */
+.ct_grid1column {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+    grid-gap: 2px;
+    background-color: black;
+    border: solid black 2px;
+    grid-auto-rows: minmax(2em, auto);
+    align-items: stretch;
+    max-width: 600px;
+    min-width: max-content;
+}
+
 .section {
     display: inline-block;
     padding: 0.5em;
@@ -109,14 +125,6 @@ input {
 .center-div-align-left {
     margin: auto;
     width: max-content;
-}
-
-.align_right {
-    text-align: right;
-}
-
-.align_left {
-    text-align: left;
 }
 
 .pink {
