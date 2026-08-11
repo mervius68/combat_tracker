@@ -369,12 +369,18 @@ async function submitAction(forceCondition = 0) {
             }
         });
 
-        load_encounter(ctAppEnc, dataNav, false);
         let modal = document.querySelector(".modal");
 
         // Remove the event listener
         modal.removeEventListener("click", modalClickListener);
+        // Put the modal away before reloading, not after. load_encounter reads
+        // whether the modal is on screen to set modalIsOpen, so hiding it second
+        // left the flag saying "open" with nothing up - and the next Enter
+        // submitted this same action again, against this modal's row and values,
+        // instead of opening a new one for the row the arrows had moved to.
         modal.style.display = "none";
+        modalIsOpen = false;
+        load_encounter(ctAppEnc, dataNav, false);
         console.log("DOG: ", pID)
         if (concentrationNext == 1 || holding == 1 || forceCondition == 1) {
             launchConditionsModal(

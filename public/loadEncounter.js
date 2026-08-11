@@ -1,5 +1,47 @@
 // this function loads the encounter when the page loads/refreshes
 
+// A submit is several database round trips long, and the modal it came from stays
+// up until they are done. Enter pressed again in that gap used to be swallowed by
+// the listener taking itself off the document; this says so directly instead.
+let enterSubmitInFlight = false;
+
+// Escape puts an open modal away; Enter submits the one that is up, or opens a new
+// action for the selected row when none is. One function for the life of the page:
+// declared inside load_encounter it was a fresh closure on every reload, and
+// addEventListener kept every one of them, so a single Enter ran the handler once
+// per reload since the page opened.
+const keyupEventListener = (e) => {
+    const modal = document.querySelector(".modal");
+    // What is actually on screen, not what modalIsOpen last remembered - the flag
+    // is set from several places and is easily left behind by a reload.
+    const modalUp = modalIsDisplayed();
+    if (e.key === "Escape" && modalUp) {
+        modal.style.display = "none";
+        modalIsOpen = false;
+    } else if (e.key === "Enter") {
+        if (enterSubmitInFlight) {
+            return;
+        }
+        if (!modalUp) {
+            e.altKey ? launchConditionsModal("turn") : launchActionModal("turn");
+        } else {
+            const modalType = modal.querySelector(".modal-body").getAttribute("data-modal-type");
+            // Only these two submit on Enter and close as they go. The rest stay
+            // up, so marking them closed here was the same lie load_encounter
+            // used to tell, and cost them their typing.
+            if (modalType === "action" || modalType === "condition") {
+                enterSubmitInFlight = true;
+                modalIsOpen = false;
+                const submitted = modalType === "action" ? submitAction() : submitCondition();
+                Promise.resolve(submitted).finally(() => {
+                    enterSubmitInFlight = false;
+                });
+            }
+        }
+    }
+
+}
+
 async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         const selectedRound = document.querySelector(".selected_button")
         // A reload does not close the modal, and the initiative and HP modals are
@@ -1110,33 +1152,6 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         window.addEventListener("click", () => {
             showContextMenu(false);
         });
-
-        const keyupEventListener = (e) => {
-            const modal = document.querySelector(".modal");
-            if (e.key === "Escape" && modalIsOpen) {
-                modal.style.display = "none";
-                modalIsOpen = false;
-            } else if (e.key === "Enter") {
-                if (!modalIsOpen) {
-                    e.altKey ? launchConditionsModal("turn") : launchActionModal("turn");
-                } else {
-                    const modalType = modal.querySelector(".modal-body").getAttribute("data-modal-type");
-                    // Only these two submit on Enter and close as they go. The
-                    // rest stay up, so marking them closed here was the same lie
-                    // load_encounter used to tell, and cost them their typing.
-                    if (modalType === "action") {
-                        submitAction();
-                        modalIsOpen = false;
-                        document.removeEventListener("keyup", keyupEventListener);
-                    } else if (modalType === "condition") {
-                        submitCondition();
-                        modalIsOpen = false;
-                        document.removeEventListener("keyup", keyupEventListener);
-                    }
-                }
-            }
-
-        }
 
         document.addEventListener("keyup", keyupEventListener);
         document.addEventListener("contextmenu", contextMenuListener);
