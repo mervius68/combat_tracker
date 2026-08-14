@@ -386,7 +386,14 @@ async function modalActions() {
                 );
                 checkbox.setAttribute("data-cpid", condition.taID);
                 checkbox.classList.add("pointer");
-                checkbox.setAttribute("id", "b" + condition.affected_pID);
+                // The condition as well as who it is on. Named after the affected
+                // participant alone, every condition on the same participant shared
+                // an id, and a label points at the first element with the id it
+                // names: clicking the second or third of them ticked the first
+                // instead, so the wrong condition ended and the one that was asked
+                // for stayed on.
+                const checkboxID = "b" + condition.taID + "-" + condition.affected_pID;
+                checkbox.setAttribute("id", checkboxID);
                 let span = document.createElement("span");
                 if (condition.concentration == 1) {
                     span.textContent = "C";
@@ -399,7 +406,7 @@ async function modalActions() {
                     // span.classList.add("savingThrow");
                 }
                 let label = document.createElement("label");
-                label.setAttribute("for", "b" + condition.affected_pID);
+                label.setAttribute("for", checkboxID);
                 label.classList.add("pointer");
 
                 let causer = ctApp.find((participant) => {

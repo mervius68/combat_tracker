@@ -168,7 +168,10 @@ async function modalConditions(
     let textInput = document.createElement("input");
     textInput.setAttribute("type", "text");
     textInput.classList.add("conditionsText");
-    textInput.setAttribute("value", conditionName || "");
+    // The action this condition came from arrives escaped for the request that
+    // recorded it, so it is put back before being shown: the field is for reading
+    // and editing, not for sending on as it stands.
+    textInput.setAttribute("value", unescapeTextForEditing(conditionName || ""));
     textInput.setAttribute("name", "conditionsText");
     textInput.classList.add("text_field");
     let br7 = document.createElement("br");

@@ -161,7 +161,6 @@ async function submitUpdateAction(dataAidValue, pID) {
 
     let notesElement = document.querySelector(".notes_text");
     let notes = notesElement.value || "-";
-    notes = notes.replaceAll("'", "&apos;").replaceAll("#", "&num;").replaceAll("?", "&quest;")
     if (notes == "") {
         notes = "-";
     }
@@ -188,6 +187,9 @@ async function submitUpdateAction(dataAidValue, pID) {
             notes += " | " + string
         }
     })
+    // After the condition sentences are in, so the character names and condition
+    // descriptions they carry are escaped the same way the typed notes are.
+    notes = escapeTextForRequest(notes);
     disableConditionsString = disableConditionsString || "-";
 
     let hit = 0;
@@ -544,42 +546,25 @@ async function submitUpdateAction(dataAidValue, pID) {
             }
         }
 
-        ctApp.forEach((participant) => {
-            Object.keys(conditionsToTurnOff).forEach(async (condition) => {
-
-                if (!conditionsToTurnOff[condition]["condition_name"]) {
-                    conditionsToTurnOff[condition]["condition_name"] = getConditionNameById(condition);
-                    const creator = await ctApp.filter((participant) => {
-                        return participant.pID == getCreatorById(condition);
-                    });
-                    conditionsToTurnOff[condition]["creator"] = creator.length > 0 ? creator[0].character_name : null;
-                    conditionsToTurnOff[condition]["creator_numeric"] = creator[0].numeric_value ? creator[0].numeric_value : null;
-                }
-
-
-                function getConditionNameById(idToFind) {
-                    const conditionsArray = participant.conditionsArray;
-                    for (const condition of conditionsArray) {
-                        if (condition.conditionID == parseInt(idToFind)) {
-                            return condition.description;
-                        }
-                    }
-                    return null; // Return null if no match is found
-                }
-
-                function getCreatorById(idToFind) {
-                    const conditionsArray = participant.conditionsArray;
-                    for (const condition of conditionsArray) {
-                        if (condition.conditionID == parseInt(idToFind)) {
-                            return condition.pID;
-                        }
-                    }
-                    return null; // Return null if no match is found
-                }
-
-            })
+        // What each condition is called and who caused it, read off the one
+        // participant whose conditionsArray holds it - the causer. Was an async
+        // callback per participant per condition, which threw on every participant
+        // that hadn't caused the condition; see submitAction.
+        Object.keys(conditionsToTurnOff).forEach((taID) => {
+            const causer = ctApp.find((participant) => {
+                return findCondition(participant, taID);
+            });
+            const condition = causer ? findCondition(causer, taID) : null;
+            conditionsToTurnOff[taID]["condition_name"] = condition ? condition.description : null;
+            conditionsToTurnOff[taID]["creator"] = causer ? causer.character_name : null;
+            conditionsToTurnOff[taID]["creator_numeric"] = causer?.numeric_value || null;
         })
 
+        function findCondition(participant, idToFind) {
+            return participant.conditionsArray?.find((condition) => {
+                return condition.conditionID == parseInt(idToFind);
+            });
+        }
     }
     async function getPreviousNewHP(dataArray, targetAID) {
         if (!Array.isArray(dataArray)) {

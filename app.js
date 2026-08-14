@@ -1248,12 +1248,24 @@ app.get("/revive/:targeted_pID/", (req, res) => {
     });
 });
 
-app.get("/endConditions/:pID/:round/:taID", (req, res) => {
+// The conditions on a participant end when the participant does. The one caller -
+// submitAction, when a target's hit points reach zero - names the participant and
+// the round and no single condition, so :taID is optional: without it every
+// condition still running on them ends. It used to be required, so that call
+// matched no route at all and came back a 404 that nothing looked at, and a
+// creature that dropped kept every condition it was under.
+app.get("/endConditions/:pID/:round/:taID?", (req, res) => {
     let pID = req.params.pID;
     let round = req.params.round;
     let taID = req.params.taID;
+    // Only what is actually running this round: without this, ending them all would
+    // push conditions that finished rounds ago forward to this one, and stamp ones
+    // that have not started yet with an end before their start.
+    let whichConditions = taID
+        ? `taID = '${taID}'`
+        : `start_round <= '${round}' AND end_round >= '${round}'`;
     let sql = `UPDATE ct_tbl_condition_affectee SET end_round = '${round}', end_pID = '${pID}'
-        where affected_pID = '${pID}' AND taID = '${taID}'
+        where affected_pID = '${pID}' AND ${whichConditions}
             `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {

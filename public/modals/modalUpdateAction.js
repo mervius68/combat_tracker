@@ -366,10 +366,10 @@ async function modalUpdateAction(dataAidValue) {
     notesLabel.innerText = "Notes";
     const notes = document.createElement("textarea");
     let defaultNotesValue = actionObj.ct_tbl_action.notes == "-" ? "" : actionObj.ct_tbl_action.notes;
-    defaultNotesValue = defaultNotesValue
-        .replace("&quest;", "?") // question mark
-        .replace("&apos;", "'")  // apostrophe
-    notes.defaultValue = defaultNotesValue;
+    // Every entity the notes were stored with, and every occurrence of each: only
+    // the first "&apos;" and "&quest;" used to come back, so a note with two
+    // apostrophes in it showed one of them raw in the field being edited.
+    notes.defaultValue = unescapeTextForEditing(defaultNotesValue);
     notes.setAttribute("rows", "5");
     notes.setAttribute("cols", "30");
     notes.setAttribute("name", "notes");
@@ -441,7 +441,11 @@ async function modalUpdateAction(dataAidValue) {
                 );
                 checkbox.setAttribute("data-cpid", condition.taID);
                 checkbox.classList.add("pointer");
-                checkbox.setAttribute("id", "b" + condition.affected_pID);
+                // Unique per condition, not just per affected participant - see
+                // modalAction, where sharing an id sent label clicks to the wrong
+                // checkbox.
+                const checkboxID = "b" + condition.taID + "-" + condition.affected_pID;
+                checkbox.setAttribute("id", checkboxID);
                 let span = document.createElement("span");
                 if (condition.concentration == 1) {
                     span.textContent = "C";
@@ -454,7 +458,7 @@ async function modalUpdateAction(dataAidValue) {
                     // span.classList.add("savingThrow");
                 }
                 let label = document.createElement("label");
-                label.setAttribute("for", "b" + condition.affected_pID);
+                label.setAttribute("for", checkboxID);
                 label.classList.add("pointer");
 
                 let causer = ctApp.find((participant) => {

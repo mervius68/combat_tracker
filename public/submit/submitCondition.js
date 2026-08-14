@@ -10,10 +10,10 @@ async function submitCondition(nextAID) {
         let conditionEndsHTML = document.getElementsByName("condition_ends");
         let conditionDescription =
             document.querySelector(".conditionsText").value;
-        conditionDescription = conditionDescription
-            .replace("'", "&apos;")
-            .replace("#", "&num;")
-            .replace("/", "&sol;");
+        // Every occurrence, and "?" and "%" as well: this description is a segment
+        // of the URL the condition is saved with, and one stray character in it lost
+        // the whole submit.
+        conditionDescription = escapeTextForRequest(conditionDescription);
         let startRoundHTML = document.querySelector(".beginRound");
         let endRoundHTML = document.querySelector(".endRound");
         let concentrationHTML = document.getElementsByName("concentration");

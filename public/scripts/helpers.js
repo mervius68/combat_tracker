@@ -3,18 +3,81 @@ const g = "got here"
 async function dbQuery(httpReqType, httpReqString) {
     // arguments should look something like "GET" and "getSomethingFromBackEnd/42/true"
     let dbReturn = makePromise(httpReqType, httpReqString);
-    let dbReturnJSON = await dbReturn;
-    let unpackdbReturn = JSON.parse(dbReturnJSON);
-    return unpackdbReturn;
+    let response = await dbReturn;
+    // A request that fails comes back as an error page, or as the words "Request
+    // Failed", and used to die here in JSON.parse. That took whatever was halfway
+    // through down with it: submitAction stopped before it could put the modal
+    // away, so a submit that had already ended conditions in the database looked
+    // like nothing at all had happened. Say what broke instead of failing mute.
+    if (!response.ok) {
+        const message =
+            "Something went wrong talking to the database" +
+            (response.status ? " (" + response.status + ")" : "") +
+            ", and this did not go through:\n\n" +
+            httpReqString;
+        alert(message);
+        throw new Error(message);
+    }
+    return JSON.parse(response.body);
     function makePromise(httpReqType, httpReqString) {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(httpReqType, `../${httpReqString}`, true);
-            xhr.onload = () => resolve(xhr.responseText);
-            xhr.onerror = () => resolve("Request Failed");
+            // onload fires for 404 and 500 as well as for success, so the status
+            // is what says whether the body is any use.
+            xhr.onload = () =>
+                resolve({
+                    ok: xhr.status >= 200 && xhr.status < 300 && isJSON(xhr.responseText),
+                    status: xhr.status,
+                    body: xhr.responseText,
+                });
+            xhr.onerror = () => resolve({ ok: false, status: 0, body: "" });
             xhr.send();
         });
     }
+    function isJSON(text) {
+        try {
+            JSON.parse(text);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+}
+
+// Text typed into a modal - notes, a free-text action - travels to the server as
+// one path segment of a GET URL and is written straight into a single-quoted SQL
+// string, so anything that would end the segment or the string has to leave as an
+// HTML entity. The page draws notes as HTML, so they read back as what was typed.
+//
+// Every occurrence, not just the first. "Drow #1 and #2" used to keep its second
+// "#", which cut the URL off at the fragment and left the route unmatched, and the
+// 404 that came back aborted the submit where it stood.
+//
+// "&" is deliberately not on the list: the entities below, and the ones the
+// condition sentences are built out of, are written with real ampersands.
+const REQUEST_TEXT_ENTITIES = [
+    ["'", "&apos;"],   // ends the SQL string
+    ["#", "&num;"],    // starts the URL fragment, so the rest is never sent
+    ["?", "&quest;"],  // starts the query string, same again
+    ["/", "&sol;"],    // an extra path segment: the route no longer matches
+    ["\\", "&bsol;"],  // which the browser reads as "/" in a URL
+    ["%", "&percnt;"], // starts a percent-escape the server then cannot decode
+];
+
+function escapeTextForRequest(text) {
+    return REQUEST_TEXT_ENTITIES.reduce(
+        (escaped, [character, entity]) => escaped.replaceAll(character, entity),
+        String(text ?? "")
+    );
+}
+
+// The other way round, for putting stored text back in a field to be edited.
+function unescapeTextForEditing(text) {
+    return REQUEST_TEXT_ENTITIES.reduce(
+        (plain, [character, entity]) => plain.replaceAll(entity, character),
+        String(text ?? "")
+    );
 }
 async function dbQueryPost(httpReqString, requestData) {
     try {

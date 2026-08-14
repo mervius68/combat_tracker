@@ -77,7 +77,7 @@ async function submitAction(forceCondition = 0) {
             actionString = "none";
             nextToolID = "0";
         }
-        actionString = actionString.replaceAll("'", "&apos;")
+        actionString = escapeTextForRequest(actionString);
         // determine hits and combine them into string, like "0/1" (for miss/hit)
         let targets = document.getElementsByName("participants");
         let targetHits = [];
@@ -175,7 +175,6 @@ async function submitAction(forceCondition = 0) {
 
         let notesElement = document.querySelector(".notes_text");
         let notes = notesElement.value || "-";
-        notes = notes.replaceAll("'", "&apos;").replace("#", "&num;").replace("?", "&quest;")
         if (notes == "") {
             notes = "-";
         }
@@ -187,6 +186,12 @@ async function submitAction(forceCondition = 0) {
         conditionsOff = [];
         conditionsToTurnOff = {};
         conditionsData = {};
+        // The requests that end the ticked conditions, held back until the action
+        // itself is in. They used to go out here, before the action was recorded, so
+        // a submit that failed further down had already ended the conditions: the
+        // modal stayed open with no sign anything had happened, while the conditions
+        // it listed were off in the database.
+        let conditionEndRequests = [];
         async function processConditions() {
             for (const condition of disableConditionsEle) {
                 if (condition.checked) {
@@ -206,8 +211,7 @@ async function submitAction(forceCondition = 0) {
 
                     disableConditionsString += condition.value;
 
-                    await dbQuery(
-                        "GET",
+                    conditionEndRequests.push(
                         "disableCondition/" +
                         condition.getAttribute("data-cpid") +
                         "/" +
@@ -223,44 +227,29 @@ async function submitAction(forceCondition = 0) {
             }
 
 
-            ctApp.forEach((participant) => {
-                Object.keys(conditionsToTurnOff).forEach(async (condition) => {
-
-                    if (!conditionsToTurnOff[condition]["condition_name"]) {
-                        conditionsToTurnOff[condition]["condition_name"] = getConditionNameById(condition);
-                        const creator = await ctApp.filter((participant) => {
-                            return participant.pID == getCreatorById(condition);
-                        });
-                        conditionsToTurnOff[condition]["creator"] = creator.length > 0 ? creator[0].character_name : null;
-                        conditionsToTurnOff[condition]["creator_numeric"] = creator[0].numeric_value ? creator[0].numeric_value : null;
-                    }
-
-
-                    function getConditionNameById(idToFind) {
-                        const conditionsArray = participant.conditionsArray;
-                        for (const condition of conditionsArray) {
-                            if (condition.conditionID == parseInt(idToFind)) {
-                                return condition.description;
-                            }
-                        }
-                        return null; // Return null if no match is found
-                    }
-
-                    function getCreatorById(idToFind) {
-                        const conditionsArray = participant.conditionsArray;
-                        for (const condition of conditionsArray) {
-                            if (condition.conditionID == parseInt(idToFind)) {
-                                return condition.pID;
-                            }
-                        }
-                        return null; // Return null if no match is found
-                    }
-
-                })
+            // What each condition is called and who caused it, for the sentence the
+            // notes get. A condition is only listed in the participant's
+            // conditionsArray who caused it, so the first participant that has it is
+            // the one to read both off.
+            //
+            // This used to be an async callback per participant per condition, which
+            // left the answers to whichever microtask happened to settle last and
+            // threw on every participant that didn't cause the condition.
+            Object.keys(conditionsToTurnOff).forEach((taID) => {
+                const causer = ctApp.find((participant) => {
+                    return findCondition(participant, taID);
+                });
+                const condition = causer ? findCondition(causer, taID) : null;
+                conditionsToTurnOff[taID]["condition_name"] = condition ? condition.description : null;
+                conditionsToTurnOff[taID]["creator"] = causer ? causer.character_name : null;
+                conditionsToTurnOff[taID]["creator_numeric"] = causer?.numeric_value || null;
             })
 
-
-
+            function findCondition(participant, idToFind) {
+                return participant.conditionsArray?.find((condition) => {
+                    return condition.conditionID == parseInt(idToFind);
+                });
+            }
         }
         await processConditions();
         Object.keys(conditionsToTurnOff).forEach((condition) => {
@@ -277,6 +266,10 @@ async function submitAction(forceCondition = 0) {
                 notes += " | " + string
             }
         })
+        // After the condition sentences are in, not before: they carry character
+        // names and condition descriptions, and an apostrophe in one of those
+        // ("Noska Ur'Gray") ended the SQL string and lost the whole action.
+        notes = escapeTextForRequest(notes);
         disableConditionsString = disableConditionsString || "-";
 
         let hit = 0;
@@ -293,6 +286,11 @@ async function submitAction(forceCondition = 0) {
         let dataAction = `submitAction/${ctApp[0].eID}/${currentRound}/${toolNum}/${actionString}/${pID}/${nextTargetID}/${hit}/${actionCategory}/${damage}/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pIDString}`;
         // alert(dataAction);
         await dbQuery("GET", dataAction);
+
+        // The action is recorded, so the conditions it ends can go off now.
+        for (const request of conditionEndRequests) {
+            await dbQuery("GET", request);
+        }
 
         let ctActionObject = {
             result_aID: nextAID,
@@ -344,8 +342,10 @@ async function submitAction(forceCondition = 0) {
                 round = parseInt(currentRound);
             }
 
+            // tool is a segment of this URL like any other: a weapon or a typed
+            // action with a "/" in its name would leave the route unmatched.
             const dataTarget = `submitTargets/${ctApp[0].eID
-                }/${round}/${tool}/${actionString}/${pID}/${nextTargetID}/${targetHits[
+                }/${round}/${escapeTextForRequest(tool)}/${actionString}/${pID}/${nextTargetID}/${targetHits[
                     index
                 ].trim()}/${actionCategory}/${damage[index]
                 }/${notes}/${disableConditionsString}/${nextAID}/${nextToolID}/${target_pID[index]
