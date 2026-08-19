@@ -1160,6 +1160,15 @@ async function runQuery(sql, params) {
     });
 }
 
+async function getRow(sql, params) {
+    return new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+        });
+    });
+}
+
 
 app.post('/deleteAction', (req, res) => {
     const requestData = req.body; // Parsed JSON data from the request body
@@ -1325,6 +1334,96 @@ app.post("/deleteCondition", (req, res) => {
     });
 });
 
+
+// Editing a condition that is already recorded. Everything about it is rewritten in
+// place under the same taID, so the action that caused it, and the marker's place in
+// the grid, stay as they were: only what the modal was showing changes.
+//
+// The affectees are replaced wholesale rather than compared one by one. Ticking and
+// unticking participants is the whole point of the edit, and every affectee row of a
+// condition carries the same rounds and the same ending turn, so there is nothing in
+// the old rows worth keeping.
+app.post("/updateCondition", async (req, res) => {
+    const requestData = req.body || {};
+    const taid = Number(requestData.taid);
+    const affectees = (Array.isArray(requestData.affectees) ? requestData.affectees : [])
+        .filter((affectee) => affectee !== "" && affectee != null);
+
+    if (!taid) {
+        return res.status(400).json({ error: "no condition was named to edit" });
+    }
+    // A condition with nobody under it would still be drawn on its causer's row but
+    // could never be found again to edit or end, so it is refused here as well as in
+    // the modal.
+    if (affectees.length === 0) {
+        return res.status(400).json({ error: "a condition needs at least one affectee" });
+    }
+
+    const description = String(requestData.description ?? "");
+    // The pool's short name is the head of the description, the same as when a
+    // condition is first recorded.
+    const conditionName = description.substring(0, 15);
+
+    try {
+        const condition = await getRow(
+            `SELECT conditionID, cpID FROM ct_tbl_condition WHERE taID = ? LIMIT 1`,
+            [taid]
+        );
+        if (!condition) {
+            return res.status(404).json({ error: `no condition with taID ${taid}` });
+        }
+
+        // The description lives in tbl_condition_pool, and a condition is given a
+        // pool row of its own when it is recorded, so normally the row is rewritten.
+        // Should some older condition be sharing it, this one is moved to a new row
+        // instead, rather than rewriting the other condition's text along with it.
+        const shared = await getRow(
+            `SELECT COUNT(*) AS uses FROM ct_tbl_condition WHERE cpID = ?`,
+            [condition.cpID]
+        );
+        if (condition.cpID != null && (shared?.uses || 0) <= 1) {
+            await runQuery(
+                `UPDATE tbl_condition_pool SET condition_name = ?, description = ? WHERE cpID = ?`,
+                [conditionName, description, condition.cpID]
+            );
+        } else {
+            const pooled = await runQuery(
+                `INSERT INTO tbl_condition_pool (condition_name, description) values (?, ?)`,
+                [conditionName, description]
+            );
+            await runQuery(`UPDATE ct_tbl_condition SET cpID = ? WHERE taID = ?`, [
+                pooled.lastID,
+                taid,
+            ]);
+        }
+
+        await runQuery(
+            `UPDATE ct_tbl_condition SET pID = ?, concentration = ?, holding = ? WHERE taID = ?`,
+            [requestData.causerPID, requestData.concentration, requestData.holding, taid]
+        );
+
+        await runQuery(`DELETE FROM ct_tbl_condition_affectee WHERE taID = ?`, [taid]);
+        for (const affectee of affectees) {
+            await runQuery(
+                `INSERT INTO ct_tbl_condition_affectee
+                    (taID, start_round, end_round, affected_pID, end_pID)
+                    values (?, ?, ?, ?, ?)`,
+                [
+                    taid,
+                    requestData.startRound,
+                    requestData.endRound,
+                    affectee,
+                    requestData.endPID,
+                ]
+            );
+        }
+
+        res.json({});
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 app.get("/disableCondition/:cpID/:round/:affected_pID/:pID", (req, res) => {
     let cpID = req.params.cpID;

@@ -782,9 +782,89 @@ async function deleteCondition(data) {
     await dbQueryPost("deleteCondition", data);
     refresh_encounter();
 }
-async function editCondition() {
-    // await dbQueryPost("deleteCondition", data)
-    refresh_encounter();
+// The A / C / H marker that was right-clicked, gathered back into the one condition
+// it stands for. getConditionsForCtApp returns a row per affectee, so the affectees
+// are every participant carrying a row with this taID; everything else - the causer,
+// the description, the rounds, whose turn it ends on - is the same in all of them.
+function findConditionByTaID(taID) {
+    let rows = [];
+    ctApp.forEach((participant) => {
+        (participant.conditionsArray || []).forEach((condition) => {
+            if (condition.taID == taID) {
+                rows.push(condition);
+            }
+        });
+        (participant.affectedArray || []).forEach((affected) => {
+            if (affected.taID == taID) {
+                rows.push(affected);
+            }
+        });
+    });
+    if (rows.length == 0) {
+        return null;
+    }
+    // The causer's own row is in the list too and names one of the affectees, so the
+    // affectees are deduplicated rather than counted.
+    const affectees = [
+        ...new Set(
+            rows
+                .filter((row) => row.affected_pID != null)
+                .map((row) => String(row.affected_pID))
+        ),
+    ];
+    const condition = rows[0];
+    return {
+        taID: taID,
+        aID: condition.aID,
+        causerPID: String(condition.pID),
+        affectees: affectees,
+        description: condition.description,
+        concentration: condition.concentration,
+        holding: condition.holding,
+        startRound: condition.start_round,
+        endRound: condition.end_round,
+        endPID: String(condition.end_pID),
+    };
+}
+
+// Open the condition modal on a condition that already exists. The modal's own
+// defaults are all bypassed: what it shows is what is recorded, so the only changes
+// saved are the ones made here.
+function launchEditConditionModal(existingCondition) {
+    modalConditions(
+        existingCondition.affectees,
+        existingCondition.concentration,
+        existingCondition.description,
+        existingCondition.holding,
+        0,
+        existingCondition.aID,
+        false,
+        undefined,
+        existingCondition.causerPID,
+        existingCondition.startRound,
+        existingCondition
+    );
+    pushModal();
+}
+
+function editCondition() {
+    const editThisCondition = document.querySelector("[data-cm-condition-id]");
+    const taID = editThisCondition?.getAttribute("data-cm-taid");
+    const condition = taID ? findConditionByTaID(taID) : null;
+    if (!condition) {
+        alert("This condition could not be found, so there is nothing to edit.");
+        return;
+    }
+    // The modal reads the causer out of ctApp for their character sheet, so a
+    // condition left behind by a participant who is no longer in the encounter says
+    // so rather than opening an empty modal.
+    if (!ctApp.some((participant) => participant.pID == condition.causerPID)) {
+        alert(
+            "The participant who caused this condition is no longer in the encounter, so it cannot be edited."
+        );
+        return;
+    }
+    launchEditConditionModal(condition);
 }
 // handleNumericValues used to run on every load and rewrite each duplicate-named
 // participant's numeric_value by initiative position, so "Goblin #1" was whichever

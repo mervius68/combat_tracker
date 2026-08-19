@@ -1,61 +1,82 @@
 // this function takes info from condition modal and updates database
 
-async function submitCondition(nextAID) {
-        let html = document.querySelector(".selected");
-        let currentRound = html.getAttribute("data-round");
-        let pID = html.getAttribute("data-participant");
-        let dataNav = html.getAttribute("data-nav");
-        let causerHTML = document.getElementsByName("causers");
-        let affecteesHTML = document.getElementsByName("affectees");
-        let conditionEndsHTML = document.getElementsByName("condition_ends");
-        let conditionDescription =
-            document.querySelector(".conditionsText").value;
-        // Every occurrence, and "?" and "%" as well: this description is a segment
-        // of the URL the condition is saved with, and one stray character in it lost
-        // the whole submit.
-        conditionDescription = escapeTextForRequest(conditionDescription);
-        let startRoundHTML = document.querySelector(".beginRound");
-        let endRoundHTML = document.querySelector(".endRound");
-        let concentrationHTML = document.getElementsByName("concentration");
-        let holdingHTML = document.getElementsByName("holding");
+// What the condition modal currently says, read the same way whether the condition
+// is being recorded for the first time or edited. The modal is rebuilt from scratch
+// each time it opens, so everything here comes off the elements that are on screen.
+function readConditionModal() {
+    let html = document.querySelector(".selected");
+    let causerHTML = document.getElementsByName("causers");
+    let affecteesHTML = document.getElementsByName("affectees");
+    let conditionEndsHTML = document.getElementsByName("condition_ends");
+    let startRoundHTML = document.querySelector(".beginRound");
+    let endRoundHTML = document.querySelector(".endRound");
+    let concentrationHTML = document.getElementsByName("concentration");
+    let holdingHTML = document.getElementsByName("holding");
 
-        let causerPID;
-        causerPID = Array.from(causerHTML).find((causer) => {
-            return causer.checked == true;
-        }).id;
-        let concentration;
-        concentration = Array.from(concentrationHTML).find(
-            (concentrationValue) => {
-                return concentrationValue.checked == true;
-            }
-        ).value;
+    // Every occurrence, and "?" and "%" as well: this description is a segment
+    // of the URL the condition is saved with, and one stray character in it lost
+    // the whole submit.
+    let conditionDescription = escapeTextForRequest(
+        document.querySelector(".conditionsText").value
+    );
 
-        let holding;
-        holding = Array.from(holdingHTML).find(
-            (holdingValue) => {
-                return holdingValue.checked == true;
-            }
-        ).value;
+    let causerPID = Array.from(causerHTML).find((causer) => {
+        return causer.checked == true;
+    }).id;
 
-        let affecteesHTMLArray = [];
-        affecteesHTMLArray = Array.from(affecteesHTML).filter((affected) => {
+    let concentration = Array.from(concentrationHTML).find(
+        (concentrationValue) => {
+            return concentrationValue.checked == true;
+        }
+    ).value;
+
+    let holding = Array.from(holdingHTML).find((holdingValue) => {
+        return holdingValue.checked == true;
+    }).value;
+
+    let affecteesPID = Array.from(affecteesHTML)
+        .filter((affected) => {
             return affected.checked == true;
+        })
+        .map((affectee) => {
+            return affectee.getAttribute("id").substring(1);
         });
-        let affecteesPID = [];
-        affecteesHTMLArray.forEach((affectee) => {
-            affecteesPID.push(affectee.getAttribute("id").substring(1));
-        });
-        let affecteesString = affecteesPID.join(", ");
-        let end_pID = Array.from(conditionEndsHTML).find((participant) => {
-            return participant.checked == true;
-        }).id;
-        end_pID = end_pID.substring(1);
 
-        let conditionEndsPID = Array.from(conditionEndsHTML)
-            .find(item => item.checked)
-            .id.slice(1);
-        let startRound = Array.from(startRoundHTML).find(item => item.selected).value;
-        let endRound = Array.from(endRoundHTML).find(item => item.selected).value;
+    let endPID = Array.from(conditionEndsHTML)
+        .find((participant) => {
+            return participant.checked == true;
+        })
+        .id.substring(1);
+
+    return {
+        currentRound: html.getAttribute("data-round"),
+        pID: html.getAttribute("data-participant"),
+        dataNav: html.getAttribute("data-nav"),
+        conditionDescription: conditionDescription,
+        causerPID: causerPID,
+        concentration: concentration,
+        holding: holding,
+        affecteesPID: affecteesPID,
+        affecteesString: affecteesPID.join(", "),
+        endPID: endPID,
+        startRound: Array.from(startRoundHTML).find((item) => item.selected)
+            .value,
+        endRound: Array.from(endRoundHTML).find((item) => item.selected).value,
+    };
+}
+
+async function submitCondition(nextAID) {
+        const modalValues = readConditionModal();
+        let dataNav = modalValues.dataNav;
+        let conditionDescription = modalValues.conditionDescription;
+        let causerPID = modalValues.causerPID;
+        let concentration = modalValues.concentration;
+        let holding = modalValues.holding;
+        let affecteesString = modalValues.affecteesString;
+        let end_pID = modalValues.endPID;
+        let conditionEndsPID = modalValues.endPID;
+        let startRound = modalValues.startRound;
+        let endRound = modalValues.endRound;
 
         // get next cpID
         let latestConditionID = await dbQuery("GET", "getNextcpID/");
@@ -84,3 +105,38 @@ async function submitCondition(nextAID) {
         load_encounter(ctAppEnc, dataNav);
         closeModal();
     }
+
+// Save an edit to a condition that already exists. The one request rewrites the
+// condition, its description and its affectees together, so a save that fails part
+// way through does not leave the condition half changed - and the action that caused
+// it, which the condition still hangs off, is not touched at all.
+async function submitConditionUpdate(taID) {
+    const modalValues = readConditionModal();
+
+    if (modalValues.affecteesPID.length == 0) {
+        alert("A condition needs at least one affectee.");
+        return;
+    }
+
+    try {
+        await dbQueryPost("updateCondition", {
+            taid: taID,
+            description: modalValues.conditionDescription,
+            causerPID: modalValues.causerPID,
+            concentration: modalValues.concentration,
+            holding: modalValues.holding,
+            startRound: modalValues.startRound,
+            endRound: modalValues.endRound,
+            endPID: modalValues.endPID,
+            affectees: modalValues.affecteesPID,
+        });
+    } catch (err) {
+        // The modal stays up with the changes still in it, so the edit can be tried
+        // again rather than being lost to a closed modal.
+        alert("This edit did not save, and the condition is unchanged.");
+        return;
+    }
+
+    load_encounter(ctAppEnc, modalValues.dataNav);
+    closeModal();
+}

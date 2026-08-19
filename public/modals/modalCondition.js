@@ -7,14 +7,21 @@ async function modalConditions(
     holding,
     holdingOneRound,
     nextAID,
-    updateCondition = false, 
-    currentAID, 
+    updateCondition = false,
+    currentAID,
     pID,
-    round
+    round,
+    // An existing condition, when the modal is opened to edit one rather than to
+    // record a new one (see editCondition). Everything the modal would otherwise
+    // guess - who ends it, which rounds it runs for - is already decided, so it is
+    // shown as it stands and saved back over the same taID.
+    existingCondition = null
 ) {
     if(updateCondition == true) {
         nextAID = currentAID
     }
+
+    const isEdit = existingCondition != null;
 
     let html = document.querySelector(".selected");
     let modal = document.querySelector("#modal-body");
@@ -129,7 +136,11 @@ async function modalConditions(
         checkbox.classList.add("pointer");
         checkbox.setAttribute("name", "condition_ends");
         checkbox.setAttribute("id", "x" + participant.pID);
-        if (
+        if (isEdit) {
+            if (existingCondition.endPID == participant.pID) {
+                checkbox.setAttribute("checked", "true");
+            }
+        } else if (
             affected.includes(participant.pID.toString()) &&
             holding == 1 &&
             affecteesCount == 1
@@ -258,9 +269,16 @@ async function modalConditions(
     buttonContainer.classList.add("button_container");
     let submit = document.createElement("button");
     submit.classList.add("pointer");
-    submit.innerText = "SUBMIT";
+    submit.innerText = isEdit ? "SAVE" : "SUBMIT";
 
-    submit.setAttribute("onclick", `submitCondition(${nextAID})`);
+    // Editing writes over the condition that is already there, keyed by its taID;
+    // submitting a new one inserts against the action that caused it.
+    submit.setAttribute(
+        "onclick",
+        isEdit
+            ? `submitConditionUpdate(${existingCondition.taID})`
+            : `submitCondition(${nextAID})`
+    );
 
     container.appendChild(div17);
 
@@ -273,11 +291,23 @@ async function modalConditions(
     beginRound.classList.add("beginRound");
     beginRound.classList.add("pointer");
     beginRound.setAttribute("name", "beginRound");
-    for (let i = 1; i <= 50; i++) {
+    // Far enough to reach the round an existing condition already begins on, in case
+    // it is one the list would not otherwise go up to.
+    let lastBeginRound = isEdit
+        ? Math.max(50, parseInt(existingCondition.startRound) || 0)
+        : 50;
+    for (let i = 1; i <= lastBeginRound; i++) {
         let option = document.createElement("option");
         option.setAttribute("value", i);
         option.classList.add("pointer");
         option.innerHTML = i;
+        if (isEdit) {
+            if (existingCondition.startRound == i) {
+                option.setAttribute("selected", "true");
+            }
+            beginRound.appendChild(option);
+            continue;
+        }
         if (currentRound == i) {
             option.setAttribute("selected", "true");
         }
@@ -305,11 +335,24 @@ async function modalConditions(
 
     // determine whose init is higher, causer or affectee
 
-    for (let i = 1; i <= 20; i++) {
+    // Same again for the round it ends on. A condition recorded as running to round
+    // 30 has to be able to show that, or nothing in the list would be selected and
+    // the save would have no ending round to read.
+    let lastEndRound = isEdit
+        ? Math.max(20, parseInt(existingCondition.endRound) || 0)
+        : 20;
+    for (let i = 1; i <= lastEndRound; i++) {
         let option = document.createElement("option");
         option.setAttribute("value", i);
         option.classList.add("pointer");
         option.innerHTML = i;
+        if (isEdit) {
+            if (existingCondition.endRound == i) {
+                option.setAttribute("selected", "true");
+            }
+            endRound.appendChild(option);
+            continue;
+        }
         if (currentRound == i - 10 && holdingOneRound == 0) {
             option.setAttribute("selected", "true");
         } else {
@@ -330,7 +373,7 @@ async function modalConditions(
 
     let bottomRightDiv = document.createElement("div");
     let h8 = document.createElement("h3");
-    h8.innerHTML = "Submit";
+    h8.innerHTML = isEdit ? "Save Edit" : "Submit";
 
     bottomRightDiv.appendChild(h8);
     bottomRightDiv.appendChild(submit);
