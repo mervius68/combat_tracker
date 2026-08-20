@@ -253,7 +253,10 @@ async function submitUpdateAction(dataAidValue, pID) {
     // determine change in condition
     const conditionCurrent = selectedWeapon;
 
-    if (actionObj.conditionID && conditionCurrent?.getAttribute("data-condition-id") != actionObj.conditionID) {
+    // Only when there is a taID to delete by. Without one the request deleted
+    // nothing anyway, and the route now says so rather than reporting success,
+    // which would abort the rest of this update.
+    if (actionObj.conditionID && actionObj.taID != null && conditionCurrent?.getAttribute("data-condition-id") != actionObj.conditionID) {
         console.log(g)
         const data = {
             taid: actionObj.taID

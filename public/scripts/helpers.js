@@ -841,7 +841,27 @@ async function endCondition() {
         taid);
     refresh_encounter();
 }
+// Delete a condition outright - the rows themselves, not just an end round.
+//
+// The context menu calls this with nothing: which condition was right-clicked is
+// stamped on the menu (see contextMenuListener), the same place endCondition and
+// editCondition read it from. Without this the request went out with no body at
+// all, the route deleted where taID = 'undefined', and the click looked like it
+// had simply been ignored. submitUpdateAction already knows which condition it
+// means and passes it in.
 async function deleteCondition(data) {
+    if (data?.taid == null) {
+        const taID = document
+            .querySelector("[data-cm-condition-id]")
+            ?.getAttribute("data-cm-taid");
+        // The attribute is written from another attribute that may not have been
+        // there, so it can hold the string "null".
+        if (!taID || taID === "null" || taID === "undefined") {
+            alert("This condition could not be found, so there is nothing to delete.");
+            return;
+        }
+        data = { taid: taID };
+    }
     await dbQueryPost("deleteCondition", data);
     refresh_encounter();
 }

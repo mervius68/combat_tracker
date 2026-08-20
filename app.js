@@ -1337,8 +1337,14 @@ app.get("/endCondition/:conditionID/:affecteeID/:round/:conditionState/:taid", (
 });
 
 app.post("/deleteCondition", (req, res) => {
-    const requestData = req.body; // Parsed JSON data from the request body
+    const requestData = req.body || {}; // Parsed JSON data from the request body
     let taid = requestData.taid;
+    // No condition named means a caller that has lost track of which one it meant.
+    // This used to go through as DELETE WHERE taID = 'undefined', which matches
+    // nothing and reports success, so the click that asked for it looked ignored.
+    if (taid == null || taid === "" || isNaN(parseInt(taid))) {
+        return res.status(400).json({ error: "no condition was named to delete" });
+    }
     let sql1 = `DELETE FROM ct_tbl_condition WHERE taID = '${taid}'`;
     let sql2 = `DELETE FROM ct_tbl_condition_affectee WHERE taID = '${taid}'`;
     db.serialize(() => {
