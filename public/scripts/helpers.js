@@ -754,6 +754,69 @@ function wireActionTextInput(modal) {
     });
 }
 
+// ----------------------------------------------------------- once-per-day tools
+// A tool whose once_per_day column is set is spent for the rest of the combat as
+// soon as the participant uses it. Nothing records that: it is read off the
+// actions of the encounter that is loaded, so a combat starts with every tool
+// available again, and deleting the action that spent one gives it back.
+
+// "1" as well as 1, since the column is filled in by hand.
+function isOncePerDayTool(tool) {
+    const setting = tool?.once_per_day;
+    return setting === 1 || setting === "1" || setting === true;
+}
+
+// The once-per-day tools this participant has already used, as a set of toolIDs.
+//
+// The participant's own actions, not the character's: tools hang off the character
+// sheet, which every copy of a creature shares, so counting by character would
+// spend the second goblin's breath weapon on the first goblin's turn.
+//
+// exceptAID is the action being edited, if any - the tool it already names is the
+// one it spent, and it has to stay pickable for the edit to be able to keep it.
+function spentOncePerDayToolIDs(participantID, tools, exceptAID) {
+    const oncePerDay = new Set(
+        (tools || [])
+            .filter(isOncePerDayTool)
+            .map((tool) => String(tool.toolID))
+    );
+    const spent = new Set();
+    if (oncePerDay.size === 0) {
+        return spent;
+    }
+    (typeof ctActions === "undefined" ? [] : ctActions || []).forEach((action) => {
+        if (action.pID != participantID) {
+            return;
+        }
+        if (exceptAID != null && action.aID == exceptAID) {
+            return;
+        }
+        const toolID = String(action.toolID);
+        if (oncePerDay.has(toolID)) {
+            spent.add(toolID);
+        }
+    });
+    return spent;
+}
+
+// Gray a spent tool out and take it out of reach. Disabled so neither the mouse
+// nor the keyboard can pick it, and its "checked" attribute dropped in case it was
+// this participant's last-used tool - the modals are serialized through innerHTML,
+// so it is the attribute rather than the property that decides what arrives on
+// screen checked.
+function markToolSpent(input, label) {
+    input.setAttribute("disabled", "disabled");
+    input.removeAttribute("checked");
+    input.classList.remove("pointer");
+    label.classList.remove("pointer");
+    label.classList.remove("previous_tool");
+    label.classList.add("spent_tool");
+    const spent = document.createElement("span");
+    spent.classList.add("spent_tool_marker");
+    spent.textContent = "USED";
+    label.appendChild(spent);
+}
+
 async function endCondition() {
     const htmlSelected = document.querySelector(".selected");
     const selectedID = htmlSelected.getAttribute("data-participant");

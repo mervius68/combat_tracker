@@ -148,6 +148,32 @@ function createTimingTriggers() {
 
 prepareSessionTiming();
 
+// --------------------------------------------------------- once-per-day tools
+// A tool marked once-per-day is spent for the rest of the combat as soon as the
+// participant uses it: the action modals gray it out and put it out of reach.
+//
+// Nothing records that it has been spent. It is read off the actions already
+// recorded for that participant in that encounter, so no state has to be cleared
+// when a combat ends, and deleting the action that spent the tool gives it back.
+//
+// The column is added if it is missing rather than assumed, so a database written
+// before any of this existed still opens. Existing tools read 0 - available - so
+// nothing becomes once-per-day by surprise.
+function prepareOncePerDayTools() {
+    db.all(`PRAGMA table_info(tbl_tool)`, [], (err, columns) => {
+        if (err) return console.error(err.message);
+        if (columns.some((column) => column.name === "once_per_day")) return;
+        db.run(
+            `ALTER TABLE tbl_tool ADD COLUMN once_per_day INTEGER DEFAULT 0`,
+            (err) => {
+                if (err) console.error(err.message);
+            }
+        );
+    });
+}
+
+prepareOncePerDayTools();
+
 // app.use("/submitUpdateAction.js", function(req, res, next) {
 //   res.type("application/javascript");
 //   next();

@@ -80,7 +80,18 @@ async function modalUpdateAction(dataAidValue) {
     div14.appendChild(defaultLabel);
     div14.appendChild(br1);
     // const targetPID = 60; // Specify the target pID
+    // The once-per-day tools this participant has spent in this combat, leaving out
+    // the action being edited: the tool it already names is the one it spent, and it
+    // has to stay pickable for this edit to be able to keep it.
+    const spentTools = spentOncePerDayToolIDs(participantID, participantTools, dataAidValue);
     for (item of participantTools) {
+        // The tool this action already names is never greyed out, whoever spent it -
+        // an action recorded before the column was set could have used it a second
+        // time, and greying it here would leave the modal with nothing selected and
+        // no way to put back what it opened with.
+        const toolIsSpent =
+            spentTools.has(String(item.toolID)) &&
+            item.toolID != actionObj.ct_tbl_action.toolID;
         let tool = document.createElement("input");
         tool.setAttribute("type", "radio");
         tool.setAttribute("value", item.toolName);
@@ -119,6 +130,9 @@ async function modalUpdateAction(dataAidValue) {
             span1.innerHTML = "C";
             span1.classList.add("concentration");
             label.appendChild(span1);
+        }
+        if (toolIsSpent) {
+            markToolSpent(tool, label);
         }
         let br = document.createElement("br");
         div14.appendChild(tool);

@@ -770,6 +770,30 @@ strong {
     border: 1px solid black;
 }
 
+/* A once-per-day tool this participant has already used in this combat. The radio
+   beside it is disabled, so the label is greyed to match; pointer-events off it as
+   well, because clicking a label still checks the input it names. */
+.spent_tool {
+    color: gray;
+    text-decoration: line-through;
+    pointer-events: none;
+    cursor: default;
+}
+
+/* Says why it is greyed out, so it does not read as a tool that is merely
+   unavailable for some other reason. */
+.spent_tool_marker {
+    background-color: gray;
+    color: white;
+    font-size: .7em;
+    font-weight: bold;
+    letter-spacing: .05em;
+    margin-left: .5em;
+    padding: 1px 4px;
+    text-decoration: none;
+    vertical-align: middle;
+}
+
 .initValues {
     margin-right: 20px;
 }

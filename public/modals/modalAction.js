@@ -91,7 +91,12 @@ async function modalActions() {
 
     // const targetPID = 60; // Specify the target pID
     const resultObject = findHighestAIDByPID(ctActions, participantID);
+    // The once-per-day tools this participant has already used in this combat.
+    // They are still listed, so it is plain that they exist and are gone, but they
+    // cannot be picked again.
+    const spentTools = spentOncePerDayToolIDs(participantID, participantTools);
     for (item of participantTools) {
+        const toolIsSpent = spentTools.has(String(item.toolID));
         let tool = document.createElement("input");
         tool.setAttribute("type", "radio");
         tool.setAttribute("value", item.toolName);
@@ -102,7 +107,9 @@ async function modalActions() {
         tool.setAttribute("data-holding", item.holding);
         tool.setAttribute("data-holding-one-round", item.holding_one_round);
         try {
-            if (item.toolID == resultObject.toolID) {
+            // A spent tool is never the one to open checked, however recently it
+            // was the participant's last: it cannot be used again this combat.
+            if (item.toolID == resultObject.toolID && !toolIsSpent) {
                 tool.setAttribute("checked", "checked");
             }
         }
@@ -111,7 +118,7 @@ async function modalActions() {
         let label = document.createElement("label");
         label.setAttribute("for", item.toolID);
         try {
-            if (item.toolID == resultObject.toolID) {
+            if (item.toolID == resultObject.toolID && !toolIsSpent) {
                 label.classList.add("previous_tool")
             }
         }
@@ -135,6 +142,9 @@ async function modalActions() {
             span1.innerHTML = "C";
             span1.classList.add("concentration");
             label.appendChild(span1);
+        }
+        if (toolIsSpent) {
+            markToolSpent(tool, label);
         }
         let br = document.createElement("br");
         div14.appendChild(tool);

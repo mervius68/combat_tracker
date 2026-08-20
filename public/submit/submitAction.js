@@ -303,7 +303,12 @@ async function submitAction(forceCondition = 0) {
             targetID: nextTargetID,
             action_type: actionCategory,
             action: actionString,
-            toolID: nextToolID,
+            // The tool that was actually used, which is what went into the
+            // database - not nextToolID, which is always "0". The reload below
+            // replaces this array wholesale, but it is read in the meantime: a
+            // second action opened before the reload lands has to be able to see
+            // that a once-per-day tool was just spent.
+            toolID: toolNum,
             hit: hit,
             notes: notes,
             // row: null, // Assuming static or derived value
