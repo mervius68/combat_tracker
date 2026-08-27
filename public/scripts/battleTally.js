@@ -17,9 +17,9 @@
 //   0. Heal it back above 0 and the credit disappears.
 //
 // AMMUNITION
-//   A missed shot is an action with hit = 0 whose weapon spends ammunition. Half
-//   of what missed, rounded up, is lost on the battlefield and comes off the
-//   sheet; shots that hit are not counted.
+//   A shot is an action whose weapon spends ammunition, whether or not it hit.
+//   Half of what was expended is recovered afterwards, so half rounded up is lost
+//   on the battlefield and comes off the sheet.
 
 // What each weapon spends. Tested in order, because every crossbow's name also
 // contains "bow". Matched on the name rather than a column because the tool table
@@ -150,9 +150,6 @@ function creditByPlayer(participants, drops) {
 function ammunitionToRemove(roster, uniqueActions) {
     const spent = new Map();
     uniqueActions.forEach((action) => {
-        if (Number(action.hit) !== 0) {
-            return;
-        }
         const shooter = roster.get(Number(action.pID));
         if (!isPlayerCharacter(shooter)) {
             return;
@@ -164,17 +161,17 @@ function ammunitionToRemove(roster, uniqueActions) {
         }
         const key = `${shooter.pID}|${kind.plural}`;
         if (!spent.has(key)) {
-            spent.set(key, { participant: shooter, kind, missed: 0, weapons: new Set() });
+            spent.set(key, { participant: shooter, kind, expended: 0, weapons: new Set() });
         }
         const entry = spent.get(key);
-        entry.missed += 1;
+        entry.expended += 1;
         entry.weapons.add(weapon);
     });
 
     return [...spent.values()].map((entry) => ({
         ...entry,
         weapons: [...entry.weapons],
-        remove: Math.ceil(entry.missed / 2),
+        remove: Math.ceil(entry.expended / 2),
     }));
 }
 
@@ -248,17 +245,17 @@ function ammunitionPanel(tally) {
         ? `<div class="ct_tally_grid ct_tally_ammunition">
                <div class="ct_tally_cell header">Character</div>
                <div class="ct_tally_cell header">Ammunition</div>
-               <div class="ct_tally_cell header center">Missed</div>
+               <div class="ct_tally_cell header center">Expended</div>
                <div class="ct_tally_cell header">Remove</div>
                ${tally.ammunition.map(ammunitionRow).join("")}
            </div>`
-        : `<div class="ct_tally_empty">No missed shots to account for.</div>`;
+        : `<div class="ct_tally_empty">No shots to account for.</div>`;
 
     return `<div class="ct_tally_panel">
                 <h3>Spent Ammunition</h3>
                 ${body}
-                <div class="ct_tally_note">Half of the ammunition that missed, rounded up, cannot be
-                    recovered afterwards and comes off the sheet.</div>
+                <div class="ct_tally_note">Half of the ammunition expended is recovered afterwards;
+                    the other half, rounded up, comes off the sheet.</div>
             </div>`;
 }
 
@@ -267,7 +264,7 @@ function ammunitionRow(entry) {
     return `<div class="ct_tally_cell">${participantLabel(entry.participant)}</div>
             <div class="ct_tally_cell">${entry.kind.plural}
                 <span class="ct_tally_aside">(${entry.weapons.join(", ")})</span></div>
-            <div class="ct_tally_cell center">${entry.missed}</div>
+            <div class="ct_tally_cell center">${entry.expended}</div>
             <div class="ct_tally_cell">${entry.remove} ${unit}</div>`;
 }
 
