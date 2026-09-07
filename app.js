@@ -556,14 +556,26 @@ app.get(
     }
 );
 
+// The highest taID anything is using, so the next condition can be given one past it.
+// The newest affectee row is not that: editing a condition deletes its affectee rows
+// and inserts them again at the top of the table, so the largest caID regularly belongs
+// to an old condition with a low taID. Reading the taID off that row handed new
+// conditions a taID an older condition already held, and the two then shared each
+// other's affectees - which is how a Ready put an "H" on a second participant.
+// A condition whose affectee rows have all been removed still holds its taID, so both
+// tables are considered.
 app.get("/getNextTAID", (req, res) => {
-    let sql = `SELECT * FROM ct_tbl_condition_affectee ORDER BY caID DESC limit 1`;
+    let sql = `SELECT MAX(taID) AS taID FROM (
+            SELECT taID FROM ct_tbl_condition_affectee
+            UNION ALL
+            SELECT taID FROM ct_tbl_condition
+        )`;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
             console.log(err);
             throw err;
         }
-        res.send(results[0] || { taID: 0 });
+        res.send({ taID: results[0]?.taID || 0 });
     });
 });
 
