@@ -101,6 +101,162 @@ async function dbQueryPost(httpReqString, requestData) {
         throw error; // Rethrow the error for handling in the caller
     }
 }
+// ------------------------------------------------------- writing through a form
+// The editing modals - the character library, the participant editor - are refused
+// for reasons worth reading out: a character that is already in an encounter, a tool
+// a recorded action names. dbQueryPost throws away the body of anything that is not
+// a 200, which is where those reasons are, so these keep it.
+
+async function postJSON(route, data) {
+    const response = await fetch(`../${route}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+    let body = {};
+    try {
+        body = await response.json();
+    } catch (err) {
+        // a failure with no JSON to it at all; the status is what matters
+    }
+    return { ok: response.ok, body: body };
+}
+
+// A save whose only possible failure is one to report. Returns what the route sent
+// back - a new row's ID, in the places that need it - or null if it did not go
+// through, so the caller can leave the modal up rather than closing on a refusal.
+async function saveThroughModal(route, data) {
+    const { ok, body } = await postJSON(route, data);
+    if (!ok) {
+        alert(body.error || "That did not save.");
+        return null;
+    }
+    return body;
+}
+
+// A delete the route may hand back to be confirmed first - it knows what else the
+// row is holding up, so it says so and waits to be asked again.
+async function deleteThroughModal(route, data) {
+    let attempt = await postJSON(route, data);
+    if (!attempt.ok && attempt.body.needsConfirmation) {
+        if (!confirm(attempt.body.error + "\n\nDelete it anyway?")) {
+            return false;
+        }
+        attempt = await postJSON(route, { ...data, confirmed: true });
+    }
+    if (!attempt.ok) {
+        alert(attempt.body.error || "That could not be deleted.");
+        return false;
+    }
+    return true;
+}
+
+// One row of an editing form: a label wide enough that the fields beside them line
+// up into a column, then the field. Built here because there are a couple of dozen
+// of them across the library and the participant editor.
+function formLine(label, id, field) {
+    const line = document.createElement("div");
+    line.classList.add("form-line");
+    const labelElement = document.createElement("label");
+    labelElement.setAttribute("for", id);
+    labelElement.innerText = label;
+    line.appendChild(labelElement);
+    line.appendChild(field);
+    return line;
+}
+
+function formTextLine(id, label, value, maxLength) {
+    const input = document.createElement("input");
+    input.setAttribute("type", "text");
+    input.setAttribute("id", id);
+    input.setAttribute("autocomplete", "off");
+    if (maxLength) {
+        input.setAttribute("maxLength", String(maxLength));
+    }
+    input.classList.add("form_text_input");
+    input.value = valueOrBlank(value);
+    return formLine(label, id, input);
+}
+
+// Typed rather than a number input: the arrows and the spin behaviour get in the
+// way, and every one of these columns can also be left empty.
+function formNumberLine(id, label, value) {
+    const input = document.createElement("input");
+    input.setAttribute("type", "text");
+    input.setAttribute("id", id);
+    input.setAttribute("autocomplete", "off");
+    input.classList.add("form_number_input");
+    input.value = valueOrBlank(value);
+    return formLine(label, id, input);
+}
+
+function formCheckboxLine(id, label, value) {
+    const input = document.createElement("input");
+    input.setAttribute("type", "checkbox");
+    input.setAttribute("id", id);
+    input.classList.add("form_checkbox");
+    input.checked = flagIsSet(value);
+    return formLine(label, id, input);
+}
+
+function formChoiceLine(id, label, options, selected) {
+    const select = document.createElement("select");
+    select.setAttribute("id", id);
+    options.forEach((option) => {
+        const element = document.createElement("option");
+        element.setAttribute("value", option.value);
+        element.innerText = option.label;
+        if (String(option.value) === String(selected)) {
+            element.setAttribute("selected", "selected");
+        }
+        select.appendChild(element);
+    });
+    return formLine(label, id, select);
+}
+
+// A column nobody ever filled in reads back as null, and the word "null" sitting in
+// a text field is worse than an empty one.
+function valueOrBlank(value) {
+    return value == null ? "" : String(value);
+}
+
+// The 1/0 columns are filled in by hand as well as by the modals, so "1" counts
+// alongside 1.
+function flagIsSet(value) {
+    return value === 1 || value === "1" || value === true;
+}
+
+// These modals are rebuilt from the database after every change, so the field to
+// type in next only exists once that has happened.
+//
+// Focused without scrolling to it. #modal-content slides in from half its own
+// height, so for the first two thirds of a second the field is that much further
+// down the modal than it will end up: a plain focus() scrolls to where it is during
+// the animation, and the modal is left parked there long after the content has
+// settled back. The modals that call this open at their top - see
+// scrollModalToTop - where the field is already in view.
+function focusFormField(id) {
+    const field = document.querySelector("#" + id);
+    if (!field) {
+        return;
+    }
+    field.focus({ preventScroll: true });
+    if (typeof field.select === "function") {
+        field.select();
+    }
+}
+
+// Open a modal at its top. The modal is one element that every modal in the page
+// reuses, so it keeps whatever scroll position the last one was left at, and a tall
+// modal has no business starting part-way down its own first screen. scrollUp is the
+// deliberate exception, for the one modal that wants to start below its header.
+function scrollModalToTop() {
+    const modal = document.querySelector(".modal");
+    if (modal) {
+        modal.scrollTop = 0;
+    }
+}
+
 function findLargestSubarray(arr) {
     let largestSubarray = arr[0];
     let largestLength = arr[0]?.length;
@@ -431,10 +587,13 @@ function closeModal() {
     modalIsOpen = false;
 }
 
-// A participant's armour class. Empty for a participant with no AC at all rather
-// than the word "null".
+// A participant's armour class: its own, which is what a shield up or a spell in
+// effect changes, falling back to its character sheet's for a participant that was
+// never given one. Empty for a creature with no AC anywhere rather than the word
+// "null".
 function armourClass(participant) {
-    const ac = participant?.ac;
+    const own = participant?.ac;
+    const ac = own == null || own === "" ? participant?.character_ac : own;
     return ac == null || ac === "" ? "" : String(ac);
 }
 
@@ -760,10 +919,8 @@ function wireActionTextInput(modal) {
 // actions of the encounter that is loaded, so a combat starts with every tool
 // available again, and deleting the action that spent one gives it back.
 
-// "1" as well as 1, since the column is filled in by hand.
 function isOncePerDayTool(tool) {
-    const setting = tool?.once_per_day;
-    return setting === 1 || setting === "1" || setting === true;
+    return flagIsSet(tool?.once_per_day);
 }
 
 // The once-per-day tools this participant has already used, as a set of toolIDs.

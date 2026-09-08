@@ -158,8 +158,15 @@ async function modalParticipants() {
         button2.setAttribute("onclick", "closeModal()");
         button2.innerText = "CLOSE";
 
+        // A creature that is not in either list yet is noticed here, so this is
+        // where the library needs to be reachable from.
+        const button3 = document.createElement("button");
+        button3.setAttribute("onclick", "manageCharactersModal()");
+        button3.innerText = "CHARACTERS";
+
         btnContainer.appendChild(button1);
         btnContainer.appendChild(button2);
+        btnContainer.appendChild(button3);
 
         leftContainer.appendChild(div2);
 

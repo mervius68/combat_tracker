@@ -812,6 +812,157 @@ strong {
     width: 320px;
 }
 
+/* ------------------------------------------ the editing forms in the modals
+   The character library and the participant editor ask for eight or so values at
+   once, which is more than .line was built for: its 25px text puts a label like
+   "Secondary AC is for" wider than the field beside it. These rows are smaller and
+   label-first, so a column of fields lines up down the form. */
+
+.form-line {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 18px;
+    margin: 8px 0;
+}
+
+.form-line label {
+    margin-right: 10px;
+    /* wide enough that every field in a form starts at the same place */
+    min-width: 200px;
+}
+
+.form-line input[type="text"],
+.form-line select {
+    font-size: 18px;
+    height: 26px;
+    box-sizing: border-box;
+    padding: 0 5px;
+}
+
+.form-line .form_text_input {
+    width: 280px;
+}
+
+.form-line .form_number_input {
+    width: 70px;
+}
+
+/* the global `input` size would make this a 20px box on a 26px row */
+.form-line .form_checkbox {
+    width: auto;
+    height: auto;
+    margin: 0;
+}
+
+/* what a field means, or what it costs, where that is not obvious from its label */
+.library-note {
+    max-width: 480px;
+    margin: 10px 0 16px;
+    color: #555;
+    font-size: 13px;
+}
+
+/* ------------------------------------------------- the character library modal */
+
+.library-container {
+    display: flex;
+    gap: 20px;
+}
+
+.library-list {
+    width: 240px;
+    flex: none;
+    padding-right: 10px;
+    border-right: 1px solid #ccc;
+}
+
+/* Smaller than a modal title would normally be. This modal has to get a heading, a
+   button, the player list and the opponents' filter box on screen before the fold,
+   and the title is the one thing among them that can afford to give up the room. */
+.library-heading {
+    font-size: 1.5em;
+    margin: 10px 0;
+}
+
+.library-list h3,
+.library-tools h3,
+.library-tool-form h3 {
+    margin: 10px 0 4px;
+    font-size: 15px;
+}
+
+.library-form {
+    flex: 1;
+}
+
+/* narrows the opponent list as it is typed into - see modalCharacters.js. Sized to
+   the column it sits in, and the global `input` margin cleared so it does not drift
+   away from the heading above it. */
+.library-filter {
+    margin: 4px 0 8px;
+}
+
+.library-filter input {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 15px;
+    height: 26px;
+    margin: 0;
+    padding: 0 5px;
+}
+
+/* The opponents scroll inside the panel instead of running the modal on for
+   several screens - there are a few hundred of them. The filter box above stays
+   put, so the list can be narrowed again from wherever it has been scrolled to. */
+.library-scroll {
+    max-height: 45vh;
+    overflow-y: auto;
+}
+
+/* A character in the list, or one of its tools. Kept to one line each: a name
+   longer than the column - "Eyes Across the Ridgeline (Ridge)" - wrapped to two,
+   which both read raggedly and pushed the opponents' filter box below the fold.
+   The full name is on the row's tooltip. */
+.library-row {
+    padding: 3px 6px;
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.library-row:hover {
+    background-color: pink;
+}
+
+/* the one whose form is open below or beside it */
+.library-row-open {
+    background-color: black;
+    color: white;
+}
+
+.library-empty {
+    color: #555;
+    font-size: 14px;
+    font-style: italic;
+    margin: 4px 0 8px;
+}
+
+.library-tools {
+    margin-top: 18px;
+    padding-top: 10px;
+    border-top: 2px solid black;
+}
+
+.library-tool-form {
+    margin-top: 12px;
+    padding: 0 12px 6px;
+    border-left: 4px solid gray;
+}
+
 .dont_show {
     display: none
 }

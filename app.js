@@ -316,9 +316,24 @@ app.get("/latest_eID/", (req, res) => {
     });
 });
 
+// A participant, its character sheet and its place in the encounter, in one row.
+//
+// ct_tbl_participant and tbl_character each have a character_name and an ac, and
+// under a bare SELECT * the sheet's copy - being the later of the two - is the one
+// that comes back. The participant's own is what the tracker means by both: the name
+// this creature is going by in this fight, and the armour class it is wearing in it.
+// So they are named again at the end of the list, where they win, and the sheet's ac
+// is handed over under a name of its own for the participants that have none.
+//
+// The name was already being fetched a second time, one request per participant, to
+// undo this - see the updatedNames loop in load_encounter. The AC was not, which is
+// why a participant given an armour class of its own was drawn wearing the sheet's.
 app.get("/participants/:encounter", (req, res) => {
     let encounter = req.params.encounter;
-    let sql = `SELECT *
+    let sql = `SELECT *,
+        ct_tbl_participant.character_name AS character_name,
+        ct_tbl_participant.ac AS ac,
+        tbl_character.ac AS character_ac
     FROM ct_tbl_participant
     JOIN tbl_character ON ct_tbl_participant.chID = tbl_character.chID
     JOIN ct_tbl_encounter ON ct_tbl_participant.pID = ct_tbl_encounter.pID
@@ -903,6 +918,310 @@ app.post('/addParticipant', (req, res) => {
 
     // Send a response once all queries have been executed
     res.json({ message: 'Participants added successfully' });
+});
+
+// ------------------------------------------------------------ editing a row
+// tbl_character is the pool participants are drawn from, and tbl_tool hangs off a
+// character. Neither had a route that wrote to it, so a new creature - or a weapon
+// for one that already existed - had to be typed into the database with a SQLite
+// client. These are what the character library and the participant editor write
+// through.
+//
+// Every value is bound rather than interpolated. Names and descriptions are free
+// text, and a fair few of them have an apostrophe in.
+
+// A field left blank means "not recorded", which is not the same as zero: an AC of
+// 0 would be drawn in the tracker as a number to roll against, and a max HP of 0 is
+// a creature that is already dead. Anything that is not a number at all is stored
+// blank as well, rather than as the word "NaN".
+function numberOrNull(value) {
+    if (value == null || String(value).trim() === "") return null;
+    const number = Number(value);
+    return Number.isNaN(number) ? null : number;
+}
+
+// The flag columns hold 1 or 0, and are read back by comparisons like
+// `item.concentration == "1"`. A null would read as off, but so does 0, and 0 is
+// what the rest of the table holds.
+function flag(value) {
+    return value === true || value === 1 || value === "1" ? 1 : 0;
+}
+
+// Every character in one request, players first and each group by name - the two
+// lists the participant modal asks for separately, for the places that want both.
+app.get("/allCharacters", (req, res) => {
+    const sql = `SELECT * FROM tbl_character ORDER BY pc DESC, character_name`;
+    db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.send(results);
+    });
+});
+
+app.post("/saveCharacter", (req, res) => {
+    const character = req.body || {};
+    const name = String(character.character_name ?? "").trim();
+    if (!name) {
+        return res.status(400).json({ error: "A character needs a name" });
+    }
+
+    const values = [
+        name,
+        flag(character.pc),
+        numberOrNull(character.max_hp),
+        numberOrNull(character.ac),
+        numberOrNull(character.ac_secondary),
+        String(character.ac_secondary_descrip ?? "").trim() || null,
+        numberOrNull(character.init_modifier),
+    ];
+
+    // An existing sheet is rewritten in place: participants already in an encounter
+    // point at it by chID, so giving it a new row would leave every one of them
+    // reading the version they were added under.
+    if (character.chID) {
+        const sql = `
+            UPDATE tbl_character
+            SET character_name = ?,
+                pc = ?,
+                max_hp = ?,
+                ac = ?,
+                ac_secondary = ?,
+                ac_secondary_descrip = ?,
+                init_modifier = ?
+            WHERE chID = ?
+        `;
+        return db.run(sql, [...values, character.chID], (err) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ chID: Number(character.chID) });
+        });
+    }
+
+    const sql = `
+        INSERT INTO tbl_character
+        (character_name, pc, max_hp, ac, ac_secondary, ac_secondary_descrip, init_modifier)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    db.run(sql, values, function (err) {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: err.message });
+        }
+        // handed back so the modal can reopen on the character it has just created,
+        // which is what its tools need a chID to hang off
+        res.json({ chID: this.lastID });
+    });
+});
+
+app.post("/deleteCharacter", async (req, res) => {
+    const chID = numberOrNull(req.body?.chID);
+    if (!chID) {
+        return res.status(400).json({ error: "no character was named to delete" });
+    }
+
+    try {
+        // The tracker draws a participant by joining it to its sheet, so a
+        // participant whose sheet had gone would drop out of its encounter
+        // altogether - and those encounters are the record of a fight that
+        // happened. Refused outright rather than offered as something to confirm.
+        const inUse = await getRow(
+            `SELECT COUNT(*) AS participants FROM ct_tbl_participant WHERE chID = ?`,
+            [chID]
+        );
+        if (inUse?.participants) {
+            const rows = inUse.participants;
+            return res.status(409).json({
+                error:
+                    `This character is in ${rows} encounter ` +
+                    `${rows == 1 ? "row" : "rows"} already, so it cannot be deleted. ` +
+                    `Delete those participants first.`,
+            });
+        }
+
+        // The tools belong to the character and go with it, but a recorded action
+        // names one by toolID, so how many there are is said out loud first.
+        const owned = await getRow(
+            `SELECT COUNT(*) AS tools FROM tbl_tool WHERE chID = ?`,
+            [chID]
+        );
+        if (owned?.tools && !req.body?.confirmed) {
+            return res.status(409).json({
+                needsConfirmation: true,
+                error:
+                    `This character has ${owned.tools} tool${owned.tools == 1 ? "" : "s"}, ` +
+                    `which will be deleted along with it.`,
+            });
+        }
+
+        await runQuery(`DELETE FROM tbl_tool WHERE chID = ?`, [chID]);
+        await runQuery(`DELETE FROM tbl_character WHERE chID = ?`, [chID]);
+        res.json({ message: "Character deleted successfully" });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post("/saveTool", (req, res) => {
+    const tool = req.body || {};
+    const chID = numberOrNull(tool.chID);
+    const name = String(tool.toolName ?? "").trim();
+    if (!chID) {
+        return res.status(400).json({ error: "A tool belongs to a character" });
+    }
+    if (!name) {
+        return res.status(400).json({ error: "A tool needs a name" });
+    }
+
+    const values = [
+        chID,
+        name,
+        // damage_dice is declared INTEGER but holds "1d8+3": SQLite keeps the text
+        // it is given, and the action modals print it as it was typed.
+        String(tool.damage_dice ?? "").trim() || null,
+        String(tool.save ?? "").trim() || null,
+        String(tool.description ?? "").trim() || null,
+        flag(tool.concentration),
+        flag(tool.holding),
+        flag(tool.holding_one_round),
+        flag(tool.once_per_day),
+    ];
+
+    // "save" is quoted because it reads as a keyword; it is a column name here.
+    if (tool.toolID) {
+        const sql = `
+            UPDATE tbl_tool
+            SET chID = ?,
+                toolName = ?,
+                damage_dice = ?,
+                "save" = ?,
+                description = ?,
+                concentration = ?,
+                holding = ?,
+                holding_one_round = ?,
+                once_per_day = ?
+            WHERE toolID = ?
+        `;
+        return db.run(sql, [...values, tool.toolID], (err) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ toolID: Number(tool.toolID) });
+        });
+    }
+
+    const sql = `
+        INSERT INTO tbl_tool
+        (chID, toolName, damage_dice, "save", description,
+         concentration, holding, holding_one_round, once_per_day)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    db.run(sql, values, function (err) {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ toolID: this.lastID });
+    });
+});
+
+app.post("/deleteTool", async (req, res) => {
+    const toolID = numberOrNull(req.body?.toolID);
+    if (!toolID) {
+        return res.status(400).json({ error: "no tool was named to delete" });
+    }
+
+    try {
+        // An action records which tool it was made with, and nothing else says what
+        // that tool was, so deleting one leaves those actions naming nothing. How
+        // many is worth knowing before it happens.
+        const used = await getRow(
+            `SELECT COUNT(*) AS uses FROM ct_tbl_action WHERE toolID = ?`,
+            [toolID]
+        );
+        if (used?.uses && !req.body?.confirmed) {
+            return res.status(409).json({
+                needsConfirmation: true,
+                error:
+                    `${used.uses} recorded action${used.uses == 1 ? "" : "s"} ` +
+                    `name${used.uses == 1 ? "s" : ""} this tool, and would be left without one.`,
+            });
+        }
+
+        await runQuery(`DELETE FROM tbl_tool WHERE toolID = ?`, [toolID]);
+        res.json({ message: "Tool deleted successfully" });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Everything about one participant of one encounter, in a single write: which sheet
+// it was drawn from, its name, and the numbers the per-field modals each ask for one
+// of. tbl_character is left alone, the same as a rename - the goblin that turned out
+// to be a hobgoblin can be corrected without touching the next fight.
+app.post("/updateParticipant", (req, res) => {
+    const participant = req.body || {};
+    const pID = numberOrNull(participant.pID);
+    const name = String(participant.character_name ?? "").trim();
+    if (!pID) {
+        return res.status(400).json({ error: "no participant was named to edit" });
+    }
+    if (!name) {
+        return res.status(400).json({ error: "A character needs a name" });
+    }
+
+    // The name arrives as the tracker was showing it, number and all, so the number
+    // now lives in the name and the older column is cleared - see renameParticipant
+    // and participantNames.js.
+    //
+    // chID is COALESCEd because a participant with no sheet is one the tracker's own
+    // join drops from the encounter: an editor that could not name a sheet leaves
+    // the one it has rather than clearing it.
+    const sql = `
+      UPDATE ct_tbl_participant
+      SET chID = COALESCE(?, chID),
+          character_name = ?,
+          numeric_value = '',
+          ac = ?,
+          starting_hp = ?,
+          init = ?,
+          secondary_init = ?,
+          join_round = ?,
+          dead_round = ?
+      WHERE pID = ?
+    `;
+
+    db.run(
+        sql,
+        [
+            numberOrNull(participant.chID),
+            name,
+            numberOrNull(participant.ac),
+            numberOrNull(participant.starting_hp),
+            numberOrNull(participant.init),
+            // the tie-break the initiative order falls back on, and 10 is what
+            // orderInitiative writes when it is not given one
+            numberOrNull(participant.secondary_init) ?? 10,
+            numberOrNull(participant.join_round) ?? 1,
+            // 100 is "still standing" - past any round that gets played, so the row
+            // is never greyed out. See /revive and the row-greying in loadEncounter.
+            numberOrNull(participant.dead_round) ?? 100,
+            pID,
+        ],
+        (err) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ message: "Participant updated successfully" });
+        }
+    );
 });
 
 // Wrap db.run in a Promise to make it work with async/await

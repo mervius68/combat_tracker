@@ -10,6 +10,10 @@
     <script src="/modals/modalParticipants.js"></script>
     <script src="/submit/submitParticipantList.js"></script>
 
+    <!-- the character pool and its tools, and one participant's own row -->
+    <script src="/modals/modalCharacters.js"></script>
+    <script src="/modals/modalEditParticipant.js"></script>
+
     <!-- action modals -->
     <script src="/modals/modalAction.js"></script>
     <script src="/submit/submitAction.js"></script>
@@ -52,6 +56,7 @@
         </select>
         <br><br>
         <button class="button" onclick="add_participants_modal()">Add Participants</button>
+        <button class="button" onclick="manageCharactersModal()">Characters</button>
         <span class="displayRounds_buttons_here">
             <button onclick="displayRound()">ALL</button>
             <button onclick="displayRound(1)">1</button>

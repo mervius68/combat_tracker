@@ -1101,7 +1101,18 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                 contextMenu.appendChild(deleteOption);
                 showContextMenu()
             }
-            else if (element.classList.contains("delete_character") && element.innerText !== "") {
+            // The cell this menu hangs off holds the participant's armour class, and
+            // it used to have to say something for the menu to open at all. Editing
+            // a participant is how an AC gets filled in, so a blank one is exactly
+            // when the menu is wanted: what identifies the cell is the class and the
+            // participant it names, both of which are there either way.
+            else if (element.classList.contains("delete_character") && element.hasAttribute("data-participant")) {
+                const characterToEdit = element.getAttribute("data-participant")
+                const divEdit = document.createElement("div");
+                divEdit.classList.add("context_div");
+                divEdit.textContent = "Edit Participant";
+                divEdit.addEventListener("click", () => editParticipantModal(characterToEdit));
+
                 const characterToAdjustInit = element.getAttribute("data-participant")
                 const divAdjustInit = document.createElement("div");
                 divAdjustInit.classList.add("context_div");
@@ -1128,6 +1139,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
 
                 const br = document.createElement("br");
                 const br2 = document.createElement("br");
+                contextMenu.appendChild(divEdit);
                 contextMenu.appendChild(divAdjustInit);
                 // contextMenu.appendChild(br);
                 contextMenu.appendChild(divAdjustHP);
