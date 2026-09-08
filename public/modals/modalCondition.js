@@ -333,14 +333,30 @@ async function modalConditions(
     endRound.classList.add("pointer");
     endRound.setAttribute("name", "endRound");
 
-    // determine whose init is higher, causer or affectee
-
     // Same again for the round it ends on. A condition recorded as running to round
     // 30 has to be able to show that, or nothing in the list would be selected and
-    // the save would have no ending round to read.
+    // the save would have no ending round to read. The round after this one has to
+    // be reachable too, since that is what the list opens on below.
+    const thisRound = parseInt(currentRound) || 0;
     let lastEndRound = isEdit
         ? Math.max(20, parseInt(existingCondition.endRound) || 0)
-        : 20;
+        : Math.max(20, thisRound + 1);
+
+    // Which round the list opens on. A condition ends on its own causer's turn on
+    // the round after the one it starts on, unless the affectee comes round again
+    // first - then this round is the last one it is in effect for.
+    // Nothing is checked in the affectees column when the action was submitted with
+    // no target, a Ready most often, so there is no initiative to compare with and
+    // affecteePosition is undefined. That comparison reads false, which leaves the
+    // round after this one - the same answer the beginning round is left on, plus
+    // one. It used to leave every option unselected, and the list sat on round 1.
+    let defaultEndRound =
+        causerPosition < affecteePosition ? thisRound : thisRound + 1;
+    // A hold that is not spent by the end of one round runs on well past that.
+    if (holdingOneRound == 0 && thisRound + 10 <= lastEndRound) {
+        defaultEndRound = thisRound + 10;
+    }
+
     for (let i = 1; i <= lastEndRound; i++) {
         let option = document.createElement("option");
         option.setAttribute("value", i);
@@ -350,20 +366,8 @@ async function modalConditions(
             if (existingCondition.endRound == i) {
                 option.setAttribute("selected", "true");
             }
-            endRound.appendChild(option);
-            continue;
-        }
-        if (currentRound == i - 10 && holdingOneRound == 0) {
+        } else if (defaultEndRound == i) {
             option.setAttribute("selected", "true");
-        } else {
-            if (currentRound == i && causerPosition < affecteePosition) {
-                option.setAttribute("selected", "true");
-            } else if (
-                currentRound == i - 1 &&
-                causerPosition >= affecteePosition
-            ) {
-                option.setAttribute("selected", "true");
-            }
         }
         endRound.appendChild(option);
     }
