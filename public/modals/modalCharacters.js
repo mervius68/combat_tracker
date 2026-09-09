@@ -34,6 +34,11 @@ async function renderCharacterLibrary() {
     const modalBody = document.querySelector("#modal-body");
     const characters = await dbQuery("GET", "allCharacters");
 
+    // How far down the opponents the list had been scrolled. The modal is rebuilt in
+    // full on every click, so without this the new list comes back at the top and the
+    // name that was just picked is somewhere off the bottom of it.
+    const wasScrolledTo = opponentScrollTop();
+
     const container = document.createElement("div");
     container.classList.add("modal-body");
 
@@ -65,6 +70,28 @@ async function renderCharacterLibrary() {
     // the rows are built in full and then narrowed, so this runs once they are on
     // the page and can be hidden
     applyOpponentFilter();
+    // after the narrowing, which is what decides how far the list can be scrolled
+    setOpponentScrollTop(wasScrolledTo);
+}
+
+// The scrolling box around the opponents, once there is one: the players' group is
+// drawn without it, and neither is there before the first render.
+function opponentScroller() {
+    return document.querySelector(".library-scroll");
+}
+
+function opponentScrollTop() {
+    const scroller = opponentScroller();
+    return scroller ? scroller.scrollTop : 0;
+}
+
+function setOpponentScrollTop(top) {
+    const scroller = opponentScroller();
+    if (scroller) {
+        // clamped by the browser, so a list that has since grown shorter - a character
+        // deleted, or the filter narrowed - lands at the bottom rather than nowhere
+        scroller.scrollTop = top;
+    }
 }
 
 // The list down the left: the same two groups the participant modal offers, plus
@@ -146,6 +173,10 @@ function opponentFilterLine() {
     input.addEventListener("input", () => {
         characterLibrary.filter = input.value;
         applyOpponentFilter();
+        // Back to the first match. Narrowing a list that has been scrolled down would
+        // otherwise leave it showing the gap where the rows used to be. Only on a
+        // keystroke: a redraw for any other reason keeps the place it was left at.
+        setOpponentScrollTop(0);
     });
 
     line.appendChild(input);
@@ -183,13 +214,6 @@ function applyOpponentFilter() {
     const none = document.querySelector(".library-no-matches");
     if (none) {
         none.hidden = showing > 0;
-    }
-
-    // Back to the first match. Narrowing a list that has been scrolled down would
-    // otherwise leave it showing the gap where the rows used to be.
-    const scroller = document.querySelector(".library-scroll");
-    if (scroller) {
-        scroller.scrollTop = 0;
     }
 }
 
