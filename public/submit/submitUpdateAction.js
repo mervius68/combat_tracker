@@ -537,7 +537,21 @@ async function submitUpdateAction(dataAidValue, pID, forceCondition = 0) {
                     // Process downstream array and update uniquely downstream
                     await processDownstreamArray(bufferHP, downstreamArray);
                     updateUniqueDownstream(ctAppCopy, record.target_pID, currentRound, downstreamArray);
-                } else if (dataAttributes.originalvalue == "x") {
+                } else if (dataAttributes.tid) {
+                    // The field held "x" or "0" - a hit that did no damage, or a
+                    // miss - and has been cleared, so this participant is no longer
+                    // one of the action's targets and its row goes. This was an
+                    // empty block, so clearing an "x" left the row behind and the
+                    // action went on showing a target that had been taken off it.
+                    //
+                    // Only the row: neither an "x" nor a "0" ever took anything off
+                    // anyone's HP, so there is nothing downstream to give back. A
+                    // cleared damage figure goes through the branch above, which
+                    // does have to repair the HP that followed it.
+                    update.ct_tbl_target.delete.push({
+                        tID: parseInt(dataAttributes.tid),
+                        target_pID: parseInt(dataAttributes.pid)
+                    });
                 }
             }
         }
