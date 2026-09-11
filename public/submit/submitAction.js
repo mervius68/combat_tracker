@@ -334,18 +334,7 @@ async function submitAction(forceCondition = 0) {
 
         let round = currentRound;
         targetHits.forEach(async (target, index) => {
-            if (
-                ctApp.findIndex((participant) => {
-                    return participant.pID == pID;
-                }) >
-                ctApp.findIndex((target) => {
-                    return target.pID == target_pID[index];
-                })
-            ) {
-                round = parseInt(currentRound) + 1;
-            } else {
-                round = parseInt(currentRound);
-            }
+            round = damageRoundFor(pID, target_pID[index], currentRound);
 
             // tool is a segment of this URL like any other: a weapon or a typed
             // action with a "/" in its name would leave the route unmatched.

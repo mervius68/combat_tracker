@@ -1275,6 +1275,14 @@ app.post("/updateActionDB", async (req, res) => {
             }
         }
 
+        // Move rows to another round without touching what they record. An action
+        // handed to a different participant is struck at a different point in the
+        // initiative order, and the round a damage row is drawn in follows from
+        // that - see damageRoundFor.
+        for (const obj of requestData.ct_tbl_target.reround || []) {
+            await moveTargetToRound(obj);
+        }
+
         for (const targetPID of affectedTargetPids) {
             if (encounterEID != null) {
                 await recalculateTargetHPTimeline(encounterEID, targetPID);
@@ -1428,6 +1436,20 @@ async function updateTarget(target) {
     await runQuery(sql, [
         target.damage,
         target.newHP,
+        target.tID
+    ])
+}
+
+// The round only. Damage and HP are what this row records and are left exactly as
+// they are; what changes is which round of the tracker draws the result.
+async function moveTargetToRound(target) {
+    const sql = `
+        UPDATE ct_tbl_target
+        SET round = ?
+        WHERE tID = ?
+    `
+    await runQuery(sql, [
+        target.round,
         target.tID
     ])
 }

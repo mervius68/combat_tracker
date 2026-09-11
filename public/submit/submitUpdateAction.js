@@ -250,7 +250,10 @@ async function submitUpdateAction(dataAidValue, pID, forceCondition = 0) {
         ct_tbl_target: {
             insert: [],
             update: [],
-            delete: []
+            delete: [],
+            // Rows that keep their damage but move to a different round - see the
+            // pass over damageAmountElements below.
+            reround: []
         },
         ct_tbl_condition: {
             delete: {
@@ -358,7 +361,13 @@ async function submitUpdateAction(dataAidValue, pID, forceCondition = 0) {
                         targetID: damageObj.targetID,
                         damage: parsedNewValue,
                         eID: ctApp[0].eID,
-                        round: currentRound,
+                        // Not currentRound: a target above the attacker in the
+                        // order shows its new HP in the round below, or the damage
+                        // is drawn above the attack that caused it. This is a row
+                        // being inserted - a target added to the action that was
+                        // not there before - so it gets the same treatment
+                        // submitAction gives a brand new one.
+                        round: damageRoundFor(actingPID, dataAttributes.pid, currentRound),
                         target_pID: dataAttributes.pid,
                         originalDamage: 0,
                         maxHP: ctTarget ? ctTarget.maxhp : 0, // Safeguard against undefined ctTarget
@@ -413,7 +422,6 @@ async function submitUpdateAction(dataAidValue, pID, forceCondition = 0) {
             } else if (newValue == "x") {                   // if new value is "x"
                 const originalValue = parseInt(dataAttributes.originalvalue);
                 const isOriginalValueValid = Number.isInteger(originalValue) && originalValue !== 0;
-                const newValue = parseInt(dataAttributes.newValue);
 
                 // Determine the record structure based on conditions
                 if (isOriginalValueValid) {  // When original value is a valid integer and not zero     DONE
@@ -443,16 +451,47 @@ async function submitUpdateAction(dataAidValue, pID, forceCondition = 0) {
                     // Async function calls
                     await processDownstreamArray(bufferHP, downstreamArray);
                     updateUniqueDownstream(ctAppCopy, record.target_pID, currentRound, downstreamArray);
-                } else if (dataAttributes.originalvalue == null) {  // When original value is null
-                    record = {
-                        targetID: dataAttributes.targetid,
+                } else if (!dataAttributes.tid) {
+                    // "x" against a target this action had no row for: a hit that
+                    // did no damage, on somebody it was not aimed at before. This
+                    // used to test originalvalue for null, which the modal never
+                    // leaves it as - it writes "" - so nothing was recorded at all
+                    // and the target quietly failed to appear on the action.
+                    //
+                    // The row is a target row like any other, carrying zero damage;
+                    // what marks it as a hit rather than a miss is the action's own
+                    // hit flag, which the pass over the target fields above has
+                    // already set from this same "x".
+                    const damageObj = ctActions.find(item => item.aID === dataAidValue);
+                    if (!damageObj) {
+                        console.warn('No damage object found for aID:', dataAidValue);
+                        return;
+                    }
+
+                    // No damage means the target leaves with the HP it came in
+                    // with. The route recomputes the whole timeline for this
+                    // participant afterwards regardless, so this is a starting
+                    // point rather than the last word.
+                    const unchangedHP = getDamageNewHP(ctTarget, dataAidValue);
+
+                    const record = {
+                        aID: dataAidValue,
+                        tID: null,
+                        targetID: damageObj.targetID,
+                        damage: 0,
                         eID: ctApp[0].eID,
-                        round: currentRound,
+                        round: damageRoundFor(actingPID, dataAttributes.pid, currentRound),
                         target_pID: dataAttributes.pid,
-                        damage: newValue,
-                        originalDamage: dataAttributes.originalvalue
+                        originalDamage: 0,
+                        maxHP: ctTarget ? ctTarget.max_hp : 0,
+                        newHP: unchangedHP != null ? unchangedHP : (ctTarget ? ctTarget.starting_hp : 0),
+                        hit: 1,
+                        pID: actingPID
                     };
+
                     update.ct_tbl_target.insert.push(record);
+                    // Nothing downstream to redo: a row that takes nothing off
+                    // leaves every later HP in this encounter where it was.
                 }
             } else if (newValue == "" && dataAttributes.originalvalue) {                    // new value is ""
                 if (parseInt(dataAttributes.originalvalue)) {
@@ -503,7 +542,25 @@ async function submitUpdateAction(dataAidValue, pID, forceCondition = 0) {
             }
         }
     }
-    
+
+    // An action that changed hands takes a different place in the initiative
+    // order, and which round a damage row is drawn in depends on that place - so
+    // the rows this action already had are re-placed too, not only the ones whose
+    // damage was touched. Their damage is not being changed, just where the result
+    // is shown, which is why this carries the round and nothing else.
+    if (actorChanged) {
+        for (const target of damageAmountElements) {
+            const tID = target.dataset.tid;
+            if (!tID || !target.value) {
+                continue;
+            }
+            update.ct_tbl_target.reround.push({
+                tID: tID,
+                round: damageRoundFor(actingPID, target.dataset.pid, currentRound)
+            });
+        }
+    }
+
     await dbQueryPost("updateActionDB", update)
     let nextAvailableActionID = await dbQuery("GET", "getNewAID");
     nextAvailableActionID = nextAvailableActionID.length > 0 && nextAvailableActionID[0].aID != undefined ? nextAvailableActionID[0].aID : 1;

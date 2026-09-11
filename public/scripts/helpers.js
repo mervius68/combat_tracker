@@ -926,6 +926,26 @@ function wireWeaponRadios(modal, scope) {
     });
 }
 
+// ------------------------------------------------------ where damage is drawn
+// Which round a damage row is recorded against.
+//
+// Not always the round the blow was struck in. The tracker draws a target's
+// resulting HP on the target's own row, and a target who acts before the attacker
+// has already had its turn by the time the blow lands - so its new HP belongs to
+// the row below the attacker's, which is the next round. Written against the
+// attacker's own round instead, the damage appears above the attack that caused
+// it. battleTally reads the round off the action for the same reason.
+//
+// Initiative order is the order of ctApp, so this is a comparison of positions in
+// it, not of init scores - the order can be dragged into shape by hand.
+function damageRoundFor(attackerPID, targetPID, round) {
+    const position = (pID) =>
+        ctApp.findIndex((participant) => participant.pID == pID);
+    return position(attackerPID) > position(targetPID)
+        ? parseInt(round) + 1
+        : parseInt(round);
+}
+
 // ----------------------------------------------------------- once-per-day tools
 // A tool whose once_per_day column is set is spent for the rest of the combat as
 // soon as the participant uses it. Nothing records that: it is read off the
