@@ -102,8 +102,14 @@ async function submitCondition(nextAID) {
         let dataConditions = `addCondition/${ctApp[0].eID}/${causerPID}/${taID}/${conditionEndsPID}/${newCpID}/${concentration}/${holding}/${nextAID}`;
         await dbQuery("GET", dataConditions);
 
-        load_encounter(ctAppEnc, dataNav);
+        // Closed first and the reload waited for. Two reloads running at once each
+        // reset the counter that numbers the rows and then both number their own
+        // grid from where the other had got to, so the second one comes out
+        // starting at 197 instead of 1 - and the row the tracker was sitting on no
+        // longer exists to be reselected. Everything that reads .selected, this
+        // modal's own save included, then has nothing to read.
         closeModal();
+        await load_encounter(ctAppEnc, dataNav);
     }
 
 // Save an edit to a condition that already exists. The one request rewrites the
@@ -137,6 +143,7 @@ async function submitConditionUpdate(taID) {
         return;
     }
 
-    load_encounter(ctAppEnc, modalValues.dataNav);
+    // The same ordering as submitCondition above, and for the same reason.
     closeModal();
+    await load_encounter(ctAppEnc, modalValues.dataNav);
 }

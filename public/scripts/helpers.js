@@ -893,16 +893,29 @@ function wireActionTextInput(modal) {
     if (!textInput) {
         return;
     }
-    const radios = modal.querySelectorAll('input[name="weapons"]');
     textInput.addEventListener("input", function () {
         if (textInput.value === "") {
             return;
         }
-        radios.forEach((radio) => {
+        // Looked up on each keystroke rather than once: the update modal redraws
+        // its tool radios when the actor is changed, and the radios this clears
+        // have to be the ones on screen now.
+        modal.querySelectorAll('input[name="weapons"]').forEach((radio) => {
             radio.checked = false;
         });
     });
-    radios.forEach((radio) => {
+    wireWeaponRadios(modal, modal);
+}
+
+// The other half of that tie, on its own so radios drawn after the modal was wired
+// - the tool list redrawn for a newly named actor - can be joined to the same
+// field.
+function wireWeaponRadios(modal, scope) {
+    const textInput = modal.querySelector('input[name="weaponTextInput"]');
+    if (!textInput) {
+        return;
+    }
+    scope.querySelectorAll('input[name="weapons"]').forEach((radio) => {
         // "click" as well as "change", so that clicking NONE clears text carried
         // over from the action being edited even though NONE was already checked.
         ["click", "change"].forEach((eventName) => {

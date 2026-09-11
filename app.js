@@ -1355,25 +1355,65 @@ function selectRecentHP(obj) {
 
 
 
+// What the action was, and - when the modal's actor dropdown was changed - who
+// took it. The actor is recorded in three places, and a reassignment that moved
+// only the first would leave the other two crediting the wrong participant:
+//
+//   ct_tbl_action.pID      the row of the tracker the action is drawn on
+//   ct_tbl_target.pID      the damage it dealt; the battle tally reads the killer
+//                          of a downed creature off these rows, not off the action
+//   ct_tbl_condition.pID   the causer of any condition the action started, which is
+//                          the name the condition is listed under and whose
+//                          concentration ends it
+//
+// COALESCE rather than a second route, so an ordinary edit - which sends pID as
+// null - leaves the actor exactly as it found it.
 async function updateAction(requestData) {
+    const update = requestData.ct_tbl_action.update;
+    const newPID = update.pID ?? null;
+
     const sql = `
-        UPDATE ct_tbl_action 
+        UPDATE ct_tbl_action
         SET action_type = ?,
             action = ?,
             toolID = ?,
             hit = ?,
-            notes = ?
+            notes = ?,
+            pID = COALESCE(?, pID)
         WHERE aID = ?
     `;
 
     await runQuery(sql, [
-        requestData.ct_tbl_action.update.action_type,
-        requestData.ct_tbl_action.update.action,
-        requestData.ct_tbl_action.update.toolID,
-        requestData.ct_tbl_action.update.hit,
-        requestData.ct_tbl_action.update.notes,
-        requestData.ct_tbl_action.update.aID
+        update.action_type,
+        update.action,
+        update.toolID,
+        update.hit,
+        update.notes,
+        newPID,
+        update.aID
     ]);
+
+    if (newPID == null) {
+        return;
+    }
+
+    // The damage rows hang off the action by targetID rather than by aID, which is
+    // the join the rest of the file uses for them.
+    await runQuery(
+        `
+        UPDATE ct_tbl_target
+        SET pID = ?
+        WHERE targetID IN (
+            SELECT targetID FROM ct_tbl_action WHERE aID = ? AND targetID IS NOT NULL
+        )
+        `,
+        [newPID, update.aID]
+    );
+
+    await runQuery(
+        `UPDATE ct_tbl_condition SET pID = ? WHERE aID = ?`,
+        [newPID, update.aID]
+    );
 }
 
 async function updateTarget(target) {

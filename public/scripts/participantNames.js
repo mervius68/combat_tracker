@@ -40,6 +40,17 @@ function participantNumber(participant) {
     return null;
 }
 
+// The name as the tracker shows it, number and all. Both schemes again: a number
+// already carried in the name comes back untouched, one left in the older column
+// is appended.
+function participantDisplayName(participant) {
+    const name = String(participant?.character_name ?? "");
+    if (hasNoNumericValue(participant?.numeric_value)) {
+        return name;
+    }
+    return numberedCharacterName(name, participant.numeric_value);
+}
+
 // The next free number for a base name in this encounter.
 //
 // An existing unnumbered member counts as occupying #1, which is already how the

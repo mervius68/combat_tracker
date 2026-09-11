@@ -1,11 +1,24 @@
 // this function takes info from the updateAction modal and updates database
 
-async function submitUpdateAction(dataAidValue, pID) {
+// forceCondition is the SUBMIT + go to CONDITIONS button: the edit is saved and
+// then the conditions modal is opened against this same action, whether or not the
+// weapon chosen would have brought it up by itself.
+async function submitUpdateAction(dataAidValue, pID, forceCondition = 0) {
     const g = "got here"
     const ctAppCopy = await deepCopy(ctApp);
     const data = document.querySelector(".modalSubmit");
     const dataNav = data.getAttribute("data-row");
     const currentRound = parseInt(data.getAttribute("data-current-round"));
+
+    // Who the action is being credited to. The dropdown in the modal's heading
+    // normally still names whoever the action was recorded against; when it does
+    // not, this submit is a reassignment as well as an edit, and everything below
+    // that says "the participant who acted" means the one it names - see
+    // updateAction in app.js for the three tables the new actor is written to.
+    const actorSelect = document.querySelector(".actor_select");
+    const selectedActor = actorSelect ? parseInt(actorSelect.value) : NaN;
+    const actingPID = Number.isInteger(selectedActor) ? selectedActor : Number(pID);
+    const actorChanged = actingPID !== Number(pID);
 
     let holdingOneRound = 0;
 
@@ -229,7 +242,9 @@ async function submitUpdateAction(dataAidValue, pID) {
                 action_type: actionCategory,
                 hit: hit,
                 notes: notes,
-                toolID: toolNum
+                toolID: toolNum,
+                // null for an ordinary edit, so the route leaves the actor alone
+                pID: actorChanged ? actingPID : null
             }
         },
         ct_tbl_target: {
@@ -349,7 +364,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                         maxHP: ctTarget ? ctTarget.maxhp : 0, // Safeguard against undefined ctTarget
                         newHP: Math.max(newHP, 0),
                         hit: parsedNewValue === 0 ? 0 : 1,
-                        pID: pID
+                        pID: actingPID
                     };
 
                     update.ct_tbl_target.insert.push(record);
@@ -464,7 +479,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                         maxHP: ctTarget.maxhp,
                         newHP: Math.max(newHP, 0), // Ensures newHP is not negative
                         hit: 0, // Since diff is always 0, hit will always be 0
-                        pID: pID
+                        pID: actingPID
                     };
 
                     // Update operations based on tID presence
@@ -493,23 +508,42 @@ async function submitUpdateAction(dataAidValue, pID) {
     let nextAvailableActionID = await dbQuery("GET", "getNewAID");
     nextAvailableActionID = nextAvailableActionID.length > 0 && nextAvailableActionID[0].aID != undefined ? nextAvailableActionID[0].aID : 1;
 
-    load_encounter(ctAppEnc, dataNav);
+    // Put the modal away before reloading, not after - see submitAction for what
+    // hiding it second costs. Awaited, unlike there, because what may open next
+    // reads the condition and the participants out of ctApp, and until the reload
+    // has finished that is still the encounter as it stood before this edit.
     closeModal();
+    await load_encounter(ctAppEnc, dataNav);
 
-    if ((concentrationNext == 1 || holding == 1) && !conditionCurrent?.getAttribute("data-condition-id")) {
-        
-        launchConditionsModal(
-            target_pID,
-            concentrationNext,
-            conditionName,
-            holding,
-            holdingOneRound,
-            nextAvailableActionID,
-            true, 
-            dataAidValue, 
-            pID,
-            currentRound
-        );
+    const wantsCondition =
+        forceCondition == 1 ||
+        ((concentrationNext == 1 || holding == 1) && !conditionCurrent?.getAttribute("data-condition-id"));
+
+    if (wantsCondition) {
+        // A condition this action still has is opened to be changed rather than
+        // joined by a second one: the actions are read back through a join on aID,
+        // so two condition rows for one action would draw the action twice.
+        //
+        // actionObj is this action as it was before the submit, which is the point
+        // - an edit that tore its condition down leaves a taID that no longer finds
+        // anything, and a fresh condition is what should be offered instead.
+        const existing = actionObj.taID != null ? findConditionByTaID(actionObj.taID) : null;
+        if (existing) {
+            launchEditConditionModal(existing);
+        } else {
+            launchConditionsModal(
+                target_pID,
+                concentrationNext,
+                conditionName,
+                holding,
+                holdingOneRound,
+                nextAvailableActionID,
+                true,
+                dataAidValue,
+                actingPID,
+                currentRound
+            );
+        }
     }
 
     //////////////////////////////////////////////////////   HELPERS!!!    ****************************************************
@@ -544,7 +578,7 @@ async function submitUpdateAction(dataAidValue, pID) {
                         "data-participant-affected"
                     ) +
                     "/" +
-                    pID
+                    actingPID
                 )
             }
         }

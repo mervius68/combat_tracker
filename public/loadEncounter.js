@@ -25,21 +25,54 @@ const keyupEventListener = (e) => {
         if (!modalUp) {
             e.altKey ? launchConditionsModal("turn") : launchActionModal("turn");
         } else {
-            const modalType = modal.querySelector(".modal-body").getAttribute("data-modal-type");
-            // Only these two submit on Enter and close as they go. The rest stay
-            // up, so marking them closed here was the same lie load_encounter
-            // used to tell, and cost them their typing.
-            if (modalType === "action" || modalType === "condition") {
+            // Optional: not every modal wraps itself in a .modal-body, and the
+            // ones that do not used to throw out of this handler rather than
+            // leave Enter alone.
+            const modalType = modal.querySelector(".modal-body")?.getAttribute("data-modal-type");
+            const submitter = enterSubmitter(modal, modalType);
+            if (submitter) {
                 enterSubmitInFlight = true;
                 modalIsOpen = false;
-                const submitted = modalType === "action" ? submitAction() : submitCondition();
-                Promise.resolve(submitted).finally(() => {
+                Promise.resolve(submitter()).finally(() => {
                     enterSubmitInFlight = false;
                 });
             }
         }
     }
 
+}
+
+// What Enter means in the modal that is up, or null for a modal it means nothing
+// in. Only these three submit on Enter and close as they go; the rest stay up, so
+// marking them closed here was the same lie load_encounter used to tell, and cost
+// them their typing.
+//
+// The action editor is its own type rather than a second "action". While the two
+// shared one, Enter in the editor ran submitAction, which reads the same
+// .modalSubmit button for its row and participant and so filed the edit as a
+// brand new action - against the right participant, but leaving the action
+// actually being edited exactly as it was.
+function enterSubmitter(modal, modalType) {
+    if (modalType === "action") {
+        return () => submitAction();
+    }
+    if (modalType === "condition") {
+        return () => submitCondition();
+    }
+    if (modalType === "updateAction") {
+        // The same two arguments the SUBMIT button is wired with: which action is
+        // being edited, and the participant it was recorded against. Without them
+        // there is nothing to identify the action, so Enter does nothing rather
+        // than submitting an edit to no one.
+        const submit = modal.querySelector(".modalSubmit");
+        const aID = submit?.getAttribute("data-aid");
+        const pID = submit?.getAttribute("data-selected-pid");
+        if (!aID || !pID) {
+            return null;
+        }
+        return () => submitUpdateAction(Number(aID), Number(pID));
+    }
+    return null;
 }
 
 async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {

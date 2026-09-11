@@ -33,16 +33,41 @@ async function modalUpdateAction(dataAidValue) {
     );
     // build the HTML
     let container = document.createElement("div");
-    container.setAttribute("data-modal-type", "action")
+    // Not "action", which is the modal that files a new one - see enterSubmitter
+    // in loadEncounter for what the two sharing a type did to Enter.
+    container.setAttribute("data-modal-type", "updateAction")
     container.classList.add("modal-body");
 
-    let h3 = document.createElement("h3");
     let character = ctApp.find((participant) => {
         return participant.pID == participantID;
     });
-    h3.innerHTML =
-        character.character_name +
-        (character.numeric_value ? " #" + character.numeric_value : "");
+
+    // The tool this action was saved with, by name as well as by id - see
+    // isOriginalTool for why the name matters once the actor can change.
+    const originalToolName = participantTools.find((item) => {
+        return item.toolID == actionObj.ct_tbl_action.toolID;
+    })?.toolName;
+
+    // Who took the action, as a dropdown rather than a title. An action typed onto
+    // the wrong row - the second goblin's scimitar recorded against the first -
+    // can be handed to whoever really took it, damage and all, instead of being
+    // deleted and typed again. See wireActorSelect for what changing it redraws,
+    // and submitUpdateAction for the tables the new actor is written to.
+    let h3 = document.createElement("h3");
+    h3.classList.add("actor_heading");
+    let actorSelect = document.createElement("select");
+    actorSelect.classList.add("actor_select", "pointer");
+    actorSelect.setAttribute("name", "actor");
+    ctApp.forEach((participant) => {
+        let option = document.createElement("option");
+        option.setAttribute("value", participant.pID);
+        option.textContent = participantDisplayName(participant);
+        if (participant.pID == participantID) {
+            option.setAttribute("selected", "selected");
+        }
+        actorSelect.appendChild(option);
+    });
+    h3.appendChild(actorSelect);
     container.appendChild(h3);
 
     let divModalTop = document.createElement("div");
@@ -59,86 +84,29 @@ async function modalUpdateAction(dataAidValue) {
     div13.appendChild(div1Title);
 
     let div14 = document.createElement("div");
-    let defaultTool = document.createElement("input");
-    defaultTool.setAttribute("type", "radio");
-    defaultTool.setAttribute("value", 0);
-    defaultTool.setAttribute("id", "default");
-    defaultTool.setAttribute("name", "weapons");
-    defaultTool.classList.add("pointer");
-    defaultTool.setAttribute("data-concentration", 0);
-    defaultTool.setAttribute("checked", "true");
-    let defaultLabel = document.createElement("label");
-    defaultLabel.setAttribute("for", "default");
-    defaultLabel.classList.add("radio_buttons");
-    defaultLabel.innerHTML = "NONE";
-    defaultLabel.classList.add("pointer");
-    if (actionObj.ct_tbl_action.action == "none") {
-        defaultLabel.setAttribute("checked", "checked");
-    }
-    let br1 = document.createElement("br");
-    div14.appendChild(defaultTool);
-    div14.appendChild(defaultLabel);
-    div14.appendChild(br1);
-    // const targetPID = 60; // Specify the target pID
-    // The once-per-day tools this participant has spent in this combat, leaving out
-    // the action being edited: the tool it already names is the one it spent, and it
-    // has to stay pickable for this edit to be able to keep it.
-    const spentTools = spentOncePerDayToolIDs(participantID, participantTools, dataAidValue);
-    for (item of participantTools) {
-        // The tool this action already names is never greyed out, whoever spent it -
-        // an action recorded before the column was set could have used it a second
-        // time, and greying it here would leave the modal with nothing selected and
-        // no way to put back what it opened with.
-        const toolIsSpent =
-            spentTools.has(String(item.toolID)) &&
-            item.toolID != actionObj.ct_tbl_action.toolID;
-        let tool = document.createElement("input");
-        tool.setAttribute("type", "radio");
-        tool.setAttribute("value", item.toolName);
-        tool.setAttribute("id", item.toolID);
-        tool.classList.add("pointer");
-        tool.setAttribute("name", "weapons");
-        tool.setAttribute("data-concentration", item.concentration);
-        // tool.setAttribute("data-taid", item.taID)
-        tool.setAttribute("data-holding", item.holding);
-        tool.setAttribute("data-holding-one-round", item.holding_one_round);
-        try {
-            if (item.toolID == actionObj.ct_tbl_action.toolID) {
-                tool.setAttribute("checked", "checked");
-                tool.setAttribute("data-condition-id", aIDObject.conditionID)
-                tool.setAttribute("data-originalCheck", "1")
-            }
-        }
-        catch (err) { }
-
-        let label = document.createElement("label");
-        label.setAttribute("for", item.toolID);
-        label.classList.add("radio_buttons", "pointer");
-        label.innerHTML =
-            item.toolName +
-            (item.damage_dice ? " (" + item.damage_dice + ")" : "");
-        let span4;
-        if (item.holding == 1) {
-            span4 = document.createElement("span");
-            span4.innerHTML = "H";
-            span4.classList.add("holding");
-            label.appendChild(span4);
-        }
-        let span1;
-        if (item.concentration == "1") {
-            span1 = document.createElement("span");
-            span1.innerHTML = "C";
-            span1.classList.add("concentration");
-            label.appendChild(span1);
-        }
-        if (toolIsSpent) {
-            markToolSpent(tool, label);
-        }
-        let br = document.createElement("br");
-        div14.appendChild(tool);
-        div14.appendChild(label);
-        div14.appendChild(br);
-    };
+    // The tool radios sit in a box of their own so that changing the actor can
+    // redraw them on their own: the free-text field below them is nobody's weapon
+    // in particular and survives a change of actor.
+    let toolList = document.createElement("div");
+    toolList.classList.add("tool_list");
+    toolList.appendChild(
+        buildToolRadios(participantID, participantTools, {
+            checkedToolID: actionObj.ct_tbl_action.toolID,
+            noneChecked: true,
+            // The tool this action already names is never greyed out, whoever spent
+            // it - an action recorded before the once-per-day column was set could
+            // have used it a second time, and greying it here would leave the modal
+            // with nothing selected and no way to put back what it opened with.
+            alwaysAvailableToolID: actionObj.ct_tbl_action.toolID,
+            exceptAID: dataAidValue,
+            original: {
+                toolID: actionObj.ct_tbl_action.toolID,
+                toolName: originalToolName,
+                conditionID: aIDObject.conditionID,
+            },
+        })
+    );
+    div14.appendChild(toolList);
 
     divLeft.appendChild(div13);
 
@@ -539,22 +507,34 @@ async function modalUpdateAction(dataAidValue) {
     submit.setAttribute("data-row", dataNavSelected)
     submit.setAttribute("data-selected-pid", participantID)
     submit.setAttribute("data-current-round", currentRound);
+    // The onclick's own arguments, readable without parsing it: Enter submits this
+    // modal too, and has no button to click - see enterSubmitter in loadEncounter.
+    submit.setAttribute("data-aid", dataAidValue);
     submit.setAttribute("onclick", `submitUpdateAction(${dataAidValue}, ${actionObj.ct_tbl_action.pID})`);
     submit.classList.add("button");
     submit.classList.add("modalSubmit");
+    // The same offer the new-action modal makes, and the reason this button sat
+    // here built but left out of the row: it called submitAction, which would have
+    // filed the edit as a brand new action. It saves the edit and then opens the
+    // conditions modal against this action - or, when the action already has a
+    // condition, opens that one to be changed rather than adding a second, which
+    // the join that reads them back would draw as two actions.
     let submitGoToCondition = document.createElement("button");
     submitGoToCondition.innerText = "SUBMIT + go to CONDITIONS";
     submitGoToCondition.classList.add("button");
-    submitGoToCondition.setAttribute("onclick", "submitAction('1')");
+    submitGoToCondition.setAttribute(
+        "onclick",
+        `submitUpdateAction(${dataAidValue}, ${actionObj.ct_tbl_action.pID}, 1)`
+    );
 
     buttonContainer.appendChild(submit);
-    // buttonContainer.appendChild(submitGoToCondition);
-    // buttonContainer.appendChild(submitGoToCondition);
+    buttonContainer.appendChild(submitGoToCondition);
     container.appendChild(buttonContainer);
 
     modal.innerHTML = container.outerHTML;
 
     wireActionTextInput(modal);
+    wireActorSelect(modal);
 
     await document.removeEventListener("click", clickEventListener);
     document.addEventListener("click", clickEventListener);
@@ -609,6 +589,94 @@ async function modalUpdateAction(dataAidValue) {
 
     modalIsOpen = true;
     pushModal();
+
+    // Changing the actor redraws what belongs to the actor, and only that: their
+    // weapons, and which side of the fight the targets are on. The damage already
+    // typed against each target, the notes, and the conditions offered at the
+    // bottom all stay put - the action did happen and did land, it is only being
+    // credited to somebody else.
+    function wireActorSelect(modal) {
+        const select = modal.querySelector(".actor_select");
+        if (!select) {
+            return;
+        }
+        select.addEventListener("change", async function () {
+            const newActor = ctApp.find((participant) => {
+                return participant.pID == select.value;
+            });
+            if (!newActor) {
+                return;
+            }
+            await redrawToolsForActor(modal, newActor);
+            markOpposingTargets(modal, newActor);
+        });
+    }
+
+    async function redrawToolsForActor(modal, newActor) {
+        const toolList = modal.querySelector(".tool_list");
+        const textInput = modal.querySelector('input[name="weaponTextInput"]');
+        const checkedRadio = Array.from(
+            modal.querySelectorAll('input[name="weapons"]')
+        ).find((radio) => radio.checked);
+
+        // Only a tool needs replacing. "dash" is still "dash" whoever took it, and
+        // its radio lives outside this box, so the redraw must leave it checked.
+        const checkedTool =
+            checkedRadio && toolList.contains(checkedRadio) && checkedRadio.id != "default"
+                ? { toolID: checkedRadio.id, toolName: checkedRadio.value }
+                : null;
+        const noneWasChecked = !!checkedRadio && checkedRadio.id == "default";
+
+        const tools = await dbQuery("GET", "participantTools/" + newActor.chID);
+        const replacement = checkedTool
+            ? tools.find((item) => {
+                return item.toolID == checkedTool.toolID || item.toolName === checkedTool.toolName;
+            })
+            : null;
+        const fallsBackToNone = !!checkedTool && !replacement;
+
+        toolList.innerHTML = "";
+        toolList.appendChild(
+            buildToolRadios(newActor.pID, tools, {
+                checkedToolID: replacement ? replacement.toolID : null,
+                noneChecked: noneWasChecked || fallsBackToNone,
+                exceptAID: dataAidValue,
+                original: {
+                    toolID: actionObj.ct_tbl_action.toolID,
+                    toolName: originalToolName,
+                    conditionID: aIDObject.conditionID,
+                },
+            })
+        );
+        wireWeaponRadios(modal, toolList);
+
+        // The checked attribute decides what a radio group shows only until
+        // something in the group has been clicked, and by now something has, so
+        // the choice is made again on the property here.
+        if (replacement) {
+            toolList.querySelector('[id="' + replacement.toolID + '"]').checked = true;
+        } else if (fallsBackToNone) {
+            // The new actor has nothing by that name. Rather than let the action
+            // quietly empty itself out, the weapon it named becomes typed text,
+            // which is how the tracker shows an action it has no tool for.
+            toolList.querySelector("#default").checked = true;
+            textInput.value = checkedTool.toolName;
+        } else if (noneWasChecked) {
+            toolList.querySelector("#default").checked = true;
+        }
+    }
+
+    // Friend or foe is relative: the bold targets are the ones on the other side
+    // from the actor, so a change of actor can turn the list inside out.
+    function markOpposingTargets(modal, newActor) {
+        ctApp.forEach((participant) => {
+            const label = modal.querySelector("label.p" + participant.pID);
+            if (label) {
+                label.classList.toggle("bold-target", newActor.pc != participant.pc);
+            }
+        });
+    }
+
     function findHighestAIDByPID(array, targetPID) {
         // Filter the array to include only objects with the specified pID
         const filteredArray = array.filter(item => item.pID === parseInt(targetPID) && item.toolID != null);
@@ -652,4 +720,103 @@ async function modalUpdateAction(dataAidValue) {
         const resultForTargetID = combinedObject[targetID];
         return resultForTargetID;
     }
+}
+
+// The Weapons/Tools radios for one character sheet: NONE, then that character's
+// tools, with any once-per-day tool this participant has already spent greyed out.
+//
+// Built in one place because this modal draws the column twice - once for the
+// participant the action was recorded against, and again for whoever the actor
+// dropdown names instead, whose sheet is a different set of weapons.
+function buildToolRadios(participantID, tools, options) {
+    const settings = options || {};
+    const original = settings.original || {};
+    const fragment = document.createDocumentFragment();
+
+    const defaultTool = document.createElement("input");
+    defaultTool.setAttribute("type", "radio");
+    defaultTool.setAttribute("value", 0);
+    defaultTool.setAttribute("id", "default");
+    defaultTool.setAttribute("name", "weapons");
+    defaultTool.classList.add("pointer");
+    defaultTool.setAttribute("data-concentration", 0);
+    if (settings.noneChecked) {
+        defaultTool.setAttribute("checked", "true");
+    }
+    const defaultLabel = document.createElement("label");
+    defaultLabel.setAttribute("for", "default");
+    defaultLabel.classList.add("radio_buttons");
+    defaultLabel.classList.add("pointer");
+    defaultLabel.innerHTML = "NONE";
+    fragment.appendChild(defaultTool);
+    fragment.appendChild(defaultLabel);
+    fragment.appendChild(document.createElement("br"));
+
+    const spentTools = spentOncePerDayToolIDs(participantID, tools, settings.exceptAID);
+
+    (tools || []).forEach((item) => {
+        const toolIsSpent =
+            spentTools.has(String(item.toolID)) &&
+            item.toolID != settings.alwaysAvailableToolID;
+
+        const tool = document.createElement("input");
+        tool.setAttribute("type", "radio");
+        tool.setAttribute("value", item.toolName);
+        tool.setAttribute("id", item.toolID);
+        tool.classList.add("pointer");
+        tool.setAttribute("name", "weapons");
+        tool.setAttribute("data-concentration", item.concentration);
+        tool.setAttribute("data-holding", item.holding);
+        tool.setAttribute("data-holding-one-round", item.holding_one_round);
+        if (isOriginalTool(item, original)) {
+            tool.setAttribute("data-condition-id", original.conditionID);
+            tool.setAttribute("data-originalCheck", "1");
+        }
+        if (settings.checkedToolID && item.toolID == settings.checkedToolID) {
+            tool.setAttribute("checked", "checked");
+        }
+
+        const label = document.createElement("label");
+        label.setAttribute("for", item.toolID);
+        label.classList.add("radio_buttons", "pointer");
+        label.innerHTML =
+            item.toolName +
+            (item.damage_dice ? " (" + item.damage_dice + ")" : "");
+        if (item.holding == 1) {
+            const holdingSpan = document.createElement("span");
+            holdingSpan.innerHTML = "H";
+            holdingSpan.classList.add("holding");
+            label.appendChild(holdingSpan);
+        }
+        if (item.concentration == "1") {
+            const concentrationSpan = document.createElement("span");
+            concentrationSpan.innerHTML = "C";
+            concentrationSpan.classList.add("concentration");
+            label.appendChild(concentrationSpan);
+        }
+        if (toolIsSpent) {
+            markToolSpent(tool, label);
+        }
+
+        fragment.appendChild(tool);
+        fragment.appendChild(label);
+        fragment.appendChild(document.createElement("br"));
+    });
+
+    return fragment;
+}
+
+// Whether a tool is the one the action was saved with. Matched by name as well as
+// by id: tools hang off the character sheet, so the same scimitar on the goblin
+// beside this one is a different toolID, and handing the swing over should still
+// count as the same swing - which is what keeps submitUpdateAction from reading
+// the edit as a change of weapon and tearing down the condition it caused.
+function isOriginalTool(item, original) {
+    if (!original || !original.toolID) {
+        return false;
+    }
+    return (
+        item.toolID == original.toolID ||
+        (!!original.toolName && item.toolName === original.toolName)
+    );
 }
