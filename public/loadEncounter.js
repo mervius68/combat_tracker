@@ -114,9 +114,11 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
         const originalParticipants = getCtApp == true ? await dbQuery("GET", "participants/" + encounterID) : ctApp
         ctApp = originalParticipants ? [...originalParticipants] : null
 
+        // /participants already hands back the participant's own character_name: it is
+        // aliased at the end of that SELECT so it wins over the character sheet's copy,
+        // which is what the second request here existed to undo. That was one request
+        // per participant, each waiting on the last, before anything could be drawn.
         for (participant of originalParticipants) {
-            const newNames = await dbQuery("GET", "updatedNames/" + participant.pID)
-            participant.character_name = newNames[0].character_name
             // "Goblin #2" -> "Goblin", so same-named creatures can still be grouped
             // as one entry in the initiative dropdown and its modal
             participant.base_character_name = baseCharacterName(participant.character_name)
@@ -174,6 +176,32 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
             "GET",
             "getConditionsForCtApp/" + encounterID
         );
+
+        // Every affectee row belonging to this encounter, fetched once each. The round
+        // loop below used to ask the server for these a condition and a round at a
+        // time, from inside three nested loops - one request per condition per round,
+        // several hundred on a long fight, and the browser will only run six at once.
+        // The rows are the same rows; the round filtering the WHERE clauses used to do
+        // now happens in the two helpers beneath, against the round being drawn.
+        const allStillAffected = await dbQuery("GET", "allStillAffected/" + encounterID);
+        const allAffectees = await dbQuery("GET", "allAffectees/" + encounterID);
+
+        // Rounds arrive here as numbers from the database and as strings from the DOM,
+        // so both sides are coerced - the SQL comparisons these replace compared
+        // numerically whatever the URL segment looked like.
+        const stillAffectedIn = (conditionID, round) =>
+            allStillAffected.filter(
+                (row) =>
+                    Number(row.conditionID) === Number(conditionID) &&
+                    Number(row.end_round) >= Number(round)
+            );
+        const affecteesOf = (taID, round) =>
+            allAffectees.filter(
+                (row) =>
+                    Number(row.taID) === Number(taID) &&
+                    Number(row.start_round) <= Number(round) &&
+                    Number(row.end_round) >= Number(round)
+            );
 
         // determine how many rounds are represented in the database
         // for this encounter
@@ -544,14 +572,12 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
 
                     // if character has a condition/concentration, show icon with tooltip
 
-                    participant.conditionsArray.forEach(async (condition) => {
-                        let affecteesStill = await dbQuery(
-                            "GET",
-                            "anyoneStillAffected/" +
-                            condition.conditionID +
-                            "/" +
-                            i
-                        );
+                    // Not async any more. Nothing in here waits on the network, and
+                    // while it did, forEach did not wait for these callbacks either -
+                    // it ignores the promises they return - so the tooltips were being
+                    // written into the row after the code below had already moved on.
+                    participant.conditionsArray.forEach((condition) => {
+                        let affecteesStill = stillAffectedIn(condition.conditionID, i);
 
                         const maxValue = Math.max(
                             ...affecteesStill.map((obj) => obj.end_round)
@@ -604,10 +630,7 @@ async function load_encounter(encounterCode = 0, dataNav = 1, getCtApp = true) {
                                 affectedInitLower == false)
                         ) {
                             // get the participants who are affected by this condition.taID
-                            let affectees = await dbQuery(
-                                "GET",
-                                "getAffectees/" + condition.taID + "/" + i
-                            );
+                            let affectees = affecteesOf(condition.taID, i);
                             let affecteesString = "";
                             affectees.forEach((affectee, index) => {
                                 affecteesString +=

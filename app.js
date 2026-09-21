@@ -411,6 +411,36 @@ app.get("/getNextTargetID", (req, res) => {
     });
 });
 
+// Every affectee of every condition in one encounter, in one request.
+//
+// load_encounter used to ask for these a taID and a round at a time, from inside
+// the round loop, which meant one request per condition per round - several
+// hundred for a long fight, each one waiting on the last. The rows are the same
+// rows; the round filter that used to be in the WHERE is now done on the client,
+// which already has the round in hand. Same SELECT and same join order as
+// /getAffectees below, so the columns come back identical.
+//
+// The encounter is reached through a subquery rather than a third join: taID is
+// unique in ct_tbl_condition today, but a join would silently start duplicating
+// affectees - and so repeating names in the tooltip - if that ever stopped
+// being true.
+app.get("/allAffectees/:eID", (req, res) => {
+    let eID = req.params.eID;
+    let sql = `SELECT *
+        FROM ct_tbl_condition_affectee
+        JOIN ct_tbl_participant ON ct_tbl_condition_affectee.affected_pID = ct_tbl_participant.pID
+        WHERE ct_tbl_condition_affectee.taID IN (SELECT taID FROM ct_tbl_condition WHERE eID = ${eID})
+                ORDER by caID ASC
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
 app.get("/getAffectees/:taID/:round", (req, res) => {
     let taID = req.params.taID;
     let round = req.params.round;
@@ -1942,6 +1972,28 @@ app.get("/conditionsInEffect/:eID/:round", (req, res) => {
         LEFT JOIN tbl_condition_pool ON ct_tbl_condition.cpID = tbl_condition_pool.cpID
         LEFT JOIN ct_tbl_condition_affectee ON ct_tbl_condition.taID = ct_tbl_condition_affectee.taID
                 WHERE ct_tbl_condition.eID = "${eID}" AND ct_tbl_condition_affectee.start_round <= ${round} AND ct_tbl_condition_affectee.end_round >= ${round}
+                `;
+    let query = db.all(sql, [], (err, results) => {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+        res.send(results);
+    });
+});
+
+// The same rows /anyoneStillAffected returns, for every condition in one
+// encounter at once. See the note on /allAffectees: this was the other query
+// load_encounter ran from inside the round loop, once per condition per round.
+// The end_round filter moves to the client, which knows the round it is drawing.
+app.get("/allStillAffected/:eID", (req, res) => {
+    let eID = req.params.eID;
+    let sql = `SELECT *
+        FROM ct_tbl_condition
+        JOIN ct_tbl_condition_affectee ON ct_tbl_condition.taID = ct_tbl_condition_affectee.taID
+        JOIN ct_tbl_participant ON ct_tbl_condition.pID = ct_tbl_participant.pID
+                WHERE ct_tbl_condition.eID = ${eID}
+                ORDER by caID ASC
                 `;
     let query = db.all(sql, [], (err, results) => {
         if (err) {
